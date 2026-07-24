@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { Product, RetailerConfig, Order, Transaction } from "@/types";
+import fs from "fs";
+import path from "path";
 
 // Initial Seeds
 const DEFAULT_RETAILERS: RetailerConfig[] = [
@@ -189,7 +191,7 @@ const INITIAL_ORDERS: Order[] = [
     retailerId: "apple",
     retailPriceUSD: 1099.00,
     paidSOL: 7.23,
-    receivedUSDT: 1230.88,
+    receivedUSDC: 1230.88,
     txHash: "5k9X...82jQ",
     swapTxHash: "mock_jup_swap_8271",
     status: "paid",
@@ -197,16 +199,61 @@ const INITIAL_ORDERS: Order[] = [
   }
 ];
 
-// Global Shared Server Memory Store
-let store = {
+const INITIAL_STORE = {
   retailers: [...DEFAULT_RETAILERS],
   products: [...DEFAULT_PRODUCTS],
   orders: [...INITIAL_ORDERS],
   transactions: [] as Transaction[],
+  settings: {
+    marketplaceMarkup: 10,
+    supportedCryptos: ["SOL", "USDC"],
+    defaultSolWallet: "So11111111111111111111111111111111111111112",
+    rpcProvider: "Helius Mainnet Beta",
+    emailAlerts: false,
+    maintenanceMode: false,
+    taxRate: 5,
+    shippingFeeUSD: 5.00,
+    freeShippingThresholdUSD: 100.00,
+    featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
+  },
   version: "4.20.0"
 };
 
+// JSON Database file path inside workspace
+const DB_FILE_PATH = path.join(process.cwd(), "src", "data", "db.json");
+
+function readDb() {
+  try {
+    if (!fs.existsSync(DB_FILE_PATH)) {
+      const dir = path.dirname(DB_FILE_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(DB_FILE_PATH, JSON.stringify(INITIAL_STORE, null, 2), "utf-8");
+      return INITIAL_STORE;
+    }
+    const dataStr = fs.readFileSync(DB_FILE_PATH, "utf-8");
+    return JSON.parse(dataStr);
+  } catch (e) {
+    console.error("Failed to read persistent JSON DB, returning defaults", e);
+    return INITIAL_STORE;
+  }
+}
+
+function writeDb(data: any) {
+  try {
+    const dir = path.dirname(DB_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch (e) {
+    console.error("Failed to write persistent JSON DB", e);
+  }
+}
+
 export async function GET() {
+  const store = readDb();
   return NextResponse.json({
     success: true,
     version: store.version,
@@ -216,15 +263,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const store = readDb();
     const body = await request.json();
     const { action, payload } = body;
 
     if (action === "updateRetailerMarkup") {
       const { retailerId, markupPercentage } = payload;
-      const rIndex = store.retailers.findIndex(r => r.id === retailerId);
+      const rIndex = store.retailers.findIndex((r: any) => r.id === retailerId);
       if (rIndex !== -1) {
         store.retailers[rIndex].markupPercentage = markupPercentage;
-        store.products = store.products.map(p => {
+        store.products = store.products.map((p: any) => {
           if (p.retailerId === retailerId) {
             return {
               ...p,
@@ -235,7 +283,7 @@ export async function POST(request: Request) {
         });
       }
     } else if (action === "addProduct") {
-      const retailer = store.retailers.find(r => r.id === payload.retailerId) || { markupPercentage: 10 };
+      const retailer = store.retailers.find((r: any) => r.id === payload.retailerId) || { markupPercentage: 10 };
       const marketplacePrice = parseFloat((payload.retailPrice * (1 + retailer.markupPercentage / 100)).toFixed(2));
       const newProd: Product = {
         rating: 5.0,
@@ -246,12 +294,12 @@ export async function POST(request: Request) {
       };
       store.products.push(newProd);
     } else if (action === "deleteProduct") {
-      store.products = store.products.filter(p => p.id !== payload.productId);
+      store.products = store.products.filter((p: any) => p.id !== payload.productId);
     } else if (action === "createOrder") {
       store.orders.unshift(payload);
     } else if (action === "updateOrderStatus") {
       const { orderId, status, details } = payload;
-      const oIndex = store.orders.findIndex(o => o.id === orderId);
+      const oIndex = store.orders.findIndex((o: any) => o.id === orderId);
       if (oIndex !== -1) {
         store.orders[oIndex] = {
           ...store.orders[oIndex],
@@ -259,15 +307,17 @@ export async function POST(request: Request) {
           ...details
         };
       }
-    } else if (action === "resetToDefault") {
-      store = {
-        retailers: [...DEFAULT_RETAILERS],
-        products: [...DEFAULT_PRODUCTS],
-        orders: [...INITIAL_ORDERS],
-        transactions: [],
-        version: "4.20.0"
+    } else if (action === "updateSettings") {
+      store.settings = {
+        ...store.settings,
+        ...payload
       };
+    } else if (action === "createTransaction") {
+      store.transactions.unshift(payload);
     }
+
+    // Persist changes directly to file
+    writeDb(store);
 
     return NextResponse.json({
       success: true,

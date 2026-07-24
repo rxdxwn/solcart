@@ -53,12 +53,14 @@ const DEFAULT_TICKETS = [
 
 const DEFAULT_SETTINGS = {
   marketplaceMarkup: 10,
-  supportedCryptos: ["SOL", "USDT"],
+  supportedCryptos: ["SOL", "USDC"],
   defaultSolWallet: "So11111111111111111111111111111111111111112",
   rpcProvider: "Helius Mainnet Beta",
   emailAlerts: false,
   maintenanceMode: false,
   taxRate: 5,
+  shippingFeeUSD: 5.00,
+  freeShippingThresholdUSD: 100.00,
   featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
 };
 
@@ -74,7 +76,7 @@ const MOCK_ORDERS: Order[] = [
     retailerId: "nike",
     retailPriceUSD: 165.00,
     paidSOL: 2.1054,
-    receivedUSDT: 165.00,
+    receivedUSDC: 165.00,
     txHash: "5TqW6Y6D1a2b3c4d5e6f7g8h9i0jKaKbKcKdKeKfKgKhKiKjKlKmKnKoKpKqKrKs",
     status: "delivered",
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
@@ -92,7 +94,7 @@ const MOCK_ORDERS: Order[] = [
     retailerId: "apple",
     retailPriceUSD: 273.90,
     paidSOL: 3.5115,
-    receivedUSDT: 273.90,
+    receivedUSDC: 273.90,
     txHash: "4PqW5X5C2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d",
     status: "shipped",
     timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
@@ -110,7 +112,7 @@ const MOCK_ORDERS: Order[] = [
     retailerId: "amazon",
     retailPriceUSD: 217.80,
     paidSOL: 2.7923,
-    receivedUSDT: 217.80,
+    receivedUSDC: 217.80,
     txHash: "3RqW4Z4D3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d",
     status: "paid",
     timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
@@ -126,7 +128,7 @@ const MOCK_ORDERS: Order[] = [
     retailerId: "nike",
     retailPriceUSD: 132.00,
     paidSOL: 1.6923,
-    receivedUSDT: 132.00,
+    receivedUSDC: 132.00,
     txHash: "2AqW3Y3B4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d",
     status: "refunded",
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
@@ -135,7 +137,7 @@ const MOCK_ORDERS: Order[] = [
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   { id: "tx-1", orderId: "ord-827392", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "payment", amount: 2.1054, token: "SOL", status: "success", txHash: "5TqW6Y6D1a2b3c4d5e6f7g8h9i0jKaKbKcKdKeKfKgKhKiKjKlKmKnKoKpKqKrKs", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "tx-2", orderId: "ord-827392", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "swap", amount: 165.00, token: "USDT", status: "success", txHash: "swap_hash_1234", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "tx-2", orderId: "ord-827392", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "swap", amount: 165.00, token: "USDC", status: "success", txHash: "swap_hash_1234", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
   { id: "tx-3", orderId: "ord-981273", walletAddress: "SoLFLarE987aBCDeFGHiJKLmNoPQRstUVwXyz7654321", type: "payment", amount: 3.5115, token: "SOL", status: "success", txHash: "4PqW5X5C2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d", timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
   { id: "tx-4", orderId: "ord-102938", walletAddress: "BacKPaCK111aBCDeFGHiJKLmNoPQRstUVwXyz9999999", type: "payment", amount: 2.7923, token: "SOL", status: "success", txHash: "3RqW4Z4D3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d", timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
   { id: "tx-5", orderId: "ord-482716", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "payment", amount: 1.6923, token: "SOL", status: "success", txHash: "2AqW3Y3B4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
@@ -223,8 +225,17 @@ export class SupabaseService {
       const res = await fetch("/api/db");
       if (res.ok) {
         const result = await res.json();
-        if (result.success && result.data && result.data.orders) {
-          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(result.data.orders));
+        if (result.success && result.data) {
+          if (result.data.orders) {
+            localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(result.data.orders));
+          }
+          if (result.data.transactions) {
+            localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(result.data.transactions));
+          }
+          if (result.data.settings) {
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(result.data.settings));
+          }
+          window.dispatchEvent(new Event("solcart-db-synced"));
         }
       }
     } catch (e) {
@@ -340,6 +351,16 @@ export class SupabaseService {
     const txs = this.getTransactions();
     txs.unshift(newTx);
     localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(txs));
+
+    // Post to central server DB API
+    fetch("/api/db", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "createTransaction",
+        payload: newTx
+      })
+    }).catch(() => {});
 
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
@@ -617,6 +638,17 @@ export class SupabaseService {
     const merged = { ...settings, ...updated };
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
+      
+      // Post to central server DB API
+      fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateSettings",
+          payload: merged
+        })
+      }).catch(() => {});
+
       const currentUser = this.getCurrentUser();
       const actor = currentUser ? currentUser.name : "System";
       this.logActivity("Settings", "Updated global system configurations", "security", actor);

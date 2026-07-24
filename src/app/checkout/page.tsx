@@ -194,12 +194,12 @@ export default function CheckoutPage() {
         console.warn("Backend verification API check completed with fallback approval", verifyError);
       }
       
-      // 3. Initiate Jupiter Swap to USDT
+      // 3. Initiate Jupiter Swap to USDC
       setPaymentStep('swapping');
-      setStatusMessage("Payment verified by backend! Routing SOL to USDT via Jupiter Swap V6...");
+      setStatusMessage("Payment verified by backend! Routing SOL to USDC via Jupiter Swap V6...");
       
       const swapQuote = await JupiterService.prepareSwap(totalSOL);
-      const usdtReceived = swapQuote.outAmountUSDT;
+      const usdcReceived = swapQuote.outAmountUSDC;
       const swapTxHash = `mock_jupiter_swap_${Math.random().toString(36).substr(2, 16)}`;
       
       await new Promise(resolve => setTimeout(resolve, 2500));
@@ -236,7 +236,7 @@ export default function CheckoutPage() {
         retailerId: primaryRetailerId,
         retailPriceUSD: totalUSD,
         paidSOL: totalSOL,
-        receivedUSDT: parseFloat(usdtReceived.toFixed(2)),
+        receivedUSDC: parseFloat(usdcReceived.toFixed(2)),
         txHash,
         swapTxHash,
         status: "paid"
@@ -258,8 +258,8 @@ export default function CheckoutPage() {
         orderId: createdOrder.id,
         walletAddress: walletAddress!,
         type: "swap",
-        amount: parseFloat(usdtReceived.toFixed(2)),
-        token: "USDT",
+        amount: parseFloat(usdcReceived.toFixed(2)),
+        token: "USDC",
         status: "success",
         txHash: swapTxHash
       });
@@ -589,7 +589,7 @@ export default function CheckoutPage() {
           <div className="text-[10px] text-brand-text-muted leading-relaxed text-center bg-brand-dark/20 border border-brand-border/40 rounded-xl p-3 flex gap-2">
             <Info className="h-4 w-4 text-brand-purple shrink-0 mt-0.5" />
             <span className="text-left">
-              Fulfillment occurs automatically. Your SOL is swapped to stable USDT to secure product acquisition.
+              Fulfillment occurs automatically. Your SOL is swapped to stable USDC to secure product acquisition.
             </span>
           </div>
 
@@ -653,7 +653,7 @@ export default function CheckoutPage() {
               {[
                 { name: 'Sign', label: 'Wallet Signature', activeSteps: ['signature_pending', 'broadcasting', 'swapping', 'fulfilling', 'success'] },
                 { name: 'SOL', label: 'Transfer Broadcast', activeSteps: ['broadcasting', 'swapping', 'fulfilling', 'success'] },
-                { name: 'Swap', label: 'Jupiter USDT Swap', activeSteps: ['swapping', 'fulfilling', 'success'] },
+                { name: 'Swap', label: 'Jupiter USDC Swap', activeSteps: ['swapping', 'fulfilling', 'success'] },
                 { name: 'Done', label: 'Order Complete', activeSteps: ['success'] }
               ].map((dot, idx) => {
                 const isPassed = dot.activeSteps.includes(paymentStep);

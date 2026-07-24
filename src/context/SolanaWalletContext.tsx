@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { Transaction, SystemProgram, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Transaction, SystemProgram, PublicKey, LAMPORTS_PER_SOL, VersionedTransaction, Connection } from "@solana/web3.js";
 import { HeliusService, MERCHANT_WALLET_ADDRESS } from "../services/helius";
+import { JupiterService } from "../services/jupiter";
 
 export type WalletProviderName = "Phantom" | "Solflare" | "Backpack" | "SOLCart Test Wallet";
 export type SolanaNetwork = "Mainnet" | "Devnet" | "Simulated";
@@ -336,43 +337,150 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return { success: false, signature: "", error: `${walletName || "Solflare"} extension not detected in browser.` };
       }
 
-      const connection = HeliusService.getConnection(networkStatus === "Mainnet" ? "Mainnet" : "Devnet");
+      let connection = HeliusService.getConnection(networkStatus === "Mainnet" ? "Mainnet" : "Devnet");
       const fromPubkey = new PublicKey(walletAddress);
       
-      // Merchant recipient or fallback to fromPubkey self-transfer if recipient invalid
-      let toPubkey: PublicKey;
+      // Auto-failover blockhash fetch to bypass 403 Forbidden
+      let blockhash = "";
       try {
-        toPubkey = new PublicKey(MERCHANT_WALLET_ADDRESS);
-      } catch {
-        toPubkey = fromPubkey;
+        const bhRes = await connection.getLatestBlockhash("confirmed");
+        blockhash = bhRes.blockhash;
+      } catch (err) {
+        console.warn("Primary RPC connection failed, falling back to public RPC nodes", err);
+        const fallbackUrl = networkStatus === "Mainnet" 
+          ? "https://solana-rpc.publicnode.com" 
+          : "https://api.devnet.solana.com";
+        connection = new Connection(fallbackUrl, "confirmed");
+        const bhRes = await connection.getLatestBlockhash("confirmed");
+        blockhash = bhRes.blockhash;
       }
-
-      // Fetch recent blockhash from Solana RPC
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-
-      // Construct Transfer Instruction & Transaction
-      const lamports = Math.max(1, Math.round(amountSOL * LAMPORTS_PER_SOL));
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey,
-          toPubkey,
-          lamports
-        })
-      );
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = fromPubkey;
 
       let txHash = "";
 
-      // Solflare & Solana Wallet standard signAndSendTransaction method
-      if (typeof provider.signAndSendTransaction === "function") {
-        const res = await provider.signAndSendTransaction(transaction);
-        txHash = typeof res === "string" ? res : res.signature;
-      } else if (typeof provider.signTransaction === "function") {
-        const signed = await provider.signTransaction(transaction);
-        txHash = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+      if (networkStatus === "Mainnet") {
+        // Execute REAL SOL -> USDC Swap with output routing to MERCHANT_WALLET_ADDRESS
+        try {
+          const swapRes = await fetch("/api/swap", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              solAmount: amountSOL,
+              userPublicKey: walletAddress,
+              destinationWallet: MERCHANT_WALLET_ADDRESS
+            })
+          });
+
+          if (!swapRes.ok) {
+            const errBody = await swapRes.json().catch(() => ({ error: "Unknown error" }));
+            throw new Error(errBody.error || `HTTP ${swapRes.status}`);
+          }
+
+          const swapData = await swapRes.json();
+          if (!swapData.success || !swapData.swapTransaction) {
+            throw new Error(swapData.error || "Failed to retrieve swap transaction from proxy.");
+          }
+
+          // Web-safe Base64 deserialization without Node.js Buffer
+          const binaryString = window.atob(swapData.swapTransaction);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const transaction = VersionedTransaction.deserialize(bytes);
+
+          if (typeof provider.signTransaction === "function") {
+            const signed = await provider.signTransaction(transaction);
+            const rpcPool = [
+              connection,
+              new Connection("https://rpc.ankr.com/solana", "confirmed"),
+              new Connection("https://api.mainnet-beta.solana.com", "confirmed"),
+              new Connection("https://solana-mainnet.rpc.extrnode.com", "confirmed")
+            ];
+            let broadcastErr: any = null;
+            for (const conn of rpcPool) {
+              try {
+                txHash = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+                if (txHash) {
+                  connection = conn;
+                  broadcastErr = null;
+                  break;
+                }
+              } catch (err) {
+                console.warn("Failed to broadcast swap transaction on RPC node, trying next...", err);
+                broadcastErr = err;
+              }
+            }
+            if (broadcastErr) throw broadcastErr;
+          } else if (typeof provider.signAndSendTransaction === "function") {
+            const res = await provider.signAndSendTransaction(transaction);
+            txHash = typeof res === "string" ? res : res.signature;
+          } else {
+            throw new Error("Wallet provider does not support signing versioned transactions.");
+          }
+        } catch (swapError: any) {
+          console.warn("Mainnet Jupiter Swap failed, falling back to direct transfer", swapError);
+          const errorMsg = swapError.message || swapError.toString();
+          alert(`Jupiter swap to USDC failed. Error: ${errorMsg}\n\nFalling back to direct SOL transfer to merchant.`);
+          // Fallback to direct SOL transfer if swap fails
+          const toPubkey = new PublicKey(MERCHANT_WALLET_ADDRESS);
+          const lamports = Math.max(1, Math.round(amountSOL * LAMPORTS_PER_SOL));
+          const transaction = new Transaction().add(
+            SystemProgram.transfer({ fromPubkey, toPubkey, lamports })
+          );
+          transaction.recentBlockhash = blockhash;
+          transaction.feePayer = fromPubkey;
+
+          if (typeof provider.signTransaction === "function") {
+            const signed = await provider.signTransaction(transaction);
+            const rpcPool = [
+              connection,
+              new Connection("https://rpc.ankr.com/solana", "confirmed"),
+              new Connection("https://api.mainnet-beta.solana.com", "confirmed")
+            ];
+            let broadcastErr: any = null;
+            for (const conn of rpcPool) {
+              try {
+                txHash = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+                if (txHash) {
+                  connection = conn;
+                  broadcastErr = null;
+                  break;
+                }
+              } catch (err) {
+                console.warn("Failed to broadcast fallback transaction on RPC node, trying next...", err);
+                broadcastErr = err;
+              }
+            }
+            if (broadcastErr) throw broadcastErr;
+          } else if (typeof provider.signAndSendTransaction === "function") {
+            const res = await provider.signAndSendTransaction(transaction);
+            txHash = typeof res === "string" ? res : res.signature;
+          } else {
+            throw new Error("Wallet provider does not support signTransaction or signAndSendTransaction");
+          }
+        }
       } else {
-        throw new Error("Wallet provider does not support signTransaction or signAndSendTransaction");
+        // Devnet fallback: Direct SOL transfer
+        const toPubkey = new PublicKey(MERCHANT_WALLET_ADDRESS);
+        const lamports = Math.max(1, Math.round(amountSOL * LAMPORTS_PER_SOL));
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({ fromPubkey, toPubkey, lamports })
+        );
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = fromPubkey;
+
+        if (typeof provider.signTransaction === "function") {
+          const signed = await provider.signTransaction(transaction);
+          txHash = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+        } else if (typeof provider.signAndSendTransaction === "function") {
+          const res = await provider.signAndSendTransaction(transaction);
+          txHash = typeof res === "string" ? res : res.signature;
+        } else {
+          throw new Error("Wallet provider does not support signTransaction or signAndSendTransaction");
+        }
       }
 
       // Wait for on-chain block confirmation

@@ -74,7 +74,7 @@ export interface Order {
   retailerId: string; // Sourced from item's retailer
   retailPriceUSD: number;
   paidSOL: number;
-  receivedUSDT: number;
+  receivedUSDC: number;
   txHash: string;
   swapTxHash?: string;
   status: OrderStatus;
@@ -89,7 +89,7 @@ export interface Transaction {
   walletAddress: string;
   type: 'payment' | 'swap' | 'refund';
   amount: number;
-  token: 'SOL' | 'USDT';
+  token: 'SOL' | 'USDC';
   status: 'pending' | 'success' | 'failed';
   txHash: string;
   timestamp: string;

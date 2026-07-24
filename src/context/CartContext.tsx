@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CartItem, Product } from "../types";
 import { getSolPrice } from "../lib/jupiter";
+import { SupabaseService } from "../services/supabase";
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -63,10 +64,39 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const [settings, setSettings] = useState(() => {
+    return typeof window !== "undefined" ? SupabaseService.getSettings() : {
+      marketplaceMarkup: 10,
+      supportedCryptos: ["SOL", "USDC"],
+      defaultSolWallet: "So11111111111111111111111111111111111111112",
+      rpcProvider: "Helius Mainnet Beta",
+      emailAlerts: false,
+      maintenanceMode: false,
+      taxRate: 5,
+      shippingFeeUSD: 5.00,
+      freeShippingThresholdUSD: 100.00,
+      featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
+    };
+  });
+
   useEffect(() => {
+    const handleSync = () => {
+      setSettings(SupabaseService.getSettings());
+    };
+    
+    const sync = async () => {
+      await SupabaseService.syncWithServer();
+      handleSync();
+    };
+    sync();
     refreshSOLPrice();
+    
+    window.addEventListener("solcart-db-synced", handleSync);
     const interval = setInterval(refreshSOLPrice, 15000); // Poll every 15 seconds (auto-refresh)
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("solcart-db-synced", handleSync);
+    };
   }, []);
 
   const addToCart = (product: Product, quantity: number = 1) => {
@@ -112,8 +142,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     0
   );
 
-  // Flat $5.00 shipping, free shipping for orders over $100
-  const shippingUSD = subtotalUSD > 0 && subtotalUSD < 100 ? 5.00 : 0;
+  const configuredShippingFee = settings.shippingFeeUSD !== undefined ? settings.shippingFeeUSD : 5.00;
+  const configuredThreshold = settings.freeShippingThresholdUSD !== undefined ? settings.freeShippingThresholdUSD : 100.00;
+
+  // Shipping cost dynamic based on admin controls
+  const shippingUSD = subtotalUSD > 0 && subtotalUSD < configuredThreshold ? configuredShippingFee : 0;
 
   // Platform checkout fee: 1.5% of subtotal
   const marketplaceFeeUSD = parseFloat((subtotalUSD * 0.015).toFixed(2));

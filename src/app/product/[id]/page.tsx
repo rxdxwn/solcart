@@ -34,10 +34,16 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState<"specs" | "shipping" | "reviews">("specs");
 
   useEffect(() => {
-    const prod = RetailerService.getProductById(id);
-    if (prod) {
-      setProduct(prod);
-    }
+    const handleSync = () => {
+      const prod = RetailerService.getProductById(id);
+      if (prod) {
+        setProduct(prod);
+      }
+    };
+    
+    handleSync();
+    window.addEventListener("solcart-db-synced", handleSync);
+    return () => window.removeEventListener("solcart-db-synced", handleSync);
   }, [id]);
 
   if (!product) {
@@ -61,7 +67,7 @@ export default function ProductDetailPage({ params }: PageProps) {
       rating: 5,
       date: "2 days ago",
       title: "Extremely fast fulfillment!",
-      comment: `Ordered this shoe with SOL. SOLCart swapped it to USDT and Nike placed the order within 10 minutes. Delivered in pristine Nike box. Amazing experience!`
+      comment: `Ordered this shoe with SOL. SOLCart swapped it to USDC and Nike placed the order within 10 minutes. Delivered in pristine Nike box. Amazing experience!`
     },
     {
       id: "r2",
@@ -299,7 +305,7 @@ export default function ProductDetailPage({ params }: PageProps) {
               <div>
                 <h4 className="font-bold text-white">Automatic Order Placement</h4>
                 <p className="mt-1">
-                  Once your SOL payment is broadcasted and verified on-chain, we convert the payment to USDT via Jupiter Swap API. The order is immediately processed with our fulfillment partner and placed on the retailer site (e.g. {retailer?.name}).
+                  Once your SOL payment is broadcasted and verified on-chain, we convert the payment to USDC via Jupiter Swap API. The order is immediately processed with our fulfillment partner and placed on the retailer site (e.g. {retailer?.name}).
                 </p>
               </div>
             </div>

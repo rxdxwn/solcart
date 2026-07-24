@@ -330,6 +330,7 @@ export class RetailerService {
         if (result.success && result.data) {
           localStorage.setItem("solcart_retailers", JSON.stringify(result.data.retailers));
           localStorage.setItem("solcart_products", JSON.stringify(result.data.products));
+          window.dispatchEvent(new Event("solcart-db-synced"));
         }
       }
     } catch (e) {

@@ -39,8 +39,8 @@ export default function Home() {
     },
     {
       icon: <RefreshCw className="h-6 w-6 text-indigo-400" />,
-      title: "Swapped to USDT",
-      desc: "Jupiter Protocol swaps your SOL to USDT instantly to settle funds."
+      title: "Swapped to USDC",
+      desc: "Jupiter Protocol swaps your SOL to USDC instantly to settle funds."
     },
     {
       icon: <Cpu className="h-6 w-6 text-pink-500" />,
@@ -83,7 +83,7 @@ export default function Home() {
           </h1>
           
           <p className="max-w-xl text-md sm:text-lg text-brand-text-muted mt-6 leading-relaxed">
-            Pay with SOL. We handle the rest. Instantly swap to USDT and purchase goods from major stores with auto-fulfillment.
+            Pay with SOL. We handle the rest. Instantly swap to USDC and purchase goods from major stores with auto-fulfillment.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-10 w-full sm:w-auto justify-center">
@@ -201,14 +201,14 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Card 2: Instant Conversion to USDT */}
+          {/* Card 2: Instant Conversion to USDC */}
           <div className="glass-card rounded-2xl p-6 border border-brand-border/40">
             <div className="h-10 w-10 rounded-lg bg-brand-green/10 border border-brand-green/20 flex items-center justify-center mb-5">
               <RefreshCw className="h-5 w-5 text-brand-green" />
             </div>
-            <h3 className="text-md font-bold text-white tracking-tight">Instant USDT Swaps</h3>
+            <h3 className="text-md font-bold text-white tracking-tight">Instant USDC Swaps</h3>
             <p className="text-xs text-brand-text-muted mt-3 leading-relaxed">
-              All payment transactions are automatically routed through Jupiter Swap protocols. SOL is swapped to USDT immediately to shield settlements from market volatility.
+              All payment transactions are automatically routed through Jupiter Swap protocols. SOL is swapped to USDC immediately to shield settlements from market volatility.
             </p>
           </div>
 

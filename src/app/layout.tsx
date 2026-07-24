@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SOLCart – Shop Major Online Retailers Using Solana",
-  description: "Spend your SOL directly on Amazon, Nike, Apple, Best Buy, and Walmart. Fast conversions to USDT, automatic order fulfillment, and live tracking.",
+  description: "Spend your SOL directly on Amazon, Nike, Apple, Best Buy, and Walmart. Fast conversions to USDC, automatic order fulfillment, and live tracking.",
 };
 
 export default function RootLayout({

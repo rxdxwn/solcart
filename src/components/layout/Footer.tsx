@@ -26,7 +26,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs leading-relaxed text-brand-text-muted">
-              Pay with Solana. We instantly convert your transaction to USDT and purchase the products from major online retailers for direct delivery to your door.
+              Pay with Solana. We instantly convert your transaction to USDC and purchase the products from major online retailers for direct delivery to your door.
             </p>
           </div>
 

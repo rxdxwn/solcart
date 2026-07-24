@@ -41,6 +41,7 @@ import { SupabaseService } from "../../services/supabase";
 import { APP_VERSION } from "../../lib/version";
 
 import { Order, Transaction, Product, RetailerConfig, RefundRequest, ActivityLog } from "../../types";
+import { Connection, PublicKey, Transaction as SolanaTx, TransactionInstruction, SystemProgram } from "@solana/web3.js";
 
 // Recharts imports for beautiful business analytics
 import { 
@@ -61,13 +62,13 @@ import {
 
 // Predefined mock data for charts
 const REVENUE_TREND_DATA = [
-  { date: "Jul 12", SOL: 12.4, USDT: 950 },
-  { date: "Jul 13", SOL: 18.2, USDT: 1420 },
-  { date: "Jul 14", SOL: 15.6, USDT: 1210 },
-  { date: "Jul 15", SOL: 24.8, USDT: 1890 },
-  { date: "Jul 16", SOL: 32.1, USDT: 2510 },
-  { date: "Jul 17", SOL: 29.5, USDT: 2280 },
-  { date: "Jul 18", SOL: 38.6, USDT: 3100 }
+  { date: "Jul 12", SOL: 12.4, USDC: 950 },
+  { date: "Jul 13", SOL: 18.2, USDC: 1420 },
+  { date: "Jul 14", SOL: 15.6, USDC: 1210 },
+  { date: "Jul 15", SOL: 24.8, USDC: 1890 },
+  { date: "Jul 16", SOL: 32.1, USDC: 2510 },
+  { date: "Jul 17", SOL: 29.5, USDC: 2280 },
+  { date: "Jul 18", SOL: 38.6, USDC: 3100 }
 ];
 
 const CATEGORY_SALES_DATA = [
@@ -151,7 +152,15 @@ export default function AdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Sync admin database logs on load/changes
-  const refreshAllData = () => {
+  const refreshAllData = async () => {
+    try {
+      await Promise.all([
+        RetailerService.syncWithServer(),
+        SupabaseService.syncWithServer()
+      ]);
+    } catch (e) {
+      console.warn("Admin server sync skipped", e);
+    }
     setOrders(SupabaseService.getOrders());
     setTransactions(SupabaseService.getTransactions());
     setRetailers(RetailerService.getRetailers());
@@ -227,8 +236,8 @@ export default function AdminDashboard() {
   // Generate Reports
   const exportRevenueReport = () => {
     const rows = [
-      ["Order ID", "Date", "Customer", "Wallet Address", "Retailer", "Retail Cost (USD)", "Marketplace Price (USD)", "SOL Paid", "USDT Swapped", "Fulfillment Status"],
-      ...orders.map(o => [o.id, o.timestamp, o.customerDetails.name, o.walletAddress, o.retailerId, o.retailPriceUSD, o.retailPriceUSD, o.paidSOL, o.receivedUSDT, o.status])
+      ["Order ID", "Date", "Customer", "Wallet Address", "Retailer", "Retail Cost (USD)", "Marketplace Price (USD)", "SOL Paid", "USDC Swapped", "Fulfillment Status"],
+      ...orders.map(o => [o.id, o.timestamp, o.customerDetails.name, o.walletAddress, o.retailerId, o.retailPriceUSD, o.retailPriceUSD, o.paidSOL, o.receivedUSDC, o.status])
     ];
     downloadCSV(`solcart_revenue_report_${new Date().toISOString().slice(0,10)}.csv`, rows);
   };
@@ -243,7 +252,7 @@ export default function AdminDashboard() {
 
   // Calculate Overview Metrics
   const totalSalesUSD = orders.reduce((acc, o) => acc + o.retailPriceUSD, 0);
-  const totalUSDT = orders.reduce((acc, o) => acc + o.receivedUSDT, 0);
+  const totalUSDC = orders.reduce((acc, o) => acc + o.receivedUSDC, 0);
   const totalSOL = orders.reduce((acc, o) => acc + o.paidSOL, 0);
   const totalFEEUSD = orders.reduce((acc, o) => acc + (o.retailPriceUSD * 0.015), 0); // 1.5% marketplace fee
   
@@ -511,29 +520,15 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <button
                 onClick={async () => {
-                  await RetailerService.syncWithServer();
-                  await SupabaseService.syncWithServer();
-                  refreshAllData();
+                  await refreshAllData();
                 }}
                 className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-brand-purple/15 text-brand-purple border border-brand-purple/30 hover:bg-brand-purple/25 transition-all flex items-center gap-1"
                 title="Sync database state across all browser windows and incognito mode"
               >
                 <RotateCcw className="h-3 w-3" />
-                Sync Data
+                Sync & Refresh
               </button>
 
-              <button
-                onClick={() => {
-                  if (confirm("Reset database to clean v4.20 default state across all browser windows?")) {
-                    RetailerService.resetDatabase();
-                    refreshAllData();
-                  }
-                }}
-                className="px-2 py-1 text-[10px] font-semibold rounded-lg bg-brand-card hover:bg-brand-border/40 text-brand-text-muted hover:text-white border border-brand-border/60 transition-all"
-                title="Reset cache to default v4.20 seed"
-              >
-                Reset Seed
-              </button>
 
               <div className="flex items-center gap-1.5 bg-brand-card border border-brand-border/60 px-3 py-1 rounded-lg">
                 <span className="text-[10px] text-brand-text-muted uppercase tracking-wider hidden lg:inline">Switch Role:</span>
@@ -668,8 +663,8 @@ export default function AdminDashboard() {
                       <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{totalSOL.toFixed(2)} SOL</p>
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
-                      <span className="text-[10px] font-bold text-brand-text-muted uppercase">USDT Converted</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${totalUSDT.toFixed(2)}</p>
+                      <span className="text-[10px] font-bold text-brand-text-muted uppercase">USDC Converted</span>
+                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${totalUSDC.toFixed(2)}</p>
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Marketplace fees</span>
@@ -709,7 +704,7 @@ export default function AdminDashboard() {
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={REVENUE_TREND_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
-                              <linearGradient id="colorUsdt" x1="0" y1="0" x2="0" y2="1">
+                              <linearGradient id="colorUsdc" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
                                 <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                               </linearGradient>
@@ -718,7 +713,7 @@ export default function AdminDashboard() {
                             <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: 10 }} />
                             <YAxis stroke="#6b7280" style={{ fontSize: 10 }} />
                             <Tooltip contentStyle={{ backgroundColor: "#1c1b26", borderColor: "#373549", color: "#fff" }} />
-                            <Area type="monotone" dataKey="USDT" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorUsdt)" strokeWidth={2.5} name="Revenue ($)" />
+                            <Area type="monotone" dataKey="USDC" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorUsdc)" strokeWidth={2.5} name="Revenue ($)" />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>
@@ -890,7 +885,7 @@ export default function AdminDashboard() {
                           <div className="p-4 rounded-xl border border-brand-border/60 bg-brand-dark/20 text-[10px] font-mono space-y-1.5">
                             <p className="font-bold text-brand-purple uppercase tracking-wider text-[9px] font-sans">Blockchain logs</p>
                             <p className="truncate text-brand-text-muted">Payment TX: <span className="text-white font-semibold">{selectedOrder.txHash}</span></p>
-                            <p className="truncate text-brand-text-muted">Swap Status: <span className="text-brand-green font-semibold">{"SOL -> USDT Swapped (100%)"}</span></p>
+                            <p className="truncate text-brand-text-muted">Swap Status: <span className="text-brand-green font-semibold">{"SOL -> USDC Swapped (100%)"}</span></p>
                           </div>
 
                           {/* Actions / Update panel */}
@@ -979,7 +974,7 @@ export default function AdminDashboard() {
                                 ["Customer name", selectedOrder.customerDetails.name],
                                 ["Customer wallet", selectedOrder.walletAddress],
                                 ["Paid SOL", selectedOrder.paidSOL],
-                                ["Swapped USDT", selectedOrder.receivedUSDT],
+                                ["Swapped USDC", selectedOrder.receivedUSDC],
                                 ["Marketplace price", selectedOrder.retailPriceUSD]
                               ]);
                             }}
@@ -1767,7 +1762,7 @@ export default function AdminDashboard() {
                     <div className="p-5 rounded-2xl border border-brand-border/40 bg-brand-card/15 flex justify-between items-center gap-4">
                       <div>
                         <h3 className="font-extrabold text-sm text-white">Full Revenue Report</h3>
-                        <p className="text-[11px] text-brand-text-muted mt-1">Detailed list of all client purchases, wallet inputs, and Swapped USDT totals.</p>
+                        <p className="text-[11px] text-brand-text-muted mt-1">Detailed list of all client purchases, wallet inputs, and Swapped USDC totals.</p>
                       </div>
                       <button
                         onClick={exportRevenueReport}
@@ -1858,6 +1853,109 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="p-6 rounded-2xl border border-brand-border/40 bg-brand-card/15 space-y-6 text-xs font-sans">
+
+                    {/* USDC Associated Token Account Initialization Status */}
+                    <div className="p-4 rounded-xl border border-brand-border/40 bg-brand-dark/20 space-y-3">
+                      <div>
+                        <p className="font-bold text-white">USDC Settlement Account Initialization</p>
+                        <p className="text-[10px] text-brand-text-muted mt-1">
+                          To receive swapped USDC directly to your merchant wallet (GpTU73xt6bWcPisc9Lt8mUZBva92oF8DUoM2bUmo8yWA), your USDC Associated Token Account (ATA) must be initialized on-chain.
+                        </p>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                        <span className="text-[10px] text-brand-text-muted font-mono bg-brand-dark px-2 py-1 rounded border border-brand-border/30">
+                          ATA: 5kKXsamwHHXtAVAgLAC16TSe2T6XYuifHjoh5k3Dd4dx
+                        </span>
+                        <button
+                          onClick={async () => {
+                            if (typeof window === "undefined") return;
+                            try {
+                              const provider = (window as any).solflare || (window as any).solana;
+                              if (!provider) {
+                                alert("Please install Solflare or Phantom wallet extension.");
+                                return;
+                              }
+                              await provider.connect();
+                              const feePayer = provider.publicKey ? new PublicKey(provider.publicKey.toString()) : null;
+                              if (!feePayer) {
+                                alert("Please connect your wallet first.");
+                                return;
+                              }
+                              
+                               let connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+                               let blockhash = "";
+                               try {
+                                 const bhRes = await connection.getLatestBlockhash("confirmed");
+                                 blockhash = bhRes.blockhash;
+                               } catch (err) {
+                                 console.warn("Primary RPC failed in ATA initializer, switching to publicnode", err);
+                                 connection = new Connection("https://solana-rpc.publicnode.com", "confirmed");
+                                 const bhRes = await connection.getLatestBlockhash("confirmed");
+                                 blockhash = bhRes.blockhash;
+                               }
+                              
+                              const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+                              const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+                              const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+                              const merchantWallet = new PublicKey("GpTU73xt6bWcPisc9Lt8mUZBva92oF8DUoM2bUmo8yWA");
+                              const SYSVAR_RENT_PUBKEY = new PublicKey("SysvarRent111111111111111111111111111111111");
+                              
+                              const [ataAddress] = PublicKey.findProgramAddressSync(
+                                [
+                                  merchantWallet.toBuffer(),
+                                  TOKEN_PROGRAM_ID.toBuffer(),
+                                  USDC_MINT.toBuffer()
+                                ],
+                                ASSOCIATED_TOKEN_PROGRAM_ID
+                              );
+                              
+                              const checkInfo = await connection.getAccountInfo(ataAddress);
+                              if (checkInfo) {
+                                alert("USDC Associated Token Account is ALREADY initialized and active!");
+                                return;
+                              }
+                              
+                              const instruction = new TransactionInstruction({
+                                keys: [
+                                  { pubkey: feePayer, isSigner: true, isWritable: true },
+                                  { pubkey: ataAddress, isSigner: false, isWritable: true },
+                                  { pubkey: merchantWallet, isSigner: false, isWritable: false },
+                                  { pubkey: USDC_MINT, isSigner: false, isWritable: false },
+                                  { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                                  { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                                  { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }
+                                ],
+                                programId: ASSOCIATED_TOKEN_PROGRAM_ID,
+                                data: Buffer.alloc(0)
+                              });
+                              
+                              const tx = new SolanaTx().add(instruction);
+                              tx.recentBlockhash = blockhash;
+                              tx.feePayer = feePayer;
+                              
+                              let txHash = "";
+                              if (typeof provider.signAndSendTransaction === "function") {
+                                const res = await provider.signAndSendTransaction(tx);
+                                txHash = typeof res === "string" ? res : res.signature;
+                              } else {
+                                const signed = await provider.signTransaction(tx);
+                                txHash = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+                              }
+                              
+                              alert(`Initialization transaction submitted: ${txHash}. Please wait a few seconds for confirmation.`);
+                            } catch (err: any) {
+                              console.error(err);
+                              alert(`Failed to initialize account: ${err.message || err}`);
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-brand-purple hover:bg-brand-purple/80 text-white text-[10px] font-bold transition-all text-center whitespace-nowrap"
+                        >
+                          Initialize USDC ATA
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <hr className="border-brand-border/40" />
                     
                     <div className="flex justify-between items-center">
                       <div>
@@ -1919,6 +2017,49 @@ export default function AdminDashboard() {
                         <span className="font-bold text-white">%</span>
                       </div>
                     </div>
+
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-bold text-white">Flat Shipping Price (USD)</p>
+                        <p className="text-[10px] text-brand-text-muted">Set standard shipping fee applied to orders.</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-brand-text-muted">$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={settings.shippingFeeUSD !== undefined ? settings.shippingFeeUSD : 5.00}
+                          onChange={(e) => {
+                            if (!hasPermission("settings", "edit")) return;
+                            SupabaseService.updateSettings({ shippingFeeUSD: parseFloat(e.target.value) });
+                            refreshAllData();
+                          }}
+                          className="w-20 px-2 py-1 bg-brand-dark border border-brand-border/60 rounded text-center text-white font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-bold text-white">Free Shipping Threshold (USD)</p>
+                        <p className="text-[10px] text-brand-text-muted">Minimum subtotal required to qualify for free shipping.</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-brand-text-muted">$</span>
+                        <input
+                          type="number"
+                          step="1"
+                          value={settings.freeShippingThresholdUSD !== undefined ? settings.freeShippingThresholdUSD : 100.00}
+                          onChange={(e) => {
+                            if (!hasPermission("settings", "edit")) return;
+                            SupabaseService.updateSettings({ freeShippingThresholdUSD: parseFloat(e.target.value) });
+                            refreshAllData();
+                          }}
+                          className="w-20 px-2 py-1 bg-brand-dark border border-brand-border/60 rounded text-center text-white font-mono"
+                        />
+                      </div>
+                    </div>
+
 
                     <div className="space-y-2">
                       <p className="font-bold text-white font-sans">Default RPC Provider</p>

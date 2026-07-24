@@ -60,9 +60,6 @@ export async function GET() {
     console.warn("CoinGecko price resolution failed", e);
   }
 
-  // If all attempts failed, return a 502 Bad Gateway
-  return NextResponse.json(
-    { error: "Failed to resolve live SOL price from all available upstream API providers" },
-    { status: 502 }
-  );
+  // Attempt 4: Safe static fallback price to keep checkout functional
+  return NextResponse.json({ price: 185.50, isFallback: true });
 }

@@ -25,12 +25,24 @@ function MarketplaceContent() {
   const searchParams = useSearchParams();
   const { addToCart, solPrice, isRefreshingPrice, refreshSOLPrice } = useCart();
 
-  // Load static catalog lists once using lazy initializers
-  const [retailers] = useState(() => RetailerService.getRetailers());
-  const [allProducts] = useState(() => RetailerService.getProducts());
+  // Load static catalog lists using reactive state and local database sync
+  const [retailers, setRetailers] = useState<RetailerConfig[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  // Component States
-  const [products, setProducts] = useState<Product[]>(allProducts);
+  useEffect(() => {
+    const handleSync = () => {
+      const refreshedRetailers = RetailerService.getRetailers();
+      const refreshedProducts = RetailerService.getProducts();
+      setRetailers(refreshedRetailers);
+      setAllProducts(refreshedProducts);
+      setProducts(refreshedProducts);
+    };
+
+    handleSync();
+    window.addEventListener("solcart-db-synced", handleSync);
+    return () => window.removeEventListener("solcart-db-synced", handleSync);
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRetailers, setSelectedRetailers] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);

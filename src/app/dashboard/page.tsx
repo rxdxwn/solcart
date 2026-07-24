@@ -663,8 +663,8 @@ export default function CustomerDashboard() {
                 <span className="text-brand-green font-bold">{selectedOrder.paidSOL} SOL</span>
               </div>
               <div className="flex justify-between">
-                <span>Received USDT (Swapped):</span>
-                <span className="text-white font-bold">{selectedOrder.receivedUSDT} USDT</span>
+                <span>Received USDC (Swapped):</span>
+                <span className="text-white font-bold">{selectedOrder.receivedUSDC} USDC</span>
               </div>
               <div className="flex justify-between">
                 <span>Retail Price Settle (USD):</span>
