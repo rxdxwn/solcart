@@ -1,0 +1,25 @@
+# SOLCart Implementation Tasks
+
+- [x] Establish design tokens and global styles in `globals.css`
+- [x] Create core types in `src/types/index.ts` and `src/lib/utils.ts`
+- [x] Build the service layer:
+  - [x] `src/services/supabase.ts` (Database & Auth simulation)
+  - [x] `src/services/pyth.ts` (Live price feed & caching)
+  - [x] `src/services/jupiter.ts` (Jupiter swap routing)
+  - [x] `src/services/helius.ts` (Solana node transaction verification)
+  - [x] `src/services/retailers.ts` (Retailer configs & mock inventory)
+- [x] Implement state management providers:
+  - [x] `src/context/AuthContext.tsx` (User & Admin session simulator)
+  - [x] `src/x/SolanaWalletContext.tsx` (Multi-wallet + Mock Wallet adapter)
+  - [x] `src/context/CartContext.tsx` (E-commerce cart logic)
+- [x] Create page layout components:
+  - [x] `src/components/layout/Navbar.tsx`
+  - [x] `src/components/layout/Footer.tsx`
+- [x] Build page route views:
+  - [x] `src/app/page.tsx` (Hero, features, interactive flow chart)
+  - [x] `src/app/marketplace/page.tsx` (Product search, filters, pricing markup)
+  - [x] `src/app/product/[id]/page.tsx` (Gallery, specs, delivery estimate, reviews)
+  - [x] `src/app/checkout/page.tsx` (Checkout and payment confirmation status screen)
+  - [x] `src/app/dashboard/page.tsx` (Customer order tracking, refund requests, settings)
+  - [x] `src/app/admin/page.tsx` (Statistics, order actions, markup controller, products controller)
+- [x] Verify build and correctness
