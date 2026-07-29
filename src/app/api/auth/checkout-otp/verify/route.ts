@@ -23,7 +23,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Invalid verification code." }, { status: 400 });
     }
 
-    // Check expiration (60 seconds) and verify email match
+    // Verify target email matches (which we stored in user.name to avoid varchar(32) length limits)
+    if (user.name && user.name.toLowerCase().trim() !== emailLower) {
+      // Fallback check in case resetCode still has the email in old format
+      const resetCodeStr = user.resetCode || "";
+      let hasOldFormatMatch = false;
+      if (resetCodeStr.includes("|")) {
+        const parts = resetCodeStr.split("|");
+        const targetEmail = parts[1];
+        if (targetEmail && targetEmail === emailLower) {
+          hasOldFormatMatch = true;
+        }
+      }
+      if (!hasOldFormatMatch) {
+        return NextResponse.json({ success: false, error: "This OTP code was sent to a different email address." }, { status: 400 });
+      }
+    }
+
+    // Check expiration (60 seconds)
     const resetCodeStr = user.resetCode;
     if (!resetCodeStr) {
       return NextResponse.json({ success: false, error: "No OTP timestamp found. Please request a new code." }, { status: 400 });
@@ -31,12 +48,7 @@ export async function POST(request: Request) {
 
     let timestampStr = resetCodeStr;
     if (resetCodeStr.includes("|")) {
-      const parts = resetCodeStr.split("|");
-      timestampStr = parts[0];
-      const targetEmail = parts[1];
-      if (targetEmail && targetEmail !== emailLower) {
-        return NextResponse.json({ success: false, error: "This OTP code was sent to a different email address." }, { status: 400 });
-      }
+      timestampStr = resetCodeStr.split("|")[0];
     }
 
     const createdTime = new Date(timestampStr).getTime();

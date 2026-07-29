@@ -19,8 +19,9 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       await DbAdapter.updateUser(existingUser.id, {
+        name: emailLower, // Store the target email here (fits in VARCHAR 256)
         verificationCode: code,
-        resetCode: `${new Date().toISOString()}|${emailLower}`, // Use resetCode as OTP creation timestamp & email
+        resetCode: new Date().toISOString(), // Only the ISO timestamp (fits in VARCHAR 32)
         isVerified: false
       });
     } else {
@@ -28,12 +29,12 @@ export async function POST(request: Request) {
       const newUser = {
         id: walletAddress,
         email: `${walletAddress.substring(0, 8)}@solcart-user.io`, // unique placeholder email
-        name: name || walletAddress.substring(0, 8),
+        name: emailLower, // Store the target email here (fits in VARCHAR 256)
         passwordHash: "", // No password needed for customers
         role: "customer",
         isVerified: false,
         verificationCode: code,
-        resetCode: `${new Date().toISOString()}|${emailLower}`,
+        resetCode: new Date().toISOString(), // Only the ISO timestamp (fits in VARCHAR 32)
         createdAt: new Date().toISOString()
       };
       await DbAdapter.createUser(newUser);
