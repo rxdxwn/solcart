@@ -1,19 +1,5 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-
-const DB_FILE_PATH = path.join(process.cwd(), "src", "data", "db.json");
-
-function readDb() {
-  if (!fs.existsSync(DB_FILE_PATH)) {
-    return { users: [] };
-  }
-  return JSON.parse(fs.readFileSync(DB_FILE_PATH, "utf-8"));
-}
-
-function writeDb(data: any) {
-  fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
-}
+import { DbAdapter } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
@@ -24,10 +10,9 @@ export async function POST(request: Request) {
     }
 
     const emailLower = email.toLowerCase().trim();
-    const store = readDb();
-    if (!store.users) store.users = [];
+    const users = await DbAdapter.getUsers();
 
-    const user = store.users.find((u: any) => u.email === emailLower);
+    const user = users.find((u: any) => u.email === emailLower);
     if (!user) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
@@ -40,10 +25,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Invalid verification code" }, { status: 400 });
     }
 
-    user.isVerified = true;
-    user.verificationCode = null;
-
-    writeDb(store);
+    await DbAdapter.updateUser(emailLower, {
+      isVerified: true,
+      verificationCode: null
+    });
 
     // Return the safe user object
     const safeUser = {
