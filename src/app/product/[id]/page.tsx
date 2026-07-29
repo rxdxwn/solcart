@@ -107,7 +107,7 @@ export default function ProductDetailPage({ params }: PageProps) {
     );
   }
 
-  const solPriceEquivalent = parseFloat((product.marketplacePrice / solPrice).toFixed(4));
+  const solPriceEquivalent = parseFloat((product.retailPrice / solPrice).toFixed(4));
   const retailers = RetailerService.getRetailers();
   const retailer = retailers.find(r => r.id === product.retailerId);
 
@@ -235,13 +235,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           {/* Pricing Block */}
           <div className="mt-8 p-6 rounded-2xl border border-brand-border/60 bg-brand-card/30">
             <div className="flex items-baseline justify-between">
-              <span className="text-xs text-brand-text-muted font-semibold">Retail Price:</span>
-              <span className="text-sm line-through text-brand-text-muted/65">${product.retailPrice.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex items-baseline justify-between mt-2">
-              <span className="text-xs text-brand-text-muted font-semibold">Marketplace Price ({retailer?.markupPercentage}% markup):</span>
-              <span className="text-2xl font-black text-white">${product.marketplacePrice.toFixed(2)}</span>
+              <span className="text-xs text-brand-text-muted font-semibold">Price (USD):</span>
+              <span className="text-2xl font-black text-white">${product.retailPrice.toFixed(2)}</span>
             </div>
 
             {/* Pay with SOL Equivalent */}

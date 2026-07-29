@@ -322,7 +322,7 @@ function MarketplaceContent() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {products.map((product) => {
-                const solPriceEquivalent = parseFloat((product.marketplacePrice / solPrice).toFixed(4));
+                const solPriceEquivalent = parseFloat((product.retailPrice / solPrice).toFixed(4));
                 return (
                   <div 
                     key={product.id}
@@ -376,11 +376,8 @@ function MarketplaceContent() {
                         {/* Pricing block */}
                         <div className="mt-5 pt-4 border-t border-brand-border/30 flex flex-col gap-1.5">
                           <div className="flex items-baseline justify-between">
-                            <span className="text-[10px] text-brand-text-muted font-medium">Marketplace Price:</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] line-through text-brand-text-muted/60">${product.retailPrice.toFixed(2)}</span>
-                              <span className="text-xs font-bold text-white">${product.marketplacePrice.toFixed(2)}</span>
-                            </div>
+                            <span className="text-[10px] text-brand-text-muted font-medium">Price:</span>
+                            <span className="text-xs font-bold text-white">${product.retailPrice.toFixed(2)}</span>
                           </div>
 
                           {/* SOL equivalent conversion */}

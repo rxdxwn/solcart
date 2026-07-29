@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     }
 
     // Clear verification codes, mark as verified, and associate the verified email
-    await DbAdapter.updateUser(user.email, {
+    await DbAdapter.updateUser(user.id, {
       email: emailLower, // Update to the verified email
       isVerified: true,
       verificationCode: null,

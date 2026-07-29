@@ -18,8 +18,7 @@ export async function POST(request: Request) {
     const existingUser = users.find((u: any) => u.id === walletAddress);
 
     if (existingUser) {
-      // Update existing user with the OTP code and current timestamp as resetCode
-      await DbAdapter.updateUser(existingUser.email, {
+      await DbAdapter.updateUser(existingUser.id, {
         email: emailLower,
         verificationCode: code,
         resetCode: new Date().toISOString(), // Use resetCode as OTP creation timestamp

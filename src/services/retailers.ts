@@ -131,10 +131,9 @@ export class RetailerService {
       const products = this.getStoredProducts();
       const updatedProducts = products.map(product => {
         if (product.retailerId === retailerId) {
-          const markupDecimal = newMarkup / 100;
           return {
             ...product,
-            marketplacePrice: parseFloat((product.retailPrice * (1 + markupDecimal)).toFixed(2))
+            marketplacePrice: product.retailPrice
           };
         }
         return product;
@@ -167,7 +166,7 @@ export class RetailerService {
     const retailers = this.getStoredRetailers();
     const retailer = retailers.find(r => r.id === product.retailerId) || { markupPercentage: 10 };
     
-    const marketplacePrice = parseFloat((product.retailPrice * (1 + retailer.markupPercentage / 100)).toFixed(2));
+    const marketplacePrice = product.retailPrice;
     const newProduct: Product = {
       ...product,
       marketplacePrice
@@ -206,11 +205,7 @@ export class RetailerService {
     if (index !== -1) {
       const existing = products[index];
       const merged = { ...existing, ...updatedFields };
-      
-      const retailers = this.getStoredRetailers();
-      const retailer = retailers.find(r => r.id === merged.retailerId) || { markupPercentage: 10 };
-      
-      merged.marketplacePrice = parseFloat((merged.retailPrice * (1 + retailer.markupPercentage / 100)).toFixed(2));
+      merged.marketplacePrice = merged.retailPrice;
       
       products[index] = merged as Product;
       localStorage.setItem("solcart_products", JSON.stringify(products));

@@ -695,10 +695,11 @@ export class DbAdapter {
     return user;
   }
 
-  static async updateUser(email: string, updates: any): Promise<boolean> {
+  static async updateUser(emailOrId: string, updates: any): Promise<boolean> {
     if (isSupabaseConfigured()) {
       if (!supabaseAdmin) throw new Error("Supabase admin client not initialized");
       const dbPayload: any = {};
+      if (updates.email !== undefined) dbPayload.email = updates.email;
       if (updates.name !== undefined) dbPayload.name = updates.name;
       if (updates.passwordHash !== undefined) dbPayload.password_hash = updates.passwordHash;
       if (updates.role !== undefined) dbPayload.role = updates.role;
@@ -706,10 +707,11 @@ export class DbAdapter {
       if (updates.verificationCode !== undefined) dbPayload.verification_code = updates.verificationCode;
       if (updates.resetCode !== undefined) dbPayload.reset_code = updates.resetCode;
 
-      const { error } = await supabaseAdmin
-        .from("users")
-        .update(dbPayload)
-        .eq("email", email.toLowerCase());
+      const isEmail = emailOrId.includes("@");
+      const query = supabaseAdmin.from("users").update(dbPayload);
+      const { error } = isEmail 
+        ? await query.eq("email", emailOrId.toLowerCase())
+        : await query.eq("id", emailOrId);
 
       if (error) {
         console.error("Supabase updateUser failed:", error);
@@ -718,7 +720,10 @@ export class DbAdapter {
       return true;
     }
     const store = readLocalDb();
-    const idx = store.users.findIndex((u: any) => u.email.toLowerCase() === email.toLowerCase());
+    const isEmail = emailOrId.includes("@");
+    const idx = store.users.findIndex((u: any) => 
+      isEmail ? u.email.toLowerCase() === emailOrId.toLowerCase() : u.id === emailOrId
+    );
     if (idx !== -1) {
       store.users[idx] = {
         ...store.users[idx],

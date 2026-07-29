@@ -263,7 +263,7 @@ export default function CheckoutPage() {
         retailerId: item.product.retailerId,
         quantity: item.quantity,
         retailPriceUSD: item.product.retailPrice,
-        marketplacePriceUSD: item.product.marketplacePrice,
+        marketplacePriceUSD: item.product.retailPrice,
         image: item.product.image
       }));
 
@@ -527,10 +527,10 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <p className="font-bold text-white truncate max-w-[130px]">{item.product.name}</p>
-                    <p className="text-[10px] text-brand-text-muted mt-0.5">Qty: {item.quantity} x ${item.product.marketplacePrice}</p>
+                    <p className="text-[10px] text-brand-text-muted mt-0.5">Qty: {item.quantity} x ${item.product.retailPrice}</p>
                   </div>
                 </div>
-                <span className="font-bold text-white">${(item.product.marketplacePrice * item.quantity).toFixed(2)}</span>
+                <span className="font-bold text-white">${(item.product.retailPrice * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>

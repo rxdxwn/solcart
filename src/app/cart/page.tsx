@@ -68,7 +68,7 @@ export default function CartPage() {
           {/* 1. Items List */}
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => {
-              const solItemEquivalent = parseFloat((item.product.marketplacePrice / solPrice).toFixed(4));
+              const solItemEquivalent = parseFloat((item.product.retailPrice / solPrice).toFixed(4));
               return (
                 <div 
                   key={item.product.id}
@@ -118,7 +118,7 @@ export default function CartPage() {
                     {/* Price in USD / SOL */}
                     <div className="text-right">
                       <p className="text-xs font-bold text-white">
-                        ${(item.product.marketplacePrice * item.quantity).toFixed(2)}
+                        ${(item.product.retailPrice * item.quantity).toFixed(2)}
                       </p>
                       <p className="text-[10px] text-brand-green font-semibold mt-0.5">
                         {(solItemEquivalent * item.quantity).toFixed(4)} SOL

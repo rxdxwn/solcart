@@ -136,9 +136,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Pricing calculations
-  // subtotal is based on marketplacePrice (which includes retailer markup)
+  // subtotal is based on retailPrice
   const subtotalUSD = cartItems.reduce(
-    (acc, item) => acc + item.product.marketplacePrice * item.quantity,
+    (acc, item) => acc + item.product.retailPrice * item.quantity,
     0
   );
 
