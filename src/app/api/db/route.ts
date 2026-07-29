@@ -63,157 +63,27 @@ const DEFAULT_RETAILERS: RetailerConfig[] = [
   }
 ];
 
-const DEFAULT_PRODUCTS: Product[] = [
-  {
-    id: "p1",
-    name: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
-    description: "Sony's intelligent industry-leading noise canceling headphones with premium sound elevate your listening experience with the ability to personalize and control everything you hear.",
-    brand: "Sony",
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
-    category: "Electronics",
-    rating: 4.8,
-    reviewsCount: 14205,
-    retailPrice: 348.00,
-    marketplacePrice: 382.80,
-    estimatedDelivery: "2-3 business days",
-    specs: {
-      "Battery Life": "Up to 30 Hours",
-      "Noise Cancelling": "Active Noise Cancelling (ANC)",
-      "Connection": "Bluetooth 5.0 & 3.5mm Jack",
-      "Weight": "254 grams",
-      "Charging": "USB-C Quick Charge (10 min for 5 hours)"
-    },
-    retailerId: "amazon",
-    stockCount: 82,
-    isFeatured: true
-  },
-  {
-    id: "p2",
-    name: "MacBook Air M3 (13-inch, 8GB RAM, 256GB SSD)",
-    description: "The M3 chip brings even greater capabilities to the superportable 13-inch MacBook Air. With up to 18 hours of battery life, you can take it anywhere and breeze through work and play.",
-    brand: "Apple",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
-    category: "Computers",
-    rating: 4.9,
-    reviewsCount: 382,
-    retailPrice: 1099.00,
-    marketplacePrice: 1230.88,
-    estimatedDelivery: "Next day delivery",
-    specs: {
-      "Processor": "Apple M3 8-Core CPU",
-      "Graphics": "10-core GPU",
-      "Memory": "8GB Unified memory",
-      "Storage": "256GB Superfast SSD",
-      "Battery": "Up to 18 hours"
-    },
-    retailerId: "apple",
-    stockCount: 15,
-    isFeatured: true
-  },
-  {
-    id: "p3",
-    name: "iPhone 15 Pro Max (256GB, Natural Titanium)",
-    description: "Forged in titanium and featuring the groundbreaking A17 Pro chip, a customizable Action button, and the most powerful iPhone camera system ever.",
-    brand: "Apple",
-    image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop&q=80",
-    category: "Electronics",
-    rating: 4.7,
-    reviewsCount: 948,
-    retailPrice: 1199.00,
-    marketplacePrice: 1342.88,
-    estimatedDelivery: "Next day delivery",
-    specs: {
-      "Processor": "A17 Pro Chip with 6-core GPU",
-      "Screen Size": "6.7-inch Super Retina XDR OLED",
-      "Camera": "48MP Main | 12MP Ultra Wide | 5x Telephoto",
-      "Connector": "USB-C (supports USB 3)",
-      "Material": "Aerospace-grade Titanium"
-    },
-    retailerId: "apple",
-    stockCount: 22,
-    isFeatured: true
-  },
-  {
-    id: "p4",
-    name: "Nike Air Force 1 '07 Classic Low-Top Sneakers",
-    description: "The radiance lives on in the Nike Air Force 1 '07, the b-ball icon that puts a fresh spin on what you know best: crisp leather, bold colors and the perfect amount of flash to make you shine.",
-    brand: "Nike",
-    image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop&q=80",
-    category: "Apparel",
-    rating: 4.6,
-    reviewsCount: 2043,
-    retailPrice: 115.00,
-    marketplacePrice: 124.20,
-    estimatedDelivery: "3-5 business days",
-    specs: {
-      "Style": "Low-Cut Silhouette",
-      "Cushioning": "Nike Air Cushioning",
-      "Outsole": "Non-Marking Rubber",
-      "Material": "Genuine Leather Upper"
-    },
-    retailerId: "nike",
-    stockCount: 120,
-    isFeatured: false
-  }
-];
+const DEFAULT_PRODUCTS: Product[] = [];
 
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: "ord-827391",
-    walletAddress: "Sol11111111111111111111111111111111111111112",
-    customerDetails: {
-      name: "Ridhwan Solcart",
-      email: "ridhwan@solcart.io",
-      phone: "+1 (555) 019-2831"
-    },
-    shippingAddress: {
-      id: "addr-1",
-      name: "Ridhwan Solcart",
-      streetAddress: "123 Solana Boulevard, Suite 500",
-      city: "San Francisco",
-      state: "CA",
-      postalCode: "94105",
-      country: "United States",
-      isDefault: true
-    },
-    items: [
-      {
-        productId: "p2",
-        productName: "MacBook Air M3 (13-inch, 8GB RAM, 256GB SSD)",
-        brand: "Apple",
-        retailerId: "apple",
-        quantity: 1,
-        retailPriceUSD: 1099.00,
-        marketplacePriceUSD: 1230.88,
-        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80"
-      }
-    ],
-    retailerId: "apple",
-    retailPriceUSD: 1099.00,
-    paidSOL: 7.23,
-    receivedUSDC: 1230.88,
-    txHash: "5k9X...82jQ",
-    swapTxHash: "mock_jup_swap_8271",
-    status: "paid",
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-  }
-];
+const INITIAL_ORDERS: Order[] = [];
 
 const INITIAL_STORE = {
   retailers: [...DEFAULT_RETAILERS],
   products: [...DEFAULT_PRODUCTS],
   orders: [...INITIAL_ORDERS],
   transactions: [] as Transaction[],
+  users: [] as any[],
+  tickets: [] as any[],
   settings: {
-    marketplaceMarkup: 10,
+    marketplaceMarkup: 0,
     supportedCryptos: ["SOL", "USDC"],
     defaultSolWallet: "So11111111111111111111111111111111111111112",
     rpcProvider: "Helius Mainnet Beta",
     emailAlerts: false,
     maintenanceMode: false,
-    taxRate: 5,
-    shippingFeeUSD: 5.00,
-    freeShippingThresholdUSD: 100.00,
+    taxRate: 0,
+    shippingFeeUSD: 0,
+    freeShippingThresholdUSD: 0,
     featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
   },
   version: "4.20.0"
@@ -314,6 +184,61 @@ export async function POST(request: Request) {
       };
     } else if (action === "createTransaction") {
       store.transactions.unshift(payload);
+    } else if (action === "addProductReview") {
+      const { productId, author, rating, comment } = payload;
+      const pIndex = store.products.findIndex((p: any) => p.id === productId);
+      if (pIndex !== -1) {
+        const prod = store.products[pIndex];
+        if (!prod.reviews) prod.reviews = [];
+        const newReview = {
+          author,
+          rating: parseFloat(rating),
+          comment,
+          date: new Date().toLocaleDateString()
+        };
+        prod.reviews.unshift(newReview);
+        const totalRating = prod.reviews.reduce((acc: number, r: any) => acc + r.rating, 0);
+        prod.rating = parseFloat((totalRating / prod.reviews.length).toFixed(1));
+        prod.reviewsCount = prod.reviews.length;
+      }
+    } else if (action === "createSupportTicket") {
+      if (!store.tickets) store.tickets = [];
+      store.tickets.unshift({
+        id: `tkt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        status: "open",
+        timestamp: new Date().toISOString(),
+        comments: [] as any[],
+        ...payload
+      });
+    } else if (action === "deliverGiftCardCode") {
+      const { orderId, giftCardCode } = payload;
+      const oIndex = store.orders.findIndex((o: any) => o.id === orderId);
+      if (oIndex !== -1) {
+        store.orders[oIndex].giftCardCode = giftCardCode;
+      }
+    } else if (action === "updateOrderCustomerName") {
+      const { orderId, customerName } = payload;
+      const oIndex = store.orders.findIndex((o: any) => o.id === orderId);
+      if (oIndex !== -1) {
+        store.orders[oIndex].customerDetails.name = customerName;
+      }
+    } else if (action === "updateProductStock") {
+      const { productId, stockCount } = payload;
+      const pIndex = store.products.findIndex((p: any) => p.id === productId);
+      if (pIndex !== -1) {
+        store.products[pIndex].stockCount = parseInt(stockCount, 10);
+      }
+    } else if (action === "addTicketComment") {
+      const { ticketId, comment } = payload;
+      const tIndex = store.tickets.findIndex((t: any) => t.id === ticketId);
+      if (tIndex !== -1) {
+        if (!store.tickets[tIndex].comments) store.tickets[tIndex].comments = [];
+        store.tickets[tIndex].comments.push({
+          id: `cmt-${Date.now()}`,
+          comment,
+          timestamp: new Date().toISOString()
+        });
+      }
     }
 
     // Persist changes directly to file

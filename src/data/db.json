@@ -4,7 +4,7 @@
       "id": "amazon",
       "name": "Amazon",
       "logo": "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 10,
+      "markupPercentage": 0,
       "isActive": true,
       "description": "Sourced globally. Delivering electronics, books, home products, and daily essentials."
     },
@@ -12,7 +12,7 @@
       "id": "apple",
       "name": "Apple",
       "logo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 12,
+      "markupPercentage": 0,
       "isActive": true,
       "description": "Premium computers, smartphones, tablets, and accessories with top-tier technology."
     },
@@ -20,31 +20,15 @@
       "id": "nike",
       "name": "Nike",
       "logo": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 8,
+      "markupPercentage": 0,
       "isActive": true,
-      "description": "Innovative athletic footwear, apparel, accessories, and sporting gear."
-    },
-    {
-      "id": "adidas",
-      "name": "Adidas",
-      "logo": "https://images.unsplash.com/photo-1587563876167-18d96b6e029d?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 8,
-      "isActive": true,
-      "description": "Original sportswear, classics sneakers, and high-performance training clothing."
-    },
-    {
-      "id": "bestbuy",
-      "name": "Best Buy",
-      "logo": "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 10,
-      "isActive": true,
-      "description": "Top-tier consumer electronics, 4K TVs, gaming consoles, and smart appliances."
+      "description": "Athletic footwear, activewear, sports equipment, and street-style fashion."
     },
     {
       "id": "walmart",
       "name": "Walmart",
       "logo": "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 6,
+      "markupPercentage": 0,
       "isActive": true,
       "description": "Everyday low prices on groceries, home appliances, household goods, and toys."
     },
@@ -52,290 +36,191 @@
       "id": "target",
       "name": "Target",
       "logo": "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=100&auto=format&fit=crop&q=60",
-      "markupPercentage": 7,
+      "markupPercentage": 0,
       "isActive": true,
       "description": "Trendy home decor, fashionable apparel, beauty essentials, and kitchen supplies."
     }
   ],
   "products": [
     {
-      "id": "p1",
-      "name": "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
-      "description": "Sony's intelligent industry-leading noise canceling headphones with premium sound elevate your listening experience with the ability to personalize and control everything you hear.",
-      "brand": "Sony",
-      "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
-      "category": "Electronics",
-      "rating": 4.8,
-      "reviewsCount": 14205,
-      "retailPrice": 348,
-      "marketplacePrice": 382.8,
-      "estimatedDelivery": "2-3 business days",
-      "specs": {
-        "Battery Life": "Up to 30 Hours",
-        "Noise Cancelling": "Active Noise Cancelling (ANC)",
-        "Connection": "Bluetooth 5.0 & 3.5mm Jack",
-        "Weight": "254 grams",
-        "Charging": "USB-C Quick Charge (10 min for 5 hours)"
-      },
-      "retailerId": "amazon",
-      "stockCount": 82,
-      "isFeatured": true
-    },
-    {
-      "id": "p2",
-      "name": "MacBook Air M3 (13-inch, 8GB RAM, 256GB SSD)",
-      "description": "The M3 chip brings even greater capabilities to the superportable 13-inch MacBook Air. With up to 18 hours of battery life, you can take it anywhere and breeze through work and play.",
-      "brand": "Apple",
-      "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
-      "category": "Computers",
-      "rating": 4.9,
-      "reviewsCount": 382,
-      "retailPrice": 1099,
-      "marketplacePrice": 1230.88,
-      "estimatedDelivery": "Next day delivery",
-      "specs": {
-        "Processor": "Apple M3 8-Core CPU",
-        "Graphics": "10-core GPU",
-        "Memory": "8GB Unified memory",
-        "Storage": "256GB Superfast SSD",
-        "Battery": "Up to 18 hours"
-      },
-      "retailerId": "apple",
-      "stockCount": 15,
-      "isFeatured": true
-    },
-    {
-      "id": "p3",
-      "name": "iPhone 15 Pro Max (256GB, Natural Titanium)",
-      "description": "Forged in titanium and featuring the groundbreaking A17 Pro chip, a customizable Action button, and the most powerful iPhone camera system ever.",
-      "brand": "Apple",
-      "image": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop&q=80",
-      "category": "Electronics",
-      "rating": 4.7,
-      "reviewsCount": 948,
-      "retailPrice": 1199,
-      "marketplacePrice": 1342.88,
-      "estimatedDelivery": "Next day delivery",
-      "specs": {
-        "Processor": "A17 Pro Chip with 6-core GPU",
-        "Screen Size": "6.7-inch Super Retina XDR OLED",
-        "Camera": "48MP Main | 12MP Ultra Wide | 5x Telephoto",
-        "Connector": "USB-C (supports USB 3)",
-        "Material": "Aerospace-grade Titanium"
-      },
-      "retailerId": "apple",
-      "stockCount": 22,
-      "isFeatured": true
-    },
-    {
-      "id": "p4",
-      "name": "Nike Air Force 1 '07 Classic Low-Top Sneakers",
-      "description": "The radiance lives on in the Nike Air Force 1 '07, the b-ball icon that puts a fresh spin on what you know best: crisp leather, bold colors and the perfect amount of flash to make you shine.",
-      "brand": "Nike",
-      "image": "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&auto=format&fit=crop&q=80",
-      "category": "Apparel",
-      "rating": 4.6,
-      "reviewsCount": 2043,
-      "retailPrice": 115,
-      "marketplacePrice": 124.2,
-      "estimatedDelivery": "3-5 business days",
-      "specs": {
-        "Style": "Low-Cut Silhouette",
-        "Cushioning": "Nike Air Cushioning",
-        "Outsole": "Non-Marking Rubber",
-        "Material": "Genuine Leather Upper"
-      },
-      "retailerId": "nike",
-      "stockCount": 120,
-      "isFeatured": false
-    },
-    {
-      "rating": 4.5,
+      "rating": 4,
       "reviewsCount": 1,
       "estimatedDelivery": "3-5 business days",
-      "id": "p-qnazyo8do",
-      "name": "Test",
-      "description": "No description provided",
-      "brand": "test",
-      "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop",
-      "category": "Electronics",
-      "retailPrice": 10,
+      "id": "p-uhj4n2e39",
+      "name": "Gift Card (UAE)",
+      "description": "Buy now $50 USD worth of Amazon Gift Card for UAE region only. ",
+      "brand": "Amazon",
+      "image": "https://images.unsplash.com/photo-1704204656144-3dd12c110dd8?q=80&w=1618&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "category": "Retail",
+      "retailPrice": 50,
       "specs": {
         "Retailer Sourced": "amazon"
       },
       "retailerId": "amazon",
-      "stockCount": 50,
+      "stockCount": 1,
       "isFeatured": false,
-      "marketplacePrice": 11
+      "marketplacePrice": 50,
+      "reviews": [
+        {
+          "author": "Ridhwan",
+          "rating": 4,
+          "comment": "Worked instantly",
+          "date": "25/07/2026"
+        }
+      ]
     }
   ],
   "orders": [
     {
-      "walletAddress": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
+      "walletAddress": "GpTU73xt6bWcPisc9Lt8mUZBva92oF8DUoM2bUmo8yWA",
       "customerDetails": {
-        "name": "SOLCart Admin",
-        "email": "admin@solcart.com",
+        "name": "Mohammed Ridhwan",
+        "email": "rxdhwann@gmail.com",
         "phone": "N/A"
       },
       "shippingAddress": {
-        "id": "addr-1",
-        "name": "Ridhwan Solcart",
-        "streetAddress": "123 Solana Boulevard, Suite 500",
-        "city": "San Francisco",
-        "state": "CA",
-        "postalCode": "94105",
-        "country": "United States",
+        "id": "addr-digital",
+        "name": "Mohammed Ridhwan",
+        "streetAddress": "Digital Delivery",
+        "city": "N/A",
+        "state": "N/A",
+        "postalCode": "N/A",
+        "country": "Global",
         "isDefault": true
       },
       "items": [
         {
-          "productId": "p-qnazyo8do",
-          "productName": "Test",
-          "brand": "test",
+          "productId": "p-uhj4n2e39",
+          "productName": "Gift Card (UAE)",
+          "brand": "Amazon",
           "retailerId": "amazon",
           "quantity": 1,
-          "retailPriceUSD": 10,
-          "marketplacePriceUSD": 11,
-          "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop"
+          "retailPriceUSD": 50,
+          "marketplacePriceUSD": 50,
+          "image": "https://images.unsplash.com/photo-1704204656144-3dd12c110dd8?q=80&w=1618&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         }
       ],
       "retailerId": "amazon",
-      "retailPriceUSD": 11.16,
-      "paidSOL": 0.1478,
-      "receivedUSDC": 11.17,
-      "txHash": "3SvJKF2mPDCWc2QPbre9XyKxkhzQz99R5PL46mhpsGxV2gSfKbah9CE3EphJ57c9Mx8dySPfmmFTdmnir3Cb3BZN",
-      "swapTxHash": "mock_jupiter_swap_tueg7lgc4ej",
-      "status": "paid",
-      "id": "ord-655225",
-      "timestamp": "2026-07-24T02:40:58.137Z"
-    },
-    {
-      "walletAddress": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
-      "customerDetails": {
-        "name": "test",
-        "email": "test@test11.com",
-        "phone": "N/A"
-      },
-      "shippingAddress": {
-        "id": "addr-1",
-        "name": "Ridhwan Solcart",
-        "streetAddress": "123 Solana Boulevard, Suite 500",
-        "city": "San Francisco",
-        "state": "CA",
-        "postalCode": "94105",
-        "country": "United States",
-        "isDefault": true
-      },
-      "items": [
-        {
-          "productId": "p-qnazyo8do",
-          "productName": "Test",
-          "brand": "test",
-          "retailerId": "amazon",
-          "quantity": 1,
-          "retailPriceUSD": 10,
-          "marketplacePriceUSD": 11,
-          "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop"
-        }
-      ],
-      "retailerId": "amazon",
-      "retailPriceUSD": 11.16,
-      "paidSOL": 0.1472,
-      "receivedUSDC": 11.15,
-      "txHash": "3ddco12hLxwtVJqjNZJqNybyxpKxYNdoSo9SmNm7AbuPDbkZa71h3KenJZrCfcAGWn3w5MHVUyXYsWMvVKubkbQr",
-      "swapTxHash": "mock_jupiter_swap_2ph43qtxvy4",
-      "status": "paid",
-      "id": "ord-530447",
-      "timestamp": "2026-07-24T02:25:27.224Z"
-    },
-    {
-      "id": "ord-827391",
-      "walletAddress": "Sol11111111111111111111111111111111111111112",
-      "customerDetails": {
-        "name": "Ridhwan Solcart",
-        "email": "ridhwan@solcart.io",
-        "phone": "+1 (555) 019-2831"
-      },
-      "shippingAddress": {
-        "id": "addr-1",
-        "name": "Ridhwan Solcart",
-        "streetAddress": "123 Solana Boulevard, Suite 500",
-        "city": "San Francisco",
-        "state": "CA",
-        "postalCode": "94105",
-        "country": "United States",
-        "isDefault": true
-      },
-      "items": [
-        {
-          "productId": "p2",
-          "productName": "MacBook Air M3 (13-inch, 8GB RAM, 256GB SSD)",
-          "brand": "Apple",
-          "retailerId": "apple",
-          "quantity": 1,
-          "retailPriceUSD": 1099,
-          "marketplacePriceUSD": 1230.88,
-          "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80"
-        }
-      ],
-      "retailerId": "apple",
-      "retailPriceUSD": 1099,
-      "paidSOL": 7.23,
-      "receivedUSDC": 1230.88,
-      "txHash": "5k9X...82jQ",
-      "swapTxHash": "mock_jup_swap_8271",
-      "status": "paid",
-      "timestamp": "2026-07-24T01:46:00.000Z"
+      "retailPriceUSD": 50.75,
+      "paidSOL": 0.6868,
+      "receivedUSDC": 50.75,
+      "txHash": "5B7APMuCAX3DmEvaJ6PtfhJLHiuQrWrCfqMv4QuvxQkdAytw4rQvQioCPydM3k16BKpq1vEprn5NH6FsuEA4RF6a",
+      "swapTxHash": "mock_jupiter_swap_m543mjjd1p",
+      "status": "delivered",
+      "id": "ord-363862",
+      "timestamp": "2026-07-24T23:53:55.353Z",
+      "giftCardCode": "AMZN-111-111-11-1111"
     }
   ],
   "transactions": [
     {
-      "orderId": "ord-655225",
-      "walletAddress": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
+      "orderId": "ord-363862",
+      "walletAddress": "GpTU73xt6bWcPisc9Lt8mUZBva92oF8DUoM2bUmo8yWA",
       "type": "swap",
-      "amount": 11.17,
+      "amount": 50.75,
       "token": "USDC",
       "status": "success",
-      "txHash": "mock_jupiter_swap_tueg7lgc4ej",
-      "id": "tx-m9wrn9f7d",
-      "timestamp": "2026-07-24T02:40:58.141Z"
+      "txHash": "mock_jupiter_swap_m543mjjd1p",
+      "id": "tx-nb4bnphsc",
+      "timestamp": "2026-07-24T23:53:55.359Z"
     },
     {
-      "orderId": "ord-655225",
-      "walletAddress": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
+      "orderId": "ord-363862",
+      "walletAddress": "GpTU73xt6bWcPisc9Lt8mUZBva92oF8DUoM2bUmo8yWA",
       "type": "payment",
-      "amount": 0.1478,
+      "amount": 0.6868,
       "token": "SOL",
       "status": "success",
-      "txHash": "3SvJKF2mPDCWc2QPbre9XyKxkhzQz99R5PL46mhpsGxV2gSfKbah9CE3EphJ57c9Mx8dySPfmmFTdmnir3Cb3BZN",
-      "id": "tx-r65wp02pz",
-      "timestamp": "2026-07-24T02:40:58.139Z"
-    },
-    {
-      "orderId": "ord-530447",
-      "walletAddress": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
-      "type": "swap",
-      "amount": 11.15,
-      "token": "USDC",
-      "status": "success",
-      "txHash": "mock_jupiter_swap_2ph43qtxvy4",
-      "id": "tx-hl74jefcz",
-      "timestamp": "2026-07-24T02:25:27.228Z"
-    },
-    {
-      "orderId": "ord-530447",
-      "walletAddress": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
-      "type": "payment",
-      "amount": 0.1472,
-      "token": "SOL",
-      "status": "success",
-      "txHash": "3ddco12hLxwtVJqjNZJqNybyxpKxYNdoSo9SmNm7AbuPDbkZa71h3KenJZrCfcAGWn3w5MHVUyXYsWMvVKubkbQr",
-      "id": "tx-a30sdurpt",
-      "timestamp": "2026-07-24T02:25:27.227Z"
+      "txHash": "5B7APMuCAX3DmEvaJ6PtfhJLHiuQrWrCfqMv4QuvxQkdAytw4rQvQioCPydM3k16BKpq1vEprn5NH6FsuEA4RF6a",
+      "id": "tx-efc2rxm2w",
+      "timestamp": "2026-07-24T23:53:55.357Z"
     }
   ],
+  "users": [
+    {
+      "id": "usr-1784936770112-441",
+      "email": "rxdhwann@gmail.com",
+      "name": "Mohammed Ridhwan",
+      "passwordHash": "e1c1c14d10acaece79894914c2a97e29cf061e8021e4890f8e631f9926cd289a",
+      "role": "customer",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2026-07-24T23:46:10.112Z"
+    },
+    {
+      "id": "staff-1",
+      "email": "owner@solcart.io",
+      "name": "Sarah Owner",
+      "passwordHash": "",
+      "role": "Owner",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-10T12:00:00Z"
+    },
+    {
+      "id": "staff-2",
+      "email": "superadmin@solcart.io",
+      "name": "Alex SuperAdmin",
+      "passwordHash": "",
+      "role": "Super Admin",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-11T12:00:00Z"
+    },
+    {
+      "id": "staff-3",
+      "email": "finance@solcart.io",
+      "name": "Fred Finance",
+      "passwordHash": "",
+      "role": "Finance Manager",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-12T12:00:00Z"
+    },
+    {
+      "id": "staff-4",
+      "email": "ops@solcart.io",
+      "name": "Olivia Operations",
+      "passwordHash": "",
+      "role": "Operations Manager",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-13T12:00:00Z"
+    },
+    {
+      "id": "staff-5",
+      "email": "support@solcart.io",
+      "name": "Steve Support",
+      "passwordHash": "",
+      "role": "Customer Support",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-14T12:00:00Z"
+    },
+    {
+      "id": "staff-6",
+      "email": "fulfillment@solcart.io",
+      "name": "Frank Fulfillment",
+      "passwordHash": "",
+      "role": "Fulfillment Manager",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-15T12:00:00Z"
+    },
+    {
+      "id": "staff-7",
+      "email": "analyst@solcart.io",
+      "name": "Ana Analyst",
+      "passwordHash": "",
+      "role": "Read-Only Analyst",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-16T12:00:00Z"
+    }
+  ],
+  "tickets": [],
   "settings": {
-    "marketplaceMarkup": 1,
+    "marketplaceMarkup": 0,
     "supportedCryptos": [
       "SOL",
       "USDC"
@@ -344,7 +229,7 @@
     "rpcProvider": "Helius Mainnet Beta",
     "emailAlerts": false,
     "maintenanceMode": false,
-    "taxRate": 0.1,
+    "taxRate": 0,
     "shippingFeeUSD": 0,
     "freeShippingThresholdUSD": 0,
     "featureFlags": {
@@ -353,5 +238,28 @@
       "analyticsDashboard": true
     }
   },
-  "version": "4.20.0"
+  "version": "4.20.0",
+  "sentEmails": [
+    {
+      "id": "email-1784936774562-880",
+      "to": "rxdhwann@gmail.com",
+      "subject": "Verify your SOLCart account",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <h2 style=\"color: #6366f1; text-align: center;\">Welcome to SOLCart!</h2>\n      <p>Thank you for signing up. Please verify your email address by using the verification code below:</p>\n      <div style=\"text-align: center; margin: 30px 0;\">\n        <span style=\"font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e1b4b; background-color: #f3f4f6; padding: 10px 20px; border-radius: 6px; border: 1px dashed #6366f1;\">\n          234267\n        </span>\n      </div>\n      <p style=\"color: #6b7280; font-size: 14px;\">This code will expire in 15 minutes. If you did not request this, please ignore this email.</p>\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-07-24T23:46:14.562Z"
+    },
+    {
+      "id": "email-1784937241485-517",
+      "to": "rxdhwann@gmail.com",
+      "subject": "SOLCart Order Receipt #ord-363862",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <div style=\"text-align: center; margin-bottom: 20px;\">\n        <h2 style=\"color: #6366f1; margin: 0;\">SOLCart Invoice</h2>\n        <p style=\"color: #6b7280; font-size: 14px; margin: 5px 0 0 0;\">Order #ord-363862</p>\n      </div>\n      <p>Dear Mohammed Ridhwan,</p>\n      <p>Thank you for your purchase! We have successfully received your payment. Here is your receipt:</p>\n      \n      <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n        <thead>\n          <tr style=\"background-color: #f9fafb;\">\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: left;\">Item</th>\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: center;\">Qty</th>\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: right;\">Price</th>\n          </tr>\n        </thead>\n        <tbody>\n          \n    <tr>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea;\">Gift Card (UAE)</td>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea; text-align: center;\">1</td>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea; text-align: right;\">$50.00</td>\n    </tr>\n  \n          <tr>\n            <td colspan=\"2\" style=\"padding: 10px; text-align: right; font-weight: bold;\">Total Paid:</td>\n            <td style=\"padding: 10px; text-align: right; font-weight: bold; color: #10b981;\">\n              0.6868 SOL\n            </td>\n          </tr>\n        </tbody>\n      </table>\n\n      <div style=\"background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 15px; margin: 20px 0;\">\n        <h4 style=\"margin: 0 0 5px 0; color: #b45309;\">Digital Delivery</h4>\n        <p style=\"margin: 0; font-size: 14px; color: #78350f;\">\n          Our administration is preparing your digital gift card codes. They will be uploaded directly to your Customer Dashboard as soon as they are processed.\n        </p>\n      </div>\n\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-07-24T23:54:01.486Z"
+    },
+    {
+      "id": "email-1784937360686-233",
+      "to": "rxdhwann@gmail.com",
+      "subject": "Your Gift Card Code for Order #ord-363862 is Ready!",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <h2 style=\"color: #10b981; text-align: center;\">Your Gift Card Code is Ready!</h2>\n      <p>Good news! The administrator has uploaded the gift card code for your order <strong>#ord-363862</strong>.</p>\n      \n      <div style=\"text-align: center; margin: 30px 0; background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 6px; padding: 20px;\">\n        <p style=\"margin: 0 0 10px 0; color: #065f46; font-size: 14px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;\">Gift Card Code</p>\n        <span style=\"font-family: monospace; font-size: 24px; font-weight: bold; color: #065f46; background-color: #ffffff; padding: 8px 16px; border: 1px solid #a7f3d0; border-radius: 4px;\">\n          AMZN-111-111-11-1111\n        </span>\n      </div>\n\n      <p>You can also view this code at any time by logging into your Customer Dashboard on our website.</p>\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-07-24T23:56:00.686Z"
+    }
+  ]
 }

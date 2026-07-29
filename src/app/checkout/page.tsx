@@ -55,16 +55,8 @@ export default function CheckoutPage() {
   } = useSolanaWallet();
   const { user } = useAuth();
 
-  // Address State
-  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
-  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
-  const [newAddrName, setNewAddrName] = useState("");
-  const [newAddrStreet, setNewAddrStreet] = useState("");
-  const [newAddrCity, setNewAddrCity] = useState("");
-  const [newAddrState, setNewAddrState] = useState("");
-  const [newAddrZip, setNewAddrZip] = useState("");
-  const [newAddrCountry, setNewAddrCountry] = useState("United States");
+  // Country Selector State for digital gift cards
+  const [selectedCountry, setSelectedCountry] = useState("United States");
 
   // Customer details (for order creation)
   const [custName, setCustName] = useState("");
@@ -87,19 +79,8 @@ export default function CheckoutPage() {
   };
 
 
-  // Load addresses on mount or when user logs in
+  // Initialize customer name/email if user is logged in
   useEffect(() => {
-    const list = SupabaseService.getAddresses();
-    setAddresses(list);
-    
-    // Auto-select default address if present
-    const def = list.find(a => a.isDefault);
-    if (def) {
-      setSelectedAddressId(def.id);
-    } else if (list.length > 0) {
-      setSelectedAddressId(list[0].id);
-    }
-
     if (user) {
       setCustName(user.name);
       setCustEmail(user.email);
@@ -113,44 +94,23 @@ export default function CheckoutPage() {
     }
   }, [cartItems, paymentStep, router]);
 
-  const handleAddNewAddress = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newAddrName && newAddrStreet && newAddrCity && newAddrState && newAddrZip) {
-      const added = SupabaseService.addAddress({
-        name: newAddrName,
-        streetAddress: newAddrStreet,
-        city: newAddrCity,
-        state: newAddrState,
-        postalCode: newAddrZip,
-        country: newAddrCountry,
-        isDefault: addresses.length === 0
-      });
-      setAddresses(SupabaseService.getAddresses());
-      setSelectedAddressId(added.id);
-      
-      // Reset form
-      setNewAddrName("");
-      setNewAddrStreet("");
-      setNewAddrCity("");
-      setNewAddrState("");
-      setNewAddrZip("");
-      setShowNewAddressForm(false);
-    }
-  };
-
   const executeCheckoutPayment = async () => {
-    const selectedAddress = addresses.find(a => a.id === selectedAddressId);
-    if (!selectedAddress) {
-      setErrorMessage("Please select a shipping address");
+    if (!custEmail || !custName) {
+      setErrorMessage("Please provide your name and email address");
       setPaymentStep('error');
       return;
     }
 
-    if (!custEmail || !custName) {
-      setErrorMessage("Please provide customer name and email address");
-      setPaymentStep('error');
-      return;
-    }
+    const selectedAddress = {
+      id: "addr-digital",
+      name: custName,
+      streetAddress: "Digital Delivery",
+      city: "N/A",
+      state: "N/A",
+      postalCode: "N/A",
+      country: selectedCountry,
+      isDefault: true
+    };
 
     setPaymentStep('signature_pending');
     setStatusMessage(`Requesting transaction signature from your Solana wallet to transfer ${totalSOL.toFixed(4)} SOL to merchant receiving account (${MERCHANT_WALLET_ADDRESS.slice(0, 4)}...${MERCHANT_WALLET_ADDRESS.slice(-4)})...`);
@@ -241,6 +201,13 @@ export default function CheckoutPage() {
         swapTxHash,
         status: "paid"
       });
+
+      // Dispatch order receipt email asynchronously
+      fetch("/api/email/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: createdOrder })
+      }).catch(err => console.warn("Failed to send order receipt email", err));
 
       // Log transaction record
       SupabaseService.createTransaction({
@@ -338,140 +305,28 @@ export default function CheckoutPage() {
 
           {/* Shipping Address Selection */}
           <div className="glass-panel rounded-2xl p-5 border border-brand-border/40">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">2. Shipping Address</h3>
-              {!showNewAddressForm && (
-                <button
-                  onClick={() => setShowNewAddressForm(true)}
-                  className="text-[10px] font-bold text-brand-purple hover:text-brand-green transition-colors"
-                >
-                  + Add New Address
-                </button>
-              )}
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4">2. Gift Card Region / Country</h3>
+            <div>
+              <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Select Delivery Country/Region</label>
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full h-10 px-3.5 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white focus:outline-none focus:border-brand-purple/40"
+              >
+                <option value="United States">United States</option>
+                <option value="Canada">Canada</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Australia">Australia</option>
+                <option value="Japan">Japan</option>
+                <option value="Global">Global / International</option>
+              </select>
+              <p className="text-[10px] text-brand-text-muted mt-2 leading-relaxed">
+                * Note: Gift card code activation regions are locked based on your selected country. Please make sure you choose the correct country.
+              </p>
             </div>
-
-            {showNewAddressForm ? (
-              <form onSubmit={handleAddNewAddress} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Recipient Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Jane Doe"
-                      value={newAddrName}
-                      onChange={(e) => setNewAddrName(e.target.value)}
-                      className="w-full h-10 px-3 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Street Address</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="123 Solana Lane"
-                      value={newAddrStreet}
-                      onChange={(e) => setNewAddrStreet(e.target.value)}
-                      className="w-full h-10 px-3 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">City</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="San Francisco"
-                      value={newAddrCity}
-                      onChange={(e) => setNewAddrCity(e.target.value)}
-                      className="w-full h-10 px-3 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">State / Province</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="California"
-                      value={newAddrState}
-                      onChange={(e) => setNewAddrState(e.target.value)}
-                      className="w-full h-10 px-3 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Zip / Postal Code</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="94105"
-                      value={newAddrZip}
-                      onChange={(e) => setNewAddrZip(e.target.value)}
-                      className="w-full h-10 px-3 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Country</label>
-                    <select
-                      value={newAddrCountry}
-                      onChange={(e) => setNewAddrCountry(e.target.value)}
-                      className="w-full h-10 px-3 bg-brand-dark border border-brand-border rounded-lg text-xs text-white"
-                    >
-                      <option value="United States">United States</option>
-                      <option value="Canada">Canada</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="Germany">Germany</option>
-                      <option value="Singapore">Singapore</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewAddressForm(false)}
-                    className="px-4 py-2 border border-brand-border rounded-lg text-xs text-brand-text-muted"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-brand-purple rounded-lg text-xs font-bold text-white"
-                  >
-                    Save Address
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="space-y-3">
-                {addresses.length === 0 ? (
-                  <p className="text-xs text-brand-text-muted text-center py-4">No addresses saved. Click Add New Address above.</p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {addresses.map(a => (
-                      <div 
-                        key={a.id}
-                        onClick={() => setSelectedAddressId(a.id)}
-                        className={`p-4 rounded-xl border cursor-pointer flex flex-col justify-between transition-all select-none ${selectedAddressId === a.id ? 'border-brand-purple bg-brand-purple/5' : 'border-brand-border/40 bg-brand-dark/20 hover:border-brand-border'}`}
-                      >
-                        <div>
-                          <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                            <MapPin className="h-3.5 w-3.5 text-brand-purple" />
-                            {a.name}
-                          </p>
-                          <p className="text-[10px] text-brand-text-muted mt-2 leading-relaxed">
-                            {a.streetAddress}, {a.city}, {a.state} {a.postalCode}, {a.country}
-                          </p>
-                        </div>
-                        {a.isDefault && (
-                          <span className="mt-4 self-start px-2 py-0.5 rounded text-[8px] bg-brand-purple/20 text-brand-purple font-semibold">
-                            Default Address
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Wallet Connection Verification */}

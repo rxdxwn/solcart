@@ -96,7 +96,78 @@ const CUSTOMER_GROWTH_DATA = [
 ];
 
 export default function AdminDashboard() {
-  const { user, login, hasPermission } = useAuth();
+  const { user, login, hasPermission, bypassLoginForTesting } = useAuth();
+
+  // Dynamic Chart Data Helpers
+  const getRevenueTrendData = () => {
+    if (orders.length === 0) {
+      return [{ date: new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric'}), SOL: 0, USDC: 0 }];
+    }
+    const grouped: Record<string, { date: string; SOL: number; USDC: number }> = {};
+    orders.forEach(o => {
+      const d = new Date(o.timestamp);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!grouped[dateStr]) {
+        grouped[dateStr] = { date: dateStr, SOL: 0, USDC: 0 };
+      }
+      grouped[dateStr].SOL += o.paidSOL;
+      grouped[dateStr].USDC += o.receivedUSDC;
+    });
+    return Object.values(grouped).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  const getCategorySalesData = () => {
+    if (orders.length === 0) {
+      return [{ name: "No Sales", value: 0, color: "#8b5cf6" }];
+    }
+    const counts: Record<string, number> = {};
+    orders.forEach(o => {
+      o.items.forEach(it => {
+        const category = it.brand || "Retail";
+        counts[category] = (counts[category] || 0) + (it.marketplacePriceUSD * it.quantity);
+      });
+    });
+    const colors = ["#8b5cf6", "#ec4899", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+    return Object.entries(counts).map(([name, value], idx) => ({
+      name,
+      value,
+      color: colors[idx % colors.length]
+    }));
+  };
+
+  const getRetailerSalesData = () => {
+    if (orders.length === 0) {
+      return [{ name: "No Sales", sales: 0 }];
+    }
+    const counts: Record<string, number> = {};
+    orders.forEach(o => {
+      const ret = o.retailerId || "Other";
+      const name = ret.charAt(0).toUpperCase() + ret.slice(1);
+      counts[name] = (counts[name] || 0) + o.retailPriceUSD;
+    });
+    return Object.entries(counts).map(([name, sales]) => ({ name, sales }));
+  };
+
+  const getCustomerGrowthData = () => {
+    if (orders.length === 0) {
+      return [{ date: new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric'}), total: 0 }];
+    }
+    const grouped: Record<string, Set<string>> = {};
+    orders.forEach(o => {
+      const d = new Date(o.timestamp);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!grouped[dateStr]) {
+        grouped[dateStr] = new Set();
+      }
+      grouped[dateStr].add(o.walletAddress.toLowerCase());
+    });
+    let cumulative = 0;
+    const dates = Object.keys(grouped).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    return dates.map(d => {
+      cumulative += grouped[d].size;
+      return { date: d, total: cumulative };
+    });
+  };
 
   // Active Sidebar module Tab
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -123,6 +194,7 @@ export default function AdminDashboard() {
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
+  const [selectedCustomerFilter, setSelectedCustomerFilter] = useState("all");
   const [dateFilterRange, setDateFilterRange] = useState("last30");
 
   // Editing States
@@ -141,6 +213,10 @@ export default function AdminDashboard() {
   const [newProdStock, setNewProdStock] = useState("50");
   const [newProdImage, setNewProdImage] = useState("");
   const [newProdDesc, setNewProdDesc] = useState("");
+  const [editingStock, setEditingStock] = useState<Record<string, string>>({});
+  const [giftCardCodeInput, setGiftCardCodeInput] = useState("");
+  const [editingCustomerName, setEditingCustomerName] = useState("");
+  const [isEditingCustomer, setIsEditingCustomer] = useState(false);
 
   // Add Staff form state
   const [showStaffForm, setShowStaffForm] = useState(false);
@@ -179,7 +255,7 @@ export default function AdminDashboard() {
 
   // Handle Developer Role Switching
   const handleRoleSwitch = async (roleEmail: string) => {
-    await login(roleEmail);
+    await bypassLoginForTesting(roleEmail);
     refreshAllData();
   };
 
@@ -254,7 +330,8 @@ export default function AdminDashboard() {
   const totalSalesUSD = orders.reduce((acc, o) => acc + o.retailPriceUSD, 0);
   const totalUSDC = orders.reduce((acc, o) => acc + o.receivedUSDC, 0);
   const totalSOL = orders.reduce((acc, o) => acc + o.paidSOL, 0);
-  const totalFEEUSD = orders.reduce((acc, o) => acc + (o.retailPriceUSD * 0.015), 0); // 1.5% marketplace fee
+  const taxRate = settings.taxRate !== undefined ? settings.taxRate : 5;
+  const totalFEEUSD = orders.reduce((acc, o) => acc + (o.retailPriceUSD * (taxRate / 100)), 0);
   
   const totalSourcedRetailUSD = orders.reduce((acc, o) => {
     const innerSum = o.items.reduce((ac, it) => ac + (it.retailPriceUSD * it.quantity), 0);
@@ -267,6 +344,12 @@ export default function AdminDashboard() {
   const pendingOrders = orders.filter(o => o.status === "pending" || o.status === "paid").length;
   const completedOrders = orders.filter(o => o.status === "delivered").length;
   const refundedOrders = orders.filter(o => o.status === "refunded").length;
+
+  const paymentSuccessRate = transactions.length > 0
+    ? ((transactions.filter(t => t.status === "success").length / transactions.length) * 100).toFixed(1) + "%"
+    : "0.0%";
+  const conversionRate = orders.length > 0 ? "100.0%" : "0.0%";
+  const failedPayments = transactions.filter(t => t.status === "failed").length;
 
   // Actions handlers
   const handleUpdateMarkup = (retailerId: string) => {
@@ -370,6 +453,132 @@ export default function AdminDashboard() {
     refreshAllData();
   };
 
+  const handleUpdateStock = async (productId: string, stockVal: string) => {
+    if (!hasPermission("products", "edit")) return;
+    const stockCount = parseInt(stockVal, 10);
+    if (isNaN(stockCount)) return;
+
+    try {
+      const res = await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateProductStock",
+          payload: { productId, stockCount }
+        })
+      });
+      if (res.ok) {
+        RetailerService.updateProduct(productId, { stockCount });
+        setEditingStock(prev => {
+          const next = { ...prev };
+          delete next[productId];
+          return next;
+        });
+        refreshAllData();
+      }
+    } catch (err) {
+      console.error("Failed to update stock:", err);
+    }
+  };
+
+  const handleUpdateCustomerName = async (orderId: string) => {
+    if (!hasPermission("orders", "edit")) return;
+    if (!editingCustomerName.trim()) return;
+
+    try {
+      const res = await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateOrderCustomerName",
+          payload: { orderId, customerName: editingCustomerName.trim() }
+        })
+      });
+      if (res.ok) {
+        // Also update local storage to match
+        SupabaseService.updateOrderStatus(orderId, selectedOrder!.status, {
+          customerDetails: {
+            ...selectedOrder!.customerDetails,
+            name: editingCustomerName.trim()
+          }
+        });
+        setSelectedOrder(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            customerDetails: {
+              ...prev.customerDetails,
+              name: editingCustomerName.trim()
+            }
+          };
+        });
+        setIsEditingCustomer(false);
+        refreshAllData();
+      }
+    } catch (err) {
+      console.error("Failed to update customer name:", err);
+    }
+  };
+
+  const handleDeliverGiftCardCode = async (orderId: string) => {
+    if (!hasPermission("orders", "edit")) return;
+    if (!giftCardCodeInput.trim()) return;
+
+    try {
+      // 1. Deliver the code inside the db
+      const resVal = await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deliverGiftCardCode",
+          payload: { orderId, giftCardCode: giftCardCodeInput.trim() }
+        })
+      });
+
+      if (resVal.ok) {
+        // 2. Mark order as delivered (which means completed gift card assignment)
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updateOrderStatus",
+            payload: { orderId, status: "delivered" }
+          })
+        });
+
+        // 3. Update localStorage
+        SupabaseService.updateOrderStatus(orderId, "delivered", {
+          giftCardCode: giftCardCodeInput.trim()
+        });
+
+        // 4. Send the code via email to customer
+        await fetch("/api/email/delivery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            toEmail: selectedOrder!.customerDetails.email,
+            orderId,
+            giftCardCode: giftCardCodeInput.trim()
+          })
+        }).catch(e => console.warn("Failed to dispatch gift card code email", e));
+
+        setSelectedOrder(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            status: "delivered",
+            giftCardCode: giftCardCodeInput.trim()
+          };
+        });
+
+        setGiftCardCodeInput("");
+        refreshAllData();
+      }
+    } catch (err) {
+      console.error("Failed to deliver gift card code:", err);
+    }
+  };
+
   const handleAddStaff = (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasPermission("staff", "edit")) return;
@@ -411,13 +620,16 @@ export default function AdminDashboard() {
     setSelectedTicket(null);
   };
 
+  const uniqueCustomers = Array.from(new Set(orders.map(o => o.customerDetails?.name).filter(Boolean)));
+
   // Filter orders based on query & state
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.id.includes(searchQuery) || 
       o.customerDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
       o.walletAddress.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = orderStatusFilter === "all" || o.status === orderStatusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCustomer = selectedCustomerFilter === "all" || o.customerDetails.name === selectedCustomerFilter;
+    return matchesSearch && matchesStatus && matchesCustomer;
   });
 
   return (
@@ -672,7 +884,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Failed payments</span>
-                      <p className="text-lg sm:text-2xl font-black text-red-400 mt-1.5">0</p>
+                      <p className="text-lg sm:text-2xl font-black text-red-400 mt-1.5">{failedPayments}</p>
                     </div>
 
                     {/* Customers & Health */}
@@ -686,11 +898,11 @@ export default function AdminDashboard() {
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Payment Success</span>
-                      <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">99.2%</p>
+                      <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">{paymentSuccessRate}</p>
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Conversion rate</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">3.8%</p>
+                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{conversionRate}</p>
                     </div>
                   </div>
 
@@ -702,7 +914,7 @@ export default function AdminDashboard() {
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Revenue & SOL Volume received</h3>
                       <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={REVENUE_TREND_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <AreaChart data={getRevenueTrendData()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                               <linearGradient id="colorUsdc" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -724,7 +936,7 @@ export default function AdminDashboard() {
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Total Sales by retail partner</h3>
                       <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={RETAILER_SALES_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <BarChart data={getRetailerSalesData()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#2a2935" />
                             <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: 10 }} />
                             <YAxis stroke="#6b7280" style={{ fontSize: 10 }} />
@@ -755,21 +967,39 @@ export default function AdminDashboard() {
                       <h1 className="text-xl font-bold">Orders Management</h1>
                       <p className="text-xs text-brand-text-muted mt-1">Review checkout signatures, dispatch carrier tracking, and settle customer refunds.</p>
                     </div>
-                    {/* Status filter buttons */}
-                    <div className="flex gap-2 text-xs">
-                      {["all", "paid", "shipped", "delivered", "refunded"].map(status => (
-                        <button
-                          key={status}
-                          onClick={() => setOrderStatusFilter(status)}
-                          className={`px-3 py-1.5 rounded-lg border font-bold capitalize transition-all ${
-                            orderStatusFilter === status 
-                              ? 'bg-brand-purple border-brand-purple text-white shadow-md' 
-                              : 'bg-brand-card/40 border-brand-border/60 text-brand-text-muted hover:text-white'
-                          }`}
+                    {/* Filter controls */}
+                    <div className="flex items-center gap-3 text-xs">
+                      {/* Customer Filter Dropdown */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-brand-text-muted font-bold uppercase">Customer:</span>
+                        <select
+                          value={selectedCustomerFilter}
+                          onChange={(e) => setSelectedCustomerFilter(e.target.value)}
+                          className="h-8 px-2.5 bg-brand-dark/40 border border-brand-border/60 rounded-lg text-xs font-bold text-white cursor-pointer focus:outline-none hover:border-brand-purple/40"
                         >
-                          {status}
-                        </button>
-                      ))}
+                          <option value="all">All Customers</option>
+                          {uniqueCustomers.map((custName: any) => (
+                            <option key={custName} value={custName}>{custName}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Status filter buttons */}
+                      <div className="flex gap-2">
+                        {["all", "paid", "shipped", "delivered", "refunded"].map(status => (
+                          <button
+                            key={status}
+                            onClick={() => setOrderStatusFilter(status)}
+                            className={`px-3 py-1.5 rounded-lg border font-bold capitalize transition-all ${
+                              orderStatusFilter === status 
+                                ? 'bg-brand-purple border-brand-purple text-white shadow-md' 
+                                : 'bg-brand-card/40 border-brand-border/60 text-brand-text-muted hover:text-white'
+                            }`}
+                          >
+                            {status}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -854,9 +1084,48 @@ export default function AdminDashboard() {
                           <div className="grid grid-cols-2 gap-4 text-xs">
                             <div className="space-y-1">
                               <p className="font-bold text-brand-text-muted uppercase text-[9px] tracking-wider font-sans">Customer Details</p>
-                              <p className="text-white font-bold">{selectedOrder.customerDetails.name}</p>
-                              <p className="text-brand-text-muted">{selectedOrder.customerDetails.email}</p>
-                              <p className="text-brand-text-muted">{selectedOrder.customerDetails.phone}</p>
+                              {isEditingCustomer ? (
+                                <div className="space-y-2 mt-1">
+                                  <input
+                                    type="text"
+                                    value={editingCustomerName}
+                                    onChange={(e) => setEditingCustomerName(e.target.value)}
+                                    className="w-full px-2.5 py-1 bg-brand-dark border border-brand-border/60 rounded text-xs text-white"
+                                    placeholder="Edit name..."
+                                  />
+                                  <div className="flex gap-1.5">
+                                    <button
+                                      onClick={() => handleUpdateCustomerName(selectedOrder.id)}
+                                      className="px-2 py-0.5 rounded bg-brand-purple text-[10px] font-bold text-white hover:bg-brand-purple/90"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => setIsEditingCustomer(false)}
+                                      className="px-2 py-0.5 rounded bg-brand-dark border border-brand-border text-[10px] font-bold text-white hover:bg-brand-border"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-start gap-1.5 mt-1">
+                                  <div>
+                                    <p className="text-white font-bold">{selectedOrder.customerDetails.name}</p>
+                                    <p className="text-brand-text-muted">{selectedOrder.customerDetails.email}</p>
+                                    <p className="text-brand-text-muted">{selectedOrder.customerDetails.phone}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      setEditingCustomerName(selectedOrder.customerDetails.name);
+                                      setIsEditingCustomer(true);
+                                    }}
+                                    className="text-[10px] font-bold text-brand-purple hover:underline"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
+                              )}
                             </div>
                             <div className="space-y-1">
                               <p className="font-bold text-brand-text-muted uppercase text-[9px] tracking-wider font-sans">Shipping Address</p>
@@ -893,43 +1162,34 @@ export default function AdminDashboard() {
                             <div className="space-y-3 p-4 rounded-xl border border-brand-purple/20 bg-brand-purple/5">
                               <p className="font-bold text-brand-purple uppercase tracking-wider text-[9px] font-sans">Administrative Actions</p>
                               
-                              {/* Order Status Select */}
-                              <div className="flex gap-2">
-                                {selectedOrder.status === "paid" && (
-                                  <div className="w-full space-y-2">
-                                    <div className="flex gap-2">
-                                      <input
-                                        type="text"
-                                        placeholder="Tracking Number (Optional)"
-                                        value={newTrackingNum}
-                                        onChange={(e) => setNewTrackingNum(e.target.value)}
-                                        className="flex-1 px-3 py-1.5 text-xs bg-brand-dark border border-brand-border/60 rounded-lg text-white"
-                                      />
-                                      <input
-                                        type="text"
-                                        placeholder="Carrier (e.g. UPS)"
-                                        value={newCarrier}
-                                        onChange={(e) => setNewCarrier(e.target.value)}
-                                        className="w-24 px-3 py-1.5 text-xs bg-brand-dark border border-brand-border/60 rounded-lg text-white"
-                                      />
-                                    </div>
+                              {selectedOrder.status !== "delivered" && selectedOrder.status !== "refunded" ? (
+                                <div className="space-y-2">
+                                  <label className="block text-[10px] font-bold text-brand-text-muted uppercase">Assign Digital Gift Card Code</label>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. AMZN-XYZ-123-ABC"
+                                      value={giftCardCodeInput}
+                                      onChange={(e) => setGiftCardCodeInput(e.target.value)}
+                                      className="flex-1 px-3 py-1.5 text-xs bg-brand-dark border border-brand-border/60 rounded-lg text-white"
+                                    />
                                     <button
-                                      onClick={() => handleUpdateOrderStatus(selectedOrder.id, "shipped")}
-                                      className="w-full py-2 bg-brand-purple hover:bg-brand-purple/95 rounded-lg text-xs font-bold text-white"
+                                      onClick={() => handleDeliverGiftCardCode(selectedOrder.id)}
+                                      className="px-4 bg-brand-purple hover:bg-brand-purple/95 rounded-lg text-xs font-bold text-white transition-colors"
                                     >
-                                      Dispatch Courier (Mark Shipped)
+                                      Deliver Code
                                     </button>
                                   </div>
-                                )}
-                                {selectedOrder.status === "shipped" && (
-                                  <button
-                                    onClick={() => handleUpdateOrderStatus(selectedOrder.id, "delivered")}
-                                    className="w-full py-2 bg-brand-green hover:bg-brand-green/95 rounded-lg text-xs font-bold text-white"
-                                  >
-                                    Mark as Delivered
-                                  </button>
-                                )}
-                              </div>
+                                  <p className="text-[9px] text-brand-text-muted mt-1">Assigning a code will mark this order as Completed/Delivered and instantly email the code to the customer.</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-1.5">
+                                  <p className="text-[10px] text-brand-text-muted font-bold uppercase">Delivered Gift Card Code</p>
+                                  <p className="p-2.5 rounded bg-brand-dark/60 border border-brand-border/40 font-mono text-xs text-brand-green font-bold select-all tracking-wider text-center">
+                                    {selectedOrder.giftCardCode || "N/A - Direct delivery"}
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -1035,7 +1295,7 @@ export default function AdminDashboard() {
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={CATEGORY_SALES_DATA}
+                              data={getCategorySalesData()}
                               cx="50%"
                               cy="50%"
                               innerRadius={60}
@@ -1043,7 +1303,7 @@ export default function AdminDashboard() {
                               paddingAngle={5}
                               dataKey="value"
                             >
-                              {CATEGORY_SALES_DATA.map((entry, index) => (
+                              {getCategorySalesData().map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                               ))}
                             </Pie>
@@ -1059,7 +1319,7 @@ export default function AdminDashboard() {
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Customer Wallet growth</h3>
                       <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={CUSTOMER_GROWTH_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <AreaChart data={getCustomerGrowthData()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#2a2935" />
                             <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: 10 }} />
                             <YAxis stroke="#6b7280" style={{ fontSize: 10 }} />
@@ -1361,7 +1621,8 @@ export default function AdminDashboard() {
                             <option value="amazon">Amazon</option>
                             <option value="nike">Nike</option>
                             <option value="apple">Apple</option>
-                            <option value="bestbuy">Best Buy</option>
+                            <option value="walmart">Walmart</option>
+                            <option value="target">Target</option>
                           </select>
                         </div>
                         <div className="space-y-1">
@@ -1369,14 +1630,61 @@ export default function AdminDashboard() {
                           <input
                             type="number"
                             required
-                            placeholder="120.00"
+                            placeholder="100.00"
                             value={newProdRetailPrice}
                             onChange={(e) => setNewProdRetailPrice(e.target.value)}
                             className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white"
                           />
                         </div>
+                        <div className="space-y-1">
+                          <label className="text-brand-text-muted font-bold">Stock Count</label>
+                          <input
+                            type="number"
+                            required
+                            placeholder="50"
+                            value={newProdStock}
+                            onChange={(e) => setNewProdStock(e.target.value)}
+                            className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-brand-text-muted font-bold">Category</label>
+                          <select
+                            value={newProdCategory}
+                            onChange={(e) => setNewProdCategory(e.target.value)}
+                            className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white cursor-pointer"
+                          >
+                            <option value="Gaming">Gaming</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Food & Drink">Food & Drink</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Apparel">Apparel</option>
+                          </select>
+                        </div>
                       </div>
-                      
+                      <div className="space-y-1">
+                        <label className="text-brand-text-muted font-bold">Image URL</label>
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://images.unsplash.com/photo-..."
+                          value={newProdImage}
+                          onChange={(e) => setNewProdImage(e.target.value)}
+                          className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-brand-text-muted font-bold">Description</label>
+                        <textarea
+                          required
+                          rows={3}
+                          placeholder="Provide details about the gift card, region locking, and terms..."
+                          value={newProdDesc}
+                          onChange={(e) => setNewProdDesc(e.target.value)}
+                          className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white resize-none"
+                        />
+                      </div>
+
                       <div className="flex gap-4">
                         <button
                           type="submit"
@@ -1481,6 +1789,92 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Product Stock Levels Table */}
+                  <div className="pt-6 border-t border-brand-border/20">
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-3">Product Stock Levels</h2>
+                    <div className="rounded-xl border border-brand-border/40 overflow-hidden bg-brand-card/15">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-brand-dark/80 text-brand-text-muted border-b border-brand-border/40">
+                          <tr>
+                            <th className="p-3.5">Product / Gift Card</th>
+                            <th className="p-3.5">Brand</th>
+                            <th className="p-3.5">Retailer</th>
+                            <th className="p-3.5">Stock Level</th>
+                            <th className="p-3.5">Status</th>
+                            <th className="p-3.5 text-right">Update Stock</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-brand-border/40">
+                          {products.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="p-8 text-center text-brand-text-muted">
+                                No products in catalog yet. Please add a product to track its stock.
+                              </td>
+                            </tr>
+                          ) : (
+                            products.map(prod => {
+                              const stock = prod.stockCount;
+                              let statusText = "In Stock";
+                              let statusClass = "text-brand-green bg-brand-green/5";
+                              if (stock === 0) {
+                                statusText = "Out of Stock";
+                                statusClass = "text-red-400 bg-red-500/5";
+                              } else if (stock <= 10) {
+                                statusText = "Low Stock";
+                                statusClass = "text-amber-400 bg-amber-500/5";
+                              }
+
+                              return (
+                                <tr key={prod.id} className="hover:bg-brand-card/25">
+                                  <td className="p-3.5 flex items-center gap-3">
+                                    <div className="relative h-8 w-8 rounded overflow-hidden shrink-0 bg-brand-dark">
+                                      <img
+                                        src={prod.image || "https://images.unsplash.com/photo-1574634534894-89d7576c8259?w=100"}
+                                        alt={prod.name}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    </div>
+                                    <span className="font-bold text-white">{prod.name}</span>
+                                  </td>
+                                  <td className="p-3.5 text-brand-text-muted">{prod.brand}</td>
+                                  <td className="p-3.5 capitalize text-brand-text-muted">{prod.retailerId}</td>
+                                  <td className="p-3.5 font-bold text-white font-mono">{stock}</td>
+                                  <td className="p-3.5 font-bold">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-wider ${statusClass}`}>
+                                      {statusText}
+                                    </span>
+                                  </td>
+                                  <td className="p-3.5 text-right">
+                                    <div className="inline-flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        placeholder="Set Stock"
+                                        value={editingStock[prod.id] !== undefined ? editingStock[prod.id] : stock.toString()}
+                                        onChange={(e) => {
+                                          setEditingStock(prev => ({
+                                            ...prev,
+                                            [prod.id]: e.target.value
+                                          }));
+                                        }}
+                                        className="w-16 px-2 py-1 bg-brand-dark border border-brand-border/60 rounded text-center text-white font-mono text-xs"
+                                      />
+                                      <button
+                                        onClick={() => handleUpdateStock(prod.id, editingStock[prod.id] !== undefined ? editingStock[prod.id] : stock.toString())}
+                                        className="px-2.5 py-1 bg-brand-purple hover:bg-brand-purple/90 rounded text-[10px] font-bold text-white transition-colors"
+                                      >
+                                        Save
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1986,7 +2380,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-3">
                         <input
                           type="number"
-                          value={settings.marketplaceMarkup || 10}
+                          value={settings.marketplaceMarkup !== undefined ? settings.marketplaceMarkup : 10}
                           onChange={(e) => {
                             if (!hasPermission("settings", "edit")) return;
                             SupabaseService.updateSettings({ marketplaceMarkup: parseFloat(e.target.value) });
@@ -2006,7 +2400,7 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-3">
                         <input
                           type="number"
-                          value={settings.taxRate || 5}
+                          value={settings.taxRate !== undefined ? settings.taxRate : 5}
                           onChange={(e) => {
                             if (!hasPermission("settings", "edit")) return;
                             SupabaseService.updateSettings({ taxRate: parseFloat(e.target.value) });

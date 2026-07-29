@@ -26,7 +26,7 @@ import { APP_VERSION } from "../../lib/version";
 export default function Navbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, login, logout, isAdmin } = useAuth();
+  const { user, login, signup, verify, requestReset, confirmReset, logout, isAdmin } = useAuth();
   const { 
     connected, 
     walletAddress, 
@@ -50,6 +50,12 @@ export default function Navbar() {
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "signup" | "verify" | "reset-request" | "reset-confirm">("login");
+  const [authError, setAuthError] = useState("");
+  const [authSuccessMessage, setAuthSuccessMessage] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [solflareNotFoundModal, setSolflareNotFoundModal] = useState(false);
 
@@ -89,15 +95,87 @@ export default function Navbar() {
     }
   };
 
-  const handleAuthSubmit = async (e: React.FormEvent) => {
+  const signupWithCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authEmail) {
-      const success = await login(authEmail);
-      if (success) {
-        setShowAuthModal(false);
-        setAuthEmail("");
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await signup(authEmail, authPassword, authName);
+    if (res.success) {
+      setAuthSuccessMessage("Verification code sent to your email!");
+      setAuthMode("verify");
+    } else {
+      setAuthError(res.error || "Signup failed");
+    }
+  };
+
+  const verifyAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await verify(authEmail, authCode);
+    if (res.success) {
+      setShowAuthModal(false);
+      resetAuthFields();
+    } else {
+      setAuthError(res.error || "Verification failed");
+    }
+  };
+
+  const loginWithCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await login(authEmail, authPassword);
+    if (res.success) {
+      setShowAuthModal(false);
+      resetAuthFields();
+    } else {
+      if (res.unverified) {
+        await signup(authEmail, authPassword, authName || authEmail.split("@")[0]);
+        setAuthSuccessMessage("Your account is not verified. A verification code has been resent to your email.");
+        setAuthMode("verify");
+      } else {
+        setAuthError(res.error || "Invalid email or password");
       }
     }
+  };
+
+  const requestPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await requestReset(authEmail);
+    if (res.success) {
+      setAuthSuccessMessage("Verification reset code sent to your email.");
+      setAuthMode("reset-confirm");
+    } else {
+      setAuthError(res.error || "Failed to request reset");
+    }
+  };
+
+  const confirmPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await confirmReset(authEmail, authCode, authPassword);
+    if (res.success) {
+      setAuthSuccessMessage("Password reset successfully! Please log in.");
+      setAuthMode("login");
+      setAuthPassword("");
+      setAuthCode("");
+    } else {
+      setAuthError(res.error || "Failed to reset password");
+    }
+  };
+
+  const resetAuthFields = () => {
+    setAuthEmail("");
+    setAuthPassword("");
+    setAuthName("");
+    setAuthCode("");
+    setAuthError("");
+    setAuthSuccessMessage("");
+    setAuthMode("login");
   };
 
   const handleWalletSelect = async (name: WalletProviderName) => {
@@ -148,6 +226,9 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-6">
               <Link href="/marketplace" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors">
                 Marketplace
+              </Link>
+              <Link href="/contact" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors">
+                Contact Us
               </Link>
               {mounted && connected && (
                 <Link href="/dashboard" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors">
@@ -368,6 +449,13 @@ export default function Navbar() {
                 className="px-3 py-2 rounded-lg text-sm font-medium text-brand-text-muted hover:text-white hover:bg-brand-card"
               >
                 Marketplace
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setShowMobileMenu(false)}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-brand-text-muted hover:text-white hover:bg-brand-card"
+              >
+                Contact Us
               </Link>
               {mounted && connected && (
                 <Link
@@ -597,40 +685,272 @@ export default function Navbar() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/80 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-brand-border bg-brand-card p-6 shadow-2xl relative">
             <button 
-              onClick={() => setShowAuthModal(false)}
+              onClick={() => {
+                setShowAuthModal(false);
+                resetAuthFields();
+              }}
               className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-brand-border/40 text-brand-text-muted hover:text-white transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
-            <h3 className="text-lg font-bold text-white tracking-tight">Sign In or Register</h3>
-            <p className="text-xs text-brand-text-muted mt-1.5 mb-6">
-              Access your order history, transaction receipts, saved addresses, and refunds.
-            </p>
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-brand-text-muted mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
-              >
-                Sign In
-              </button>
-              
-              <div className="pt-2 text-center">
-                <p className="text-[10px] text-brand-text-muted">
-                  Tip: Use <span className="text-brand-purple font-semibold">admin@solcart.com</span> to access the Admin Panel immediately!
+
+            {authMode === "login" && (
+              <>
+                <h3 className="text-lg font-bold text-white tracking-tight">Sign In</h3>
+                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
+                  Access your order history, digital gift card codes, and refunds.
                 </p>
-              </div>
-            </form>
+                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
+                {authSuccessMessage && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-[11px] text-brand-green font-semibold">{authSuccessMessage}</div>}
+                <form onSubmit={loginWithCredentials} className="space-y-3.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">Password</label>
+                      <button 
+                        type="button"
+                        onClick={() => { setAuthMode("reset-request"); setAuthError(""); setAuthSuccessMessage(""); }}
+                        className="text-[10px] text-brand-purple hover:underline"
+                      >
+                        Forgot?
+                      </button>
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
+                  >
+                    Sign In
+                  </button>
+                  <div className="pt-2 text-center text-xs">
+                    <span className="text-brand-text-muted">Don't have an account? </span>
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthMode("signup"); setAuthError(""); setAuthSuccessMessage(""); }}
+                      className="text-brand-purple font-semibold hover:underline"
+                    >
+                      Register
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {authMode === "signup" && (
+              <>
+                <h3 className="text-lg font-bold text-white tracking-tight">Register Account</h3>
+                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
+                  Create a new secure credentials account to order and retrieve gift cards.
+                </p>
+                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
+                <form onSubmit={signupWithCredentials} className="space-y-3.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="John Doe"
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Password</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
+                  >
+                    Register
+                  </button>
+                  <div className="pt-2 text-center text-xs">
+                    <span className="text-brand-text-muted">Already have an account? </span>
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
+                      className="text-brand-purple font-semibold hover:underline"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {authMode === "verify" && (
+              <>
+                <h3 className="text-lg font-bold text-white tracking-tight">Verify Email</h3>
+                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
+                  We sent a 6-digit verification code to <strong>{authEmail}</strong>. Please check your inbox.
+                </p>
+                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
+                {authSuccessMessage && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-[11px] text-brand-green font-semibold">{authSuccessMessage}</div>}
+                <form onSubmit={verifyAccount} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1.5 text-center">Verification Code</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      placeholder="123456"
+                      value={authCode}
+                      onChange={(e) => setAuthCode(e.target.value)}
+                      className="w-full h-12 text-center text-lg font-bold tracking-widest rounded-lg border border-brand-border bg-brand-dark/40 text-white focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
+                  >
+                    Verify & Login
+                  </button>
+                  <div className="pt-2 text-center text-xs">
+                    <button 
+                      type="button" 
+                      onClick={async () => {
+                        setAuthError("");
+                        setAuthSuccessMessage("");
+                        const res = await signup(authEmail, authPassword, authName);
+                        if (res.success) {
+                          setAuthSuccessMessage("A new code was sent to your email!");
+                        } else {
+                          setAuthError(res.error || "Failed to resend code");
+                        }
+                      }}
+                      className="text-brand-purple font-semibold hover:underline"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {authMode === "reset-request" && (
+              <>
+                <h3 className="text-lg font-bold text-white tracking-tight">Forgot Password</h3>
+                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
+                  Enter your email address and we'll send you a temporary code to reset your password.
+                </p>
+                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
+                <form onSubmit={requestPasswordReset} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1.5">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
+                  >
+                    Send Reset Code
+                  </button>
+                  <div className="pt-2 text-center text-xs">
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
+                      className="text-brand-purple font-semibold hover:underline"
+                    >
+                      Back to Sign In
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {authMode === "reset-confirm" && (
+              <>
+                <h3 className="text-lg font-bold text-white tracking-tight">Reset Password</h3>
+                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
+                  Check your email for the reset code and enter it below along with your new password.
+                </p>
+                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
+                {authSuccessMessage && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-[11px] text-brand-green font-semibold">{authSuccessMessage}</div>}
+                <form onSubmit={confirmPasswordReset} className="space-y-3.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Reset Code</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="123456"
+                      value={authCode}
+                      onChange={(e) => setAuthCode(e.target.value)}
+                      className="w-full h-10 text-center text-sm font-semibold tracking-wider rounded-lg border border-brand-border bg-brand-dark/40 text-white focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">New Password</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
+                  >
+                    Update Password
+                  </button>
+                  <div className="pt-2 text-center text-xs">
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
+                      className="text-brand-purple font-semibold hover:underline"
+                    >
+                      Back to Sign In
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}

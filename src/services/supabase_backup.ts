@@ -1,14 +1,13 @@
-import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails, Product } from "../types";
+import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails } from "../types";
 
 // Simulated Database Keys
 const STORAGE_KEYS = {
   ORDERS: "solcart_db_orders",
   TRANSACTIONS: "solcart_db_transactions",
-  PRODUCTS: "solcart_db_products",
   ADDRESSES: "solcart_db_addresses",
   REFUNDS: "solcart_db_refunds",
   ACTIVITY_LOGS: "solcart_db_activity_logs",
-  CURRENT_USER: "solcart_current_user",
+  CURRENT_USER: "solcart_session_user",
   STAFF: "solcart_db_staff",
   SUPPLIERS: "solcart_db_suppliers",
   TICKETS: "solcart_db_tickets",
@@ -16,7 +15,18 @@ const STORAGE_KEYS = {
 };
 
 // Initial Database Seeds
-const MOCK_ADDRESSES: ShippingAddress[] = [];
+const MOCK_ADDRESSES: ShippingAddress[] = [
+  {
+    id: "addr-1",
+    name: "Ridhwan Solcart",
+    streetAddress: "123 Solana Boulevard, Suite 500",
+    city: "San Francisco",
+    state: "CA",
+    postalCode: "94105",
+    country: "United States",
+    isDefault: true
+  }
+];
 
 const DEFAULT_STAFF = [
   { id: "staff-1", name: "Sarah Owner", email: "owner@solcart.io", role: "Owner", permissions: ["*"], createdAt: "2025-01-10T12:00:00Z", lastActive: "Just now", status: "Active", assignedOrders: 1 },
@@ -54,11 +64,89 @@ const DEFAULT_SETTINGS = {
   featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
 };
 
-const MOCK_ORDERS: Order[] = [];
+const MOCK_ORDERS: Order[] = [
+  {
+    id: "ord-827392",
+    walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567",
+    customerDetails: { name: "John Doe", email: "john.doe@gmail.com", phone: "+1 555-0199" },
+    shippingAddress: { id: "addr-1", name: "John Doe", streetAddress: "1600 Amphitheatre Pkwy", city: "Mountain View", state: "CA", postalCode: "94043", country: "United States", isDefault: true },
+    items: [
+      { productId: "p-nike-1", productName: "Nike Air Max 270", brand: "Nike", retailerId: "nike", quantity: 1, retailPriceUSD: 150.00, marketplacePriceUSD: 165.00, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300" }
+    ],
+    retailerId: "nike",
+    retailPriceUSD: 165.00,
+    paidSOL: 2.1054,
+    receivedUSDC: 165.00,
+    txHash: "5TqW6Y6D1a2b3c4d5e6f7g8h9i0jKaKbKcKdKeKfKgKhKiKjKlKmKnKoKpKqKrKs",
+    status: "delivered",
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    trackingNumber: "UPS-1Z999AA10123456784",
+    carrier: "UPS"
+  },
+  {
+    id: "ord-981273",
+    walletAddress: "SoLFLarE987aBCDeFGHiJKLmNoPQRstUVwXyz7654321",
+    customerDetails: { name: "Alice Johnson", email: "alice.j@outlook.com", phone: "+1 555-0144" },
+    shippingAddress: { id: "addr-2", name: "Alice Johnson", streetAddress: "742 Evergreen Terrace", city: "Springfield", state: "IL", postalCode: "62704", country: "United States", isDefault: false },
+    items: [
+      { productId: "p-apple-1", productName: "Apple AirPods Pro (2nd Gen)", brand: "Apple", retailerId: "apple", quantity: 1, retailPriceUSD: 249.00, marketplacePriceUSD: 273.90, image: "https://images.unsplash.com/photo-1588449668338-d15168836f43?w=300" }
+    ],
+    retailerId: "apple",
+    retailPriceUSD: 273.90,
+    paidSOL: 3.5115,
+    receivedUSDC: 273.90,
+    txHash: "4PqW5X5C2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d",
+    status: "shipped",
+    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    trackingNumber: "FedEx-781234567890",
+    carrier: "FedEx"
+  },
+  {
+    id: "ord-102938",
+    walletAddress: "BacKPaCK111aBCDeFGHiJKLmNoPQRstUVwXyz9999999",
+    customerDetails: { name: "Bob Smith", email: "bob.smith@yahoo.com", phone: "+1 555-0188" },
+    shippingAddress: { id: "addr-3", name: "Bob Smith", streetAddress: "221B Baker St", city: "London", state: "England", postalCode: "NW1 6XE", country: "United Kingdom", isDefault: false },
+    items: [
+      { productId: "p-amazon-2", productName: "Logitech MX Mouse", brand: "Logitech", retailerId: "amazon", quantity: 2, retailPriceUSD: 99.00, marketplacePriceUSD: 108.90, image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=300" }
+    ],
+    retailerId: "amazon",
+    retailPriceUSD: 217.80,
+    paidSOL: 2.7923,
+    receivedUSDC: 217.80,
+    txHash: "3RqW4Z4D3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d",
+    status: "paid",
+    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+  },
+  {
+    id: "ord-482716",
+    walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567",
+    customerDetails: { name: "John Doe", email: "john.doe@gmail.com", phone: "+1 555-0199" },
+    shippingAddress: { id: "addr-1", name: "John Doe", streetAddress: "1600 Amphitheatre Pkwy", city: "Mountain View", state: "CA", postalCode: "94043", country: "United States", isDefault: true },
+    items: [
+      { productId: "p-nike-2", productName: "Nike Tech Fleece Hoodie", brand: "Nike", retailerId: "nike", quantity: 1, retailPriceUSD: 120.00, marketplacePriceUSD: 132.00, image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300" }
+    ],
+    retailerId: "nike",
+    retailPriceUSD: 132.00,
+    paidSOL: 1.6923,
+    receivedUSDC: 132.00,
+    txHash: "2AqW3Y3B4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d",
+    status: "refunded",
+    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+  }
+];
 
-const MOCK_TRANSACTIONS: Transaction[] = [];
+const MOCK_TRANSACTIONS: Transaction[] = [
+  { id: "tx-1", orderId: "ord-827392", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "payment", amount: 2.1054, token: "SOL", status: "success", txHash: "5TqW6Y6D1a2b3c4d5e6f7g8h9i0jKaKbKcKdKeKfKgKhKiKjKlKmKnKoKpKqKrKs", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "tx-2", orderId: "ord-827392", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "swap", amount: 165.00, token: "USDC", status: "success", txHash: "swap_hash_1234", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "tx-3", orderId: "ord-981273", walletAddress: "SoLFLarE987aBCDeFGHiJKLmNoPQRstUVwXyz7654321", type: "payment", amount: 3.5115, token: "SOL", status: "success", txHash: "4PqW5X5C2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d", timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "tx-4", orderId: "ord-102938", walletAddress: "BacKPaCK111aBCDeFGHiJKLmNoPQRstUVwXyz9999999", type: "payment", amount: 2.7923, token: "SOL", status: "success", txHash: "3RqW4Z4D3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d", timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
+  { id: "tx-5", orderId: "ord-482716", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "payment", amount: 1.6923, token: "SOL", status: "success", txHash: "2AqW3Y3B4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "tx-6", orderId: "ord-482716", walletAddress: "PhanToM528aBCDeFGHiJKLmNoPQRstUVwXyz1234567", type: "refund", amount: 1.6923, token: "SOL", status: "success", txHash: "refund_hash_4455", timestamp: new Date(Date.now() - 4.8 * 24 * 60 * 60 * 1000).toISOString() }
+];
 
-const MOCK_REFUNDS: RefundRequest[] = [];
+const MOCK_REFUNDS: RefundRequest[] = [
+  { id: "ref-482716", orderId: "ord-482716", reason: "Item fit was too small, requesting SOL refund", status: "approved", paidSOL: 1.6923, refundAmountUSD: 132.00, refundTxHash: "refund_hash_4455", timestamp: new Date(Date.now() - 4.9 * 24 * 60 * 60 * 1000).toISOString() }
+];
 
 export class SupabaseService {
   /* =========================================================================
@@ -91,9 +179,9 @@ export class SupabaseService {
     } else {
       const isAdmin = emailLower.startsWith("admin");
       user = {
-        id: isAdmin ? "usr-admin-777" : `usr-${emailLower.replace(/[^a-z0-9]/g, '-')}`,
+        id: isAdmin ? "usr-admin-777" : "usr-customer-111",
         email: emailLower,
-        name: isAdmin ? "SOLCart Admin" : emailLower.split('@')[0],
+        name: isAdmin ? "SOLCart Admin" : "Ridhwan Solcart",
         role: isAdmin ? "Super Admin" : "customer",
         permissions: isAdmin ? ["*"] : [],
         createdAt: new Date().toISOString()
@@ -111,10 +199,10 @@ export class SupabaseService {
   static async signOut(): Promise<void> {
     if (typeof window !== "undefined") {
       const user = this.getCurrentUser();
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
       if (user) {
         this.logActivity("Auth", `User signed out: ${user.email}`, "info", user.name);
       }
-      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
     }
   }
 
@@ -143,9 +231,6 @@ export class SupabaseService {
           }
           if (result.data.transactions) {
             localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(result.data.transactions));
-          }
-          if (result.data.products) {
-            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data.products));
           }
           if (result.data.settings) {
             localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(result.data.settings));
@@ -242,18 +327,6 @@ export class SupabaseService {
   }
 
 
-  static getProducts(): Product[] {
-    if (typeof window === "undefined") return [];
-    this.syncWithServer();
-    const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    try {
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-
-
   /* =========================================================================
      TRANSACTION OPERATIONS (Production: supabase.from('transactions').*)
      ========================================================================= */
@@ -308,80 +381,53 @@ export class SupabaseService {
 
   static getAddresses(): ShippingAddress[] {
     if (typeof window === "undefined") return [];
-    const currentUser = this.getCurrentUser();
-    if (!currentUser) return [];
-
     const stored = localStorage.getItem(STORAGE_KEYS.ADDRESSES);
-    let allAddresses: ShippingAddress[] = [];
-    if (stored) {
-      allAddresses = JSON.parse(stored);
+    if (!stored) {
+      localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(MOCK_ADDRESSES));
+      return MOCK_ADDRESSES;
     }
-    return allAddresses.filter((a) => a.userId === currentUser.id);
+    return JSON.parse(stored);
   }
 
   static addAddress(address: Omit<ShippingAddress, "id">): ShippingAddress {
-    const currentUser = this.getCurrentUser();
-    if (!currentUser) throw new Error("Not logged in");
-
-    const stored = localStorage.getItem(STORAGE_KEYS.ADDRESSES);
-    const allAddresses: ShippingAddress[] = stored ? JSON.parse(stored) : [];
-    const userAddresses = allAddresses.filter((a) => a.userId === currentUser.id);
-
+    const addresses = this.getAddresses();
     const newAddr: ShippingAddress = {
       ...address,
       id: `addr-${Math.random().toString(36).substr(2, 9)}`,
-      userId: currentUser.id,
-      isDefault: userAddresses.length === 0 ? true : address.isDefault
+      isDefault: addresses.length === 0 ? true : address.isDefault
     };
 
     if (newAddr.isDefault) {
-      allAddresses.forEach(a => {
-        if (a.userId === currentUser.id) a.isDefault = false;
-      });
+      addresses.forEach(a => a.isDefault = false);
     }
 
-    allAddresses.push(newAddr);
-    localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(allAddresses));
+    addresses.push(newAddr);
+    localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(addresses));
     return newAddr;
   }
 
   static updateAddress(id: string, updated: Partial<ShippingAddress>): void {
-    const currentUser = this.getCurrentUser();
-    if (!currentUser) return;
-
-    const stored = localStorage.getItem(STORAGE_KEYS.ADDRESSES);
-    const allAddresses: ShippingAddress[] = stored ? JSON.parse(stored) : [];
-    const index = allAddresses.findIndex(a => a.id === id && a.userId === currentUser.id);
-    
+    const addresses = this.getAddresses();
+    const index = addresses.findIndex(a => a.id === id);
     if (index !== -1) {
       if (updated.isDefault) {
-        allAddresses.forEach(a => {
-          if (a.userId === currentUser.id) a.isDefault = false;
-        });
+        addresses.forEach(a => a.isDefault = false);
       }
-      allAddresses[index] = { ...allAddresses[index], ...updated };
-      localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(allAddresses));
+      addresses[index] = { ...addresses[index], ...updated };
+      localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(addresses));
     }
   }
 
   static deleteAddress(id: string): void {
-    const currentUser = this.getCurrentUser();
-    if (!currentUser) return;
-
-    const stored = localStorage.getItem(STORAGE_KEYS.ADDRESSES);
-    let allAddresses: ShippingAddress[] = stored ? JSON.parse(stored) : [];
+    let addresses = this.getAddresses();
+    const deletedWasDefault = addresses.find(a => a.id === id)?.isDefault;
+    addresses = addresses.filter(a => a.id !== id);
     
-    const deletedWasDefault = allAddresses.find(a => a.id === id && a.userId === currentUser.id)?.isDefault;
-    allAddresses = allAddresses.filter(a => !(a.id === id && a.userId === currentUser.id));
-    
-    if (deletedWasDefault) {
-      const remaining = allAddresses.filter(a => a.userId === currentUser.id);
-      if (remaining.length > 0) {
-        remaining[0].isDefault = true;
-      }
+    if (deletedWasDefault && addresses.length > 0) {
+      addresses[0].isDefault = true;
     }
     
-    localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(allAddresses));
+    localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(addresses));
   }
 
   /* =========================================================================
@@ -510,64 +556,24 @@ export class SupabaseService {
 
   static getSuppliers(): any[] {
     if (typeof window === "undefined") return [];
-    
-    const orders = this.getOrders();
-    const products = this.getProducts();
-    const refunds = this.getRefundRequests();
-
-    const baseSuppliers = [
-      { id: "amazon", name: "Amazon Fulfillment Center", status: "Active" },
-      { id: "nike", name: "Nike Logistics Direct", status: "Active" },
-      { id: "apple", name: "Apple Store Wholesale", status: "Active" },
-      { id: "walmart", name: "Walmart Distribution Network", status: "Active" },
-      { id: "target", name: "Target Distribution", status: "Active" }
-    ];
-
-    const storedStatus = localStorage.getItem("solcart_supplier_statuses");
-    const statuses: Record<string, string> = storedStatus ? JSON.parse(storedStatus) : {};
-
-    return baseSuppliers.map(sup => {
-      const currentStatus = statuses[sup.id] || sup.status;
-      const supOrders = orders.filter(o => o.retailerId === sup.id);
-      const supProducts = products.filter(p => p.retailerId === sup.id);
-      const supRefunds = refunds.filter(r => {
-        const order = orders.find(o => o.id === r.orderId);
-        return order && order.retailerId === sup.id;
-      });
-
-      const revenueUSD = supOrders.reduce((sum, o) => sum + o.retailPriceUSD, 0);
-      const failureRate = supOrders.length > 0 ? (supRefunds.length / supOrders.length) * 100 : 0;
-      
-      let healthStatus = "Excellent";
-      if (failureRate > 5) healthStatus = "Warning";
-      if (failureRate > 15) healthStatus = "Critical";
-
-      return {
-        id: sup.id,
-        name: sup.name,
-        status: currentStatus,
-        productsCount: supProducts.length,
-        ordersCount: supOrders.length,
-        avgDeliveryDays: supOrders.filter(o => o.status === "delivered").length > 0 ? 2.4 : 0.0,
-        failureRate: parseFloat(failureRate.toFixed(1)),
-        revenueUSD: parseFloat(revenueUSD.toFixed(2)),
-        healthStatus
-      };
-    });
+    const stored = localStorage.getItem(STORAGE_KEYS.SUPPLIERS);
+    if (!stored) {
+      localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(DEFAULT_SUPPLIERS));
+      return DEFAULT_SUPPLIERS;
+    }
+    return JSON.parse(stored);
   }
 
   static updateSupplierStatus(id: string, status: string): void {
-    const storedStatus = localStorage.getItem("solcart_supplier_statuses");
-    const statuses: Record<string, string> = storedStatus ? JSON.parse(storedStatus) : {};
-    statuses[id] = status;
-    localStorage.setItem("solcart_supplier_statuses", JSON.stringify(statuses));
-    
+    const suppliers = this.getSuppliers();
+    const idx = suppliers.findIndex(s => s.id === id);
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    const suppliers = this.getSuppliers();
-    const sup = suppliers.find(s => s.id === id);
-    if (sup) {
-      this.logActivity("Inventory", `Supplier ${sup.name} status changed to ${status}`, "info", actor);
+
+    if (idx !== -1) {
+      suppliers[idx].status = status;
+      localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(suppliers));
+      this.logActivity("Inventory", `Supplier ${suppliers[idx].name} status changed to ${status}`, "info", actor);
     }
   }
 
@@ -655,31 +661,22 @@ export class SupabaseService {
 
   static getActivityLogs(): ActivityLog[] {
     if (typeof window === "undefined") return [];
-    const currentUser = this.getCurrentUser();
     const stored = localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOGS);
-    const allLogs: ActivityLog[] = stored ? JSON.parse(stored) : [];
-
-    if (currentUser && currentUser.role === "customer") {
-      return allLogs.filter((log) => log.userId === currentUser.id);
-    }
-    return allLogs;
+    return stored ? JSON.parse(stored) : [];
   }
 
   static logActivity(category: string, message: string, type: ActivityLog['type'] = "info", user?: string): void {
     if (typeof window === "undefined") return;
-    const currentUser = this.getCurrentUser();
     
     const newLog: ActivityLog = {
       id: `log-${Math.random().toString(36).substr(2, 9)}`,
       action: category,
       details: user ? `[${user}] ${message}` : message,
       timestamp: new Date().toISOString(),
-      type,
-      userId: currentUser ? currentUser.id : undefined
+      type
     };
 
-    const stored = localStorage.getItem(STORAGE_KEYS.ACTIVITY_LOGS);
-    const logs: ActivityLog[] = stored ? JSON.parse(stored) : [];
+    const logs = this.getActivityLogs();
     logs.unshift(newLog);
     if (logs.length > 200) logs.pop();
     

@@ -32,6 +32,58 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"specs" | "shipping" | "reviews">("specs");
+  
+  // Product Reviews Submission States
+  const [revAuthor, setRevAuthor] = useState("");
+  const [revRating, setRevRating] = useState(5);
+  const [revComment, setRevComment] = useState("");
+  const [revError, setRevError] = useState("");
+  const [revSuccess, setRevSuccess] = useState("");
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRevError("");
+    setRevSuccess("");
+
+    if (!revAuthor.trim() || !revComment.trim()) {
+      setRevError("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "addProductReview",
+          payload: {
+            productId: id,
+            author: revAuthor.trim(),
+            rating: revRating,
+            comment: revComment.trim()
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRevSuccess("Your review has been posted successfully!");
+        setRevAuthor("");
+        setRevComment("");
+        setRevRating(5);
+        
+        // Refresh product info from local DB
+        const refreshedProduct = RetailerService.getProductById(id);
+        if (refreshedProduct) {
+          setProduct(refreshedProduct);
+        }
+      } else {
+        setRevError(data.error || "Failed to submit review");
+      }
+    } catch (err: any) {
+      setRevError(err.message || "Network error. Failed to post review.");
+    }
+  };
 
   useEffect(() => {
     const handleSync = () => {
@@ -275,7 +327,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             onClick={() => setActiveTab("reviews")}
             className={`pb-4 border-b-2 transition-all ${activeTab === "reviews" ? 'border-brand-purple text-white' : 'border-transparent text-brand-text-muted hover:text-white'}`}
           >
-            Reviews ({mockReviews.length})
+            Reviews (${(product.reviews || []).length})
           </button>
         </div>
       </div>
@@ -303,21 +355,9 @@ export default function ProductDetailPage({ params }: PageProps) {
                 <Package className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white">Automatic Order Placement</h4>
+                <h4 className="font-bold text-white">Digital Code Delivery</h4>
                 <p className="mt-1">
-                  Once your SOL payment is broadcasted and verified on-chain, we convert the payment to USDC via Jupiter Swap API. The order is immediately processed with our fulfillment partner and placed on the retailer site (e.g. {retailer?.name}).
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl text-brand-green">
-                <Truck className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-white">Direct-to-Door Courier Delivery</h4>
-                <p className="mt-1">
-                  Packages ship directly from the retailer's warehouses to your doorstep. You will receive standard carrier tracking numbers (UPS, FedEx, USPS) on your customer dashboard within 24 hours of fulfillment.
+                  Once your SOL payment is broadcasted and verified on-chain, we convert the payment to USDC via Jupiter Swap API. Your gift card order details are sent to our admin team who will assign your code. Codes will appear on your customer dashboard and be sent to your email.
                 </p>
               </div>
             </div>
@@ -326,23 +366,84 @@ export default function ProductDetailPage({ params }: PageProps) {
 
         {activeTab === "reviews" && (
           <div className="max-w-3xl space-y-6">
-            {mockReviews.map((rev) => (
-              <div key={rev.id} className="p-5 rounded-2xl border border-brand-border/40 bg-brand-card/10">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-xs font-bold text-white">{rev.author}</span>
-                  <span className="text-[10px] text-brand-text-muted">{rev.date}</span>
+            {/* Add Review Form */}
+            <div className="glass-panel p-5 rounded-2xl border border-brand-border/40 bg-brand-card/5 max-w-2xl mb-8">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Write a Product Review</h4>
+              {revError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-semibold">{revError}</div>}
+              {revSuccess && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-xs text-brand-green font-semibold">{revSuccess}</div>}
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Your Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Jane Doe"
+                      value={revAuthor}
+                      onChange={(e) => setRevAuthor(e.target.value)}
+                      className="w-full h-10 px-3.5 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Rating (Stars)</label>
+                    <div className="flex gap-2 items-center h-10">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setRevRating(star)}
+                          className="focus:outline-none"
+                        >
+                          <Star className={`h-5 w-5 ${star <= revRating ? 'text-amber-400 fill-current' : 'text-brand-text-muted opacity-30 hover:opacity-75'}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center text-amber-400 mt-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`h-3 w-3 ${i < rev.rating ? 'fill-current' : 'opacity-20'}`} />
-                  ))}
-                  <span className="text-[10px] font-bold text-white ml-2">{rev.title}</span>
+                <div>
+                  <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Review Comments</label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="Tell us what you think of this gift card..."
+                    value={revComment}
+                    onChange={(e) => setRevComment(e.target.value)}
+                    className="w-full p-3 bg-brand-dark/40 border border-brand-border rounded-lg text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40 resize-none"
+                  />
                 </div>
-                <p className="text-xs text-brand-text-muted mt-3 leading-relaxed">
-                  {rev.comment}
-                </p>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-brand-purple hover:bg-brand-purple/95 rounded-lg text-xs font-bold text-white shadow-md shadow-brand-purple/20 transition-all"
+                >
+                  Submit Review
+                </button>
+              </form>
+            </div>
+
+            {/* List Reviews */}
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-2">Customer Reviews</h4>
+            {(!product.reviews || product.reviews.length === 0) ? (
+              <p className="text-xs text-brand-text-muted py-4">No reviews yet for this product. Be the first to leave one!</p>
+            ) : (
+              <div className="space-y-4">
+                {product.reviews.map((rev: any, idx: number) => (
+                  <div key={idx} className="p-5 rounded-2xl border border-brand-border/40 bg-brand-card/10">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xs font-bold text-white">{rev.author}</span>
+                      <span className="text-[10px] text-brand-text-muted">{rev.date}</span>
+                    </div>
+                    <div className="flex items-center text-amber-400 mt-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-3 w-3 ${i < rev.rating ? 'fill-current' : 'opacity-20'}`} />
+                      ))}
+                    </div>
+                    <p className="text-xs text-brand-text-muted mt-3 leading-relaxed">
+                      {rev.comment}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 

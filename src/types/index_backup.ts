@@ -14,12 +14,6 @@ export interface Product {
   retailerId: string;        // e.g. "amazon", "nike"
   stockCount: number;
   isFeatured: boolean;
-  reviews?: {
-    author: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }[];
 }
 
 export interface RetailerConfig {
@@ -38,7 +32,6 @@ export interface CartItem {
 
 export interface ShippingAddress {
   id: string;
-  userId?: string;
   name: string;
   streetAddress: string;
   city: string;
@@ -88,7 +81,6 @@ export interface Order {
   timestamp: string;
   trackingNumber?: string;
   carrier?: string;
-  giftCardCode?: string;
 }
 
 export interface Transaction {
@@ -126,5 +118,4 @@ export interface ActivityLog {
   details: string;
   timestamp: string;
   type: 'info' | 'warning' | 'security';
-  userId?: string;
 }

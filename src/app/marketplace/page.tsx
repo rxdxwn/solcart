@@ -385,91 +385,93 @@ function MarketplaceContent() {
                 return (
                   <div 
                     key={product.id}
-                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group"
+                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 transition-colors"
                   >
-                    {/* Image Area */}
-                    <div className="relative aspect-[4/3] bg-brand-dark/40 overflow-hidden shrink-0 border-b border-brand-border/40">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        priority={product.isFeatured}
-                      />
-                      
-                      {/* Retailer badge */}
-                      <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold rounded-md bg-brand-dark/80 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-brand-purple"></span>
-                        {getRetailerName(product.retailerId)}
-                      </span>
-                    </div>
-
-                    {/* Description Details */}
-                    <div className="p-5 flex flex-col flex-1">
-                      <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">
-                        {product.brand}
-                      </span>
-                      
-                      <Link 
-                        href={`/product/${product.id}`}
-                        className="text-xs font-bold text-white hover:text-brand-purple transition-colors line-clamp-1 mt-1"
-                      >
-                        {product.name}
-                      </Link>
-
-                      {/* Ratings */}
-                      <div className="flex items-center gap-1.5 mt-2">
-                        <div className="flex items-center text-amber-400">
-                          <Star className="h-3 w-3 fill-current" />
-                          <span className="text-[11px] font-bold text-white ml-1">{product.rating}</span>
-                        </div>
-                        <span className="text-[10px] text-brand-text-muted">
-                          ({product.reviewsCount.toLocaleString()} reviews)
+                    <Link href={`/product/${product.id}`} className="flex flex-col flex-1">
+                      {/* Image Area */}
+                      <div className="relative aspect-[4/3] bg-brand-dark/40 overflow-hidden shrink-0 border-b border-brand-border/40">
+                        <Image
+                          src={product.image || "https://images.unsplash.com/photo-1574634534894-89d7576c8259?w=400"}
+                          alt={product.name}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          priority={product.isFeatured}
+                        />
+                        
+                        {/* Retailer badge */}
+                        <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold rounded-md bg-brand-dark/80 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-brand-purple"></span>
+                          {getRetailerName(product.retailerId)}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-[10px] text-brand-text-muted mt-3">
-                        <Clock className="h-3.5 w-3.5 text-brand-purple/80" />
-                        <span>Est. delivery: {product.estimatedDelivery}</span>
-                      </div>
+                      {/* Description Details */}
+                      <div className="p-5 flex flex-col flex-1">
+                        <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">
+                          {product.brand}
+                        </span>
+                        
+                        <h4 className="text-xs font-bold text-white group-hover:text-brand-purple transition-colors line-clamp-1 mt-1">
+                          {product.name}
+                        </h4>
 
-                      {/* Pricing block */}
-                      <div className="mt-5 pt-4 border-t border-brand-border/30 flex flex-col gap-1.5">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[10px] text-brand-text-muted font-medium">Marketplace Price:</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] line-through text-brand-text-muted/60">${product.retailPrice.toFixed(2)}</span>
-                            <span className="text-xs font-bold text-white">${product.marketplacePrice.toFixed(2)}</span>
+                        {/* Ratings */}
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <div className="flex items-center text-amber-400">
+                            <Star className="h-3 w-3 fill-current" />
+                            <span className="text-[11px] font-bold text-white ml-1">{product.rating}</span>
                           </div>
-                        </div>
-
-                        {/* SOL equivalent conversion */}
-                        <div className="flex items-center justify-between bg-brand-purple/5 border border-brand-purple/10 rounded-lg p-2 mt-1">
-                          <span className="text-[9px] font-bold text-brand-purple tracking-wider uppercase">Pay In SOL</span>
-                          <span className="text-xs font-extrabold text-brand-green flex items-center gap-1">
-                            {solPriceEquivalent.toFixed(4)} SOL
+                          <span className="text-[10px] text-brand-text-muted">
+                            ({product.reviewsCount.toLocaleString()} reviews)
                           </span>
                         </div>
-                      </div>
 
-                      {/* Actions */}
-                      <div className="mt-5 flex gap-2.5">
-                        <button
-                          onClick={() => addToCart(product, 1)}
-                          className="flex-1 py-2 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors"
-                        >
-                          <ShoppingCart className="h-4.5 w-4.5 text-brand-purple" />
-                          Add to Cart
-                        </button>
-                        <Link
-                          href={`/product/${product.id}`}
-                          className="px-4 py-2 rounded-lg bg-brand-purple hover:bg-brand-purple/90 text-xs font-bold text-white flex items-center justify-center transition-colors"
-                        >
-                          Buy Now
-                        </Link>
-                      </div>
+                        <div className="flex items-center gap-2 text-[10px] text-brand-text-muted mt-3">
+                          <Clock className="h-3.5 w-3.5 text-brand-purple/80" />
+                          <span>Est. delivery: {product.estimatedDelivery}</span>
+                        </div>
 
+                        {/* Pricing block */}
+                        <div className="mt-5 pt-4 border-t border-brand-border/30 flex flex-col gap-1.5">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-[10px] text-brand-text-muted font-medium">Marketplace Price:</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] line-through text-brand-text-muted/60">${product.retailPrice.toFixed(2)}</span>
+                              <span className="text-xs font-bold text-white">${product.marketplacePrice.toFixed(2)}</span>
+                            </div>
+                          </div>
+
+                          {/* SOL equivalent conversion */}
+                          <div className="flex items-center justify-between bg-brand-purple/5 border border-brand-purple/10 rounded-lg p-2 mt-1">
+                            <span className="text-[9px] font-bold text-brand-purple tracking-wider uppercase">Pay In SOL</span>
+                            <span className="text-xs font-extrabold text-brand-green flex items-center gap-1">
+                              {solPriceEquivalent.toFixed(4)} SOL
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Actions block outside Link overlay to avoid nested anchor tags, styled z-10 relative */}
+                    <div className="px-5 pb-5 pt-0 flex gap-2.5 relative z-10">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          addToCart(product, 1);
+                        }}
+                        className="flex-1 py-2 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <ShoppingCart className="h-4.5 w-4.5 text-brand-purple" />
+                        Add to Cart
+                      </button>
+                      <Link
+                        href={`/product/${product.id}`}
+                        className="px-4 py-2 rounded-lg bg-brand-purple hover:bg-brand-purple/90 text-xs font-bold text-white flex items-center justify-center transition-colors"
+                      >
+                        Buy Now
+                      </Link>
                     </div>
                   </div>
                 );

@@ -25,33 +25,71 @@ export async function getSolPrice(): Promise<number> {
   }
 
   const fetchPrice = async (): Promise<number> => {
-    const isClient = typeof window !== "undefined";
-    const url = isClient ? "/api/price" : "https://api.jup.ag/price/v2?ids=SOL";
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Jupiter API returned status ${response.status}`);
-    }
-    const data = await response.json();
-
-    if (isClient) {
-      if (typeof data.price === "number") {
-        return parseFloat(data.price.toFixed(2));
+    // Attempt 1: Fetch local proxy /api/price
+    try {
+      const response = await fetch("/api/price");
+      if (response.ok) {
+        const data = await response.json();
+        if (data && typeof data.price === "number") {
+          return parseFloat(data.price.toFixed(2));
+        }
       }
-      throw new Error("Invalid response format from local price proxy");
+    } catch (e) {
+      console.warn("Local price proxy fetch failed, trying direct Jupiter API...", e);
     }
-    
-    const priceString = data?.data?.SOL?.price;
-    if (!priceString) {
-      throw new Error("Invalid response format from Jupiter Price API");
+
+    // Attempt 2: Fetch Jupiter API v2 directly
+    try {
+      const response = await fetch("https://api.jup.ag/price/v2?ids=SOL");
+      if (response.ok) {
+        const data = await response.json();
+        const priceString = data?.data?.SOL?.price;
+        if (priceString) {
+          const price = parseFloat(priceString);
+          if (!isNaN(price) && price > 0) {
+            return parseFloat(price.toFixed(2));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Direct Jupiter API V2 fetch failed, trying Jupiter API V4...", e);
     }
-    const price = parseFloat(priceString);
-    if (isNaN(price)) {
-      throw new Error("Fetched price is not a number");
+
+    // Attempt 3: Fetch Jupiter V4 directly
+    try {
+      const response = await fetch("https://price.jup.ag/v4/price?ids=SOL");
+      if (response.ok) {
+        const data = await response.json();
+        const priceString = data?.data?.SOL?.price;
+        if (priceString) {
+          const price = parseFloat(priceString);
+          if (!isNaN(price) && price > 0) {
+            return parseFloat(price.toFixed(2));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Direct Jupiter API V4 fetch failed, trying CoinGecko...", e);
     }
-    
-    // Format to 2 decimal places (as a number)
-    return parseFloat(price.toFixed(2));
+
+    // Attempt 4: CoinGecko directly
+    try {
+      const response = await fetch("https://api.coingecko.com/v3/simple/price?ids=solana&vs_currencies=usd");
+      if (response.ok) {
+        const data = await response.json();
+        const priceVal = data?.solana?.usd;
+        if (priceVal) {
+          const price = parseFloat(priceVal);
+          if (!isNaN(price) && price > 0) {
+            return parseFloat(price.toFixed(2));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Direct CoinGecko fetch failed", e);
+    }
+
+    throw new Error("All SOL price sources failed to resolve.");
   };
 
   // 2. Execute fetch with retry mechanism

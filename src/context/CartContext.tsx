@@ -148,8 +148,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Shipping cost dynamic based on admin controls
   const shippingUSD = subtotalUSD > 0 && subtotalUSD < configuredThreshold ? configuredShippingFee : 0;
 
-  // Platform checkout fee: 1.5% of subtotal
-  const marketplaceFeeUSD = parseFloat((subtotalUSD * 0.015).toFixed(2));
+  // Platform checkout fee: dynamic based on taxRate settings
+  const taxRate = settings.taxRate !== undefined ? settings.taxRate : 5;
+  const marketplaceFeeUSD = parseFloat((subtotalUSD * (taxRate / 100)).toFixed(2));
 
   const totalUSD = parseFloat((subtotalUSD + shippingUSD + marketplaceFeeUSD).toFixed(2));
 

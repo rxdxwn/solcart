@@ -27,7 +27,7 @@ import { SupabaseService } from "../../services/supabase";
 import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog } from "../../types";
 
 export default function CustomerDashboard() {
-  const { user, logout, login } = useAuth();
+  const { user, logout, login, signup, verify, bypassLoginForTesting } = useAuth();
   const { connected, walletAddress, balance, connect, requestFaucet } = useSolanaWallet();
 
   // Navigation Tab
@@ -40,7 +40,13 @@ export default function CustomerDashboard() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   
   // Auth Form State
+  const [authMode, setAuthMode] = useState<"login" | "signup" | "verify">("login");
   const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authSuccessMessage, setAuthSuccessMessage] = useState("");
 
   // Address creation forms
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -76,10 +82,48 @@ export default function CustomerDashboard() {
     setLogs(SupabaseService.getActivityLogs());
   }, [walletAddress, user]);
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
+  const loginWithCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authEmail) {
-      await login(authEmail);
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await login(authEmail, authPassword);
+    if (res.success) {
+      setAuthPassword("");
+    } else {
+      if (res.unverified) {
+        await signup(authEmail, authPassword, authName || authEmail.split("@")[0]);
+        setAuthSuccessMessage("Your account is not verified. A verification code has been resent to your email.");
+        setAuthMode("verify");
+      } else {
+        setAuthError(res.error || "Invalid email or password");
+      }
+    }
+  };
+
+  const signupWithCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await signup(authEmail, authPassword, authName);
+    if (res.success) {
+      setAuthSuccessMessage("Verification code sent to your email!");
+      setAuthMode("verify");
+    } else {
+      setAuthError(res.error || "Signup failed");
+    }
+  };
+
+  const verifyAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMessage("");
+    const res = await verify(authEmail, authCode);
+    if (res.success) {
+      setAuthPassword("");
+      setAuthName("");
+      setAuthCode("");
+    } else {
+      setAuthError(res.error || "Verification failed");
     }
   };
 
@@ -158,26 +202,135 @@ export default function CustomerDashboard() {
           <User className="h-6 w-6" />
         </div>
         <h2 className="text-xl font-bold text-white tracking-tight">Customer Dashboard</h2>
-        <p className="text-xs text-brand-text-muted mt-2 mb-8 leading-relaxed">
-          Please sign in to view your orders, transaction hashes, courier tracking updates, and saved addresses.
+        <p className="text-xs text-brand-text-muted mt-2 mb-6 leading-relaxed">
+          {authMode === "login" && "Please sign in to view your orders, gift card codes, and saved addresses."}
+          {authMode === "signup" && "Create a secure account to purchase and manage your digital gift cards."}
+          {authMode === "verify" && "We sent a 6-digit confirmation code to your email. Enter it below to verify."}
         </p>
 
-        <form onSubmit={handleLoginSubmit} className="w-full space-y-4">
-          <input
-            type="email"
-            required
-            placeholder="Enter your email (e.g. customer@solcart.com)"
-            value={authEmail}
-            onChange={(e) => setAuthEmail(e.target.value)}
-            className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
-          />
-          <button
-            type="submit"
-            className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md hover:bg-brand-purple/95 transition-all"
-          >
-            Sign In
-          </button>
-        </form>
+        {authError && (
+          <div className="w-full p-3 mb-4 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-left text-[11px] leading-relaxed">
+            {authError}
+          </div>
+        )}
+
+        {authSuccessMessage && (
+          <div className="w-full p-3 mb-4 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-left text-[11px] leading-relaxed">
+            {authSuccessMessage}
+          </div>
+        )}
+
+        {authMode === "login" && (
+          <form onSubmit={loginWithCredentials} className="w-full space-y-4">
+            <input
+              type="email"
+              required
+              placeholder="Enter your email"
+              value={authEmail}
+              onChange={(e) => setAuthEmail(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
+            />
+            <input
+              type="password"
+              required
+              placeholder="Enter your password"
+              value={authPassword}
+              onChange={(e) => setAuthPassword(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
+            />
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md hover:bg-brand-purple/95 transition-all"
+            >
+              Sign In
+            </button>
+            <p className="text-[11px] text-brand-text-muted">
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => { setAuthMode("signup"); setAuthError(""); setAuthSuccessMessage(""); }}
+                className="text-brand-purple hover:underline font-bold"
+              >
+                Sign Up
+              </button>
+            </p>
+          </form>
+        )}
+
+        {authMode === "signup" && (
+          <form onSubmit={signupWithCredentials} className="w-full space-y-4">
+            <input
+              type="text"
+              required
+              placeholder="Full Name"
+              value={authName}
+              onChange={(e) => setAuthName(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
+            />
+            <input
+              type="email"
+              required
+              placeholder="Email address"
+              value={authEmail}
+              onChange={(e) => setAuthEmail(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
+            />
+            <input
+              type="password"
+              required
+              placeholder="Password"
+              value={authPassword}
+              onChange={(e) => setAuthPassword(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
+            />
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md hover:bg-brand-purple/95 transition-all"
+            >
+              Create Account
+            </button>
+            <p className="text-[11px] text-brand-text-muted">
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
+                className="text-brand-purple hover:underline font-bold"
+              >
+                Sign In
+              </button>
+            </p>
+          </form>
+        )}
+
+        {authMode === "verify" && (
+          <form onSubmit={verifyAccount} className="w-full space-y-4">
+            <input
+              type="text"
+              required
+              maxLength={6}
+              placeholder="6-digit code"
+              value={authCode}
+              onChange={(e) => setAuthCode(e.target.value)}
+              className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white text-center font-mono font-bold tracking-widest placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/40"
+            />
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md hover:bg-brand-purple/95 transition-all"
+            >
+              Verify Code
+            </button>
+            <p className="text-[11px] text-brand-text-muted">
+              Wrong email or want to go back?{" "}
+              <button
+                type="button"
+                onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
+                className="text-brand-purple hover:underline font-bold"
+              >
+                Go to Sign In
+              </button>
+            </p>
+          </form>
+        )}
       </div>
     );
   }
@@ -331,16 +484,10 @@ export default function CustomerDashboard() {
                             Request Refund
                           </button>
                         )}
-                        {order.trackingNumber && (
-                          <a
-                            href={`https://www.17track.net/en/track?nums=${order.trackingNumber}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3.5 py-1.5 bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 rounded-lg hover:bg-blue-500/20 transition-colors flex items-center gap-1"
-                          >
-                            <Truck className="h-3 w-3" />
-                            Track
-                          </a>
+                        {order.giftCardCode && (
+                          <div className="px-3 py-1.5 bg-brand-green/10 border border-brand-green/20 text-[10px] font-mono font-bold text-brand-green rounded-lg flex items-center gap-1.5 select-all">
+                            Code: <span className="text-white font-sans font-bold">{order.giftCardCode}</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -680,10 +827,10 @@ export default function CustomerDashboard() {
                   <span className="truncate max-w-[150px] text-brand-purple font-semibold">{selectedOrder.swapTxHash}</span>
                 </div>
               )}
-              {selectedOrder.trackingNumber && (
+              {selectedOrder.giftCardCode && (
                 <div className="flex justify-between pt-2 border-t border-brand-border/20 text-xs">
-                  <span className="text-white font-bold">Courier Tracking:</span>
-                  <span className="text-blue-400 font-semibold">{selectedOrder.trackingNumber} ({selectedOrder.carrier})</span>
+                  <span className="text-white font-bold">Gift Card Code:</span>
+                  <span className="text-brand-green font-mono font-bold tracking-wider">{selectedOrder.giftCardCode}</span>
                 </div>
               )}
             </div>
