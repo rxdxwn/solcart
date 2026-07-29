@@ -19,22 +19,21 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       await DbAdapter.updateUser(existingUser.id, {
-        email: emailLower,
         verificationCode: code,
-        resetCode: new Date().toISOString(), // Use resetCode as OTP creation timestamp
+        resetCode: `${new Date().toISOString()}|${emailLower}`, // Use resetCode as OTP creation timestamp & email
         isVerified: false
       });
     } else {
       // Create new customer user with ID as walletAddress
       const newUser = {
         id: walletAddress,
-        email: emailLower,
-        name: name || emailLower.split("@")[0],
+        email: `${walletAddress.substring(0, 8)}@solcart-user.io`, // unique placeholder email
+        name: name || walletAddress.substring(0, 8),
         passwordHash: "", // No password needed for customers
         role: "customer",
         isVerified: false,
         verificationCode: code,
-        resetCode: new Date().toISOString(), // Use resetCode as OTP creation timestamp
+        resetCode: `${new Date().toISOString()}|${emailLower}`,
         createdAt: new Date().toISOString()
       };
       await DbAdapter.createUser(newUser);

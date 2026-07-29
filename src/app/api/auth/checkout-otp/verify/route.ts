@@ -23,10 +23,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Invalid verification code." }, { status: 400 });
     }
 
-    // Check expiration (60 seconds)
-    const timestampStr = user.resetCode;
-    if (!timestampStr) {
+    // Check expiration (60 seconds) and verify email match
+    const resetCodeStr = user.resetCode;
+    if (!resetCodeStr) {
       return NextResponse.json({ success: false, error: "No OTP timestamp found. Please request a new code." }, { status: 400 });
+    }
+
+    let timestampStr = resetCodeStr;
+    if (resetCodeStr.includes("|")) {
+      const parts = resetCodeStr.split("|");
+      timestampStr = parts[0];
+      const targetEmail = parts[1];
+      if (targetEmail && targetEmail !== emailLower) {
+        return NextResponse.json({ success: false, error: "This OTP code was sent to a different email address." }, { status: 400 });
+      }
     }
 
     const createdTime = new Date(timestampStr).getTime();
@@ -37,9 +47,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Verification code has expired (60s limit). Please request a new one." }, { status: 400 });
     }
 
-    // Clear verification codes, mark as verified, and associate the verified email
+    // Clear verification codes, mark as verified. We do NOT update the email column to avoid duplicate key unique constraint violations.
     await DbAdapter.updateUser(user.id, {
-      email: emailLower, // Update to the verified email
       isVerified: true,
       verificationCode: null,
       resetCode: null
