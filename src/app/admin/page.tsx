@@ -749,7 +749,7 @@ export default function AdminDashboard() {
                   value={user?.email || "owner@solcart.io"}
                   className="bg-transparent text-xs font-bold text-white border-none focus:outline-none cursor-pointer text-brand-purple"
                 >
-                  <option value="owner@solcart.io" className="bg-brand-card text-white"><Owner></Owner></option>
+                  <option value="owner@solcart.io" className="bg-brand-card text-white">Owner</option>
                   <option value="superadmin@solcart.io" className="bg-brand-card text-white">Super Admin</option>
                   <option value="finance@solcart.io" className="bg-brand-card text-white">Finance Manager</option>
                 </select>
