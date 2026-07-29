@@ -30,6 +30,10 @@ export class HeliusService {
     }
   }
 
+  static getRpcUrl(network: "Mainnet" | "Devnet" = "Devnet"): string {
+    return network === "Mainnet" ? MAINNET_RPC : DEVNET_RPC;
+  }
+
   /**
    * Fetches the balance of a wallet in SOL.
    * Uses raw JSON-RPC fetch with failover to bypass CORS and Web3 connection issues.

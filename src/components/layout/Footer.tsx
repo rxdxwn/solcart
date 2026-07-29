@@ -26,50 +26,31 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs leading-relaxed text-brand-text-muted">
-              Pay with Solana. We instantly convert your transaction to USDC and purchase the products from major online retailers for direct delivery to your door.
+              Pay with Solana. Buy digital gift cards from major brands across the world instantly and securely.
             </p>
           </div>
 
-          {/* Column 2: Retailers */}
+          {/* Column 2: Brands */}
           <div>
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Supported Retailers</h4>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Supported Brands</h4>
             <ul className="flex flex-col gap-2.5 text-xs text-brand-text-muted">
               <li>
-                <Link href="/marketplace?retailer=amazon" className="hover:text-white transition-colors">Amazon</Link>
+                <Link href="/marketplace?brand=Amazon" className="hover:text-white transition-colors">Amazon</Link>
               </li>
               <li>
-                <Link href="/marketplace?retailer=apple" className="hover:text-white transition-colors">Apple Store</Link>
+                <Link href="/marketplace?brand=Apple" className="hover:text-white transition-colors">Apple Store</Link>
               </li>
               <li>
-                <Link href="/marketplace?retailer=nike" className="hover:text-white transition-colors">Nike</Link>
+                <Link href="/marketplace?brand=Nike" className="hover:text-white transition-colors">Nike</Link>
               </li>
               <li>
-                <Link href="/marketplace?retailer=bestbuy" className="hover:text-white transition-colors">Best Buy</Link>
+                <Link href="/marketplace?brand=Walmart" className="hover:text-white transition-colors">Walmart</Link>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: Tech Stack & APIs */}
-          <div>
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">Integrations</h4>
-            <ul className="flex flex-col gap-2.5 text-xs text-brand-text-muted">
-              <li>
-                <a href="https://jup.ag" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Jupiter Swap V6</a>
-              </li>
-              <li>
-                <a href="https://jup.ag" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Jupiter Price API</a>
-              </li>
-              <li>
-                <a href="https://helius.dev" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Helius RPC Client</a>
-              </li>
-              <li>
-                <a href="https://supabase.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Supabase Backend</a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: System Status */}
-          <div className="flex flex-col gap-3">
+          {/* Column 3: System Status */}
+          <div className="flex flex-col gap-3 md:col-span-2">
             <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-3">Service Health</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs text-brand-green">
@@ -78,7 +59,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2 text-xs text-brand-green">
                 <CheckCircle className="h-4 w-4" />
-                <span>SOL Price Feed (Jupiter): Active</span>
+                <span>Digital Delivery: Instant Email Dispatch</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-brand-green">
                 <CheckCircle className="h-4 w-4" />

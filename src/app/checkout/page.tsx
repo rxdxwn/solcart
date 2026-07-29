@@ -55,6 +55,85 @@ export default function CheckoutPage() {
   } = useSolanaWallet();
   const { user } = useAuth();
 
+  // OTP Verification States
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpMessage, setOtpMessage] = useState("");
+
+  // OTP countdown timer
+  useEffect(() => {
+    if (otpTimer > 0 && !otpVerified) {
+      const interval = setInterval(() => {
+        setOtpTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [otpTimer, otpVerified]);
+
+  const handleSendOTP = async () => {
+    if (!custEmail || !custEmail.includes("@")) {
+      setOtpMessage("Please enter a valid email address first.");
+      return;
+    }
+    if (!connected || !walletAddress) {
+      setOtpMessage("Please connect your wallet first.");
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpMessage("");
+    try {
+      const res = await fetch("/api/auth/checkout-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: custEmail, walletAddress, name: custName })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOtpSent(true);
+        setOtpTimer(60);
+        setOtpMessage("OTP code has been sent to your email. Valid for 60 seconds.");
+      } else {
+        setOtpMessage(data.error || "Failed to send OTP.");
+      }
+    } catch (e: any) {
+      setOtpMessage(e.message || "Failed to send OTP.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otpCode.length !== 6) {
+      setOtpMessage("OTP code must be 6 digits.");
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpMessage("");
+    try {
+      const res = await fetch("/api/auth/checkout-otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: custEmail, walletAddress, code: otpCode })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOtpVerified(true);
+        setOtpMessage("Email verified successfully!");
+      } else {
+        setOtpMessage(data.error || "Incorrect OTP code.");
+      }
+    } catch (e: any) {
+      setOtpMessage(e.message || "Failed to verify OTP.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   // Country Selector State for digital gift cards
   const [selectedCountry, setSelectedCountry] = useState("United States");
 
@@ -97,6 +176,12 @@ export default function CheckoutPage() {
   const executeCheckoutPayment = async () => {
     if (!custEmail || !custName) {
       setErrorMessage("Please provide your name and email address");
+      setPaymentStep('error');
+      return;
+    }
+
+    if (!otpVerified) {
+      setErrorMessage("Please verify your email address first using the OTP code.");
       setPaymentStep('error');
       return;
     }
@@ -275,8 +360,8 @@ export default function CheckoutPage() {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Customer info */}
-          <div className="glass-panel rounded-2xl p-5 border border-brand-border/40">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4">1. Customer Information</h3>
+          <div className="glass-panel rounded-2xl p-5 border border-brand-border/40 space-y-4">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-2">1. Customer Information</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Recipient Full Name</label>
@@ -286,21 +371,72 @@ export default function CheckoutPage() {
                   placeholder="Ridhwan Solcart"
                   value={custName}
                   onChange={(e) => setCustName(e.target.value)}
-                  className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40"
+                  disabled={otpVerified}
+                  className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40 disabled:opacity-55"
                 />
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={custEmail}
-                  onChange={(e) => setCustEmail(e.target.value)}
-                  className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40"
-                />
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-brand-text-muted">Email Address</label>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@example.com"
+                    value={custEmail}
+                    onChange={(e) => setCustEmail(e.target.value)}
+                    disabled={otpVerified || otpLoading}
+                    className="flex-1 h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40 disabled:opacity-55"
+                  />
+                  {otpVerified ? (
+                    <span className="h-10 px-4 flex items-center justify-center bg-brand-green/10 border border-brand-green/30 text-brand-green font-bold text-xs rounded-lg select-none">
+                      Verified
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      disabled={otpLoading || otpTimer > 0 || !custEmail}
+                      className="h-10 px-4 bg-brand-purple hover:bg-brand-purple/90 disabled:opacity-40 disabled:hover:bg-brand-purple text-xs font-bold text-white rounded-lg transition-colors shrink-0"
+                    >
+                      {otpTimer > 0 ? `Resend (${otpTimer}s)` : "Verify"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* OTP Code Entry */}
+            {otpSent && !otpVerified && (
+              <div className="pt-2 border-t border-brand-border/20 flex flex-col sm:flex-row items-center gap-3">
+                <div className="w-full sm:max-w-[200px]">
+                  <label className="block text-[10px] font-bold text-brand-text-muted mb-1.5">Enter 6-Digit Code</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="e.g. 123456"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                    disabled={otpLoading}
+                    className="w-full h-10 px-3.5 tracking-[0.2em] font-mono text-center rounded-lg border border-brand-border bg-brand-dark/40 text-sm font-bold text-white placeholder-brand-text-muted/30 focus:outline-none focus:border-brand-purple/40"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleVerifyOTP}
+                  disabled={otpLoading || otpCode.length !== 6}
+                  className="w-full sm:w-auto h-10 px-6 sm:mt-5.5 bg-brand-green hover:bg-brand-green/90 disabled:opacity-40 disabled:hover:bg-brand-green text-xs font-bold text-brand-dark rounded-lg transition-colors"
+                >
+                  {otpLoading ? "Verifying..." : "Confirm OTP"}
+                </button>
+              </div>
+            )}
+
+            {otpMessage && (
+              <p className={`text-[10px] font-semibold mt-1 ${otpVerified ? 'text-brand-green' : 'text-amber-400'}`}>
+                {otpMessage}
+              </p>
+            )}
           </div>
 
           {/* Shipping Address Selection */}
@@ -364,7 +500,7 @@ export default function CheckoutPage() {
               <div className="text-center py-6">
                 <p className="text-xs text-brand-text-muted mb-4">Please connect your Solana wallet to settle funds.</p>
                 <button
-                  onClick={() => connect("SOLCart Test Wallet")}
+                  onClick={() => connect()}
                   className="px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-purple to-indigo-600 text-xs font-bold text-white"
                 >
                   Connect Wallet
@@ -409,7 +545,7 @@ export default function CheckoutPage() {
             <div className="rounded-xl border border-brand-purple/20 bg-brand-purple/5 p-4 mt-2 flex flex-col gap-1 text-center">
               <span className="text-[10px] font-black text-brand-purple tracking-widest uppercase">Pay In SOL</span>
               <span className="text-xl font-extrabold text-brand-green">{totalSOL.toFixed(4)} SOL</span>
-              <span className="text-[9px] text-brand-text-muted">1 SOL = ${solPrice.toFixed(2)} (Jupiter Price API)</span>
+              <span className="text-[9px] text-brand-text-muted">1 SOL = ${solPrice.toFixed(2)}</span>
             </div>
           </div>
 
@@ -426,7 +562,7 @@ export default function CheckoutPage() {
               </button>
             ) : (
               <button
-                onClick={() => connect("SOLCart Test Wallet")}
+                onClick={() => connect()}
                 className="w-full py-4 rounded-xl bg-brand-card hover:bg-brand-border border border-brand-border text-xs font-bold text-white flex items-center justify-center gap-2 transition-all"
               >
                 <Wallet className="h-4.5 w-4.5 text-brand-purple" />
@@ -436,7 +572,7 @@ export default function CheckoutPage() {
 
             {connected && balance < totalSOL && (
               <p className="text-[10px] text-amber-500 font-semibold text-center mt-3">
-                * To obtain free SOL for testing, click the "Faucet" button in the navbar!
+                * Please deposit sufficient SOL to your connected wallet.
               </p>
             )}
           </div>

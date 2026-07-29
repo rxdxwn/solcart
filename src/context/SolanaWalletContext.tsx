@@ -5,8 +5,8 @@ import { Transaction, SystemProgram, PublicKey, LAMPORTS_PER_SOL, VersionedTrans
 import { HeliusService, MERCHANT_WALLET_ADDRESS } from "../services/helius";
 import { JupiterService } from "../services/jupiter";
 
-export type WalletProviderName = "Phantom" | "Solflare" | "Backpack" | "SOLCart Test Wallet";
-export type SolanaNetwork = "Mainnet" | "Devnet" | "Simulated";
+export type WalletProviderName = "Phantom" | "Solflare" | "Backpack";
+export type SolanaNetwork = "Mainnet" | "Devnet";
 
 interface SolanaWalletContextType {
   connected: boolean;
@@ -17,7 +17,7 @@ interface SolanaWalletContextType {
   networkStatus: SolanaNetwork;
   isSolflareDetected: boolean;
   setNetworkStatus: (net: SolanaNetwork) => void;
-  connect: (providerName: WalletProviderName) => Promise<{ success: boolean; notFound?: boolean }>;
+  connect: (providerName?: WalletProviderName) => Promise<{ success: boolean; notFound?: boolean }>;
   disconnect: () => void;
   requestFaucet: () => Promise<void>;
   signPaymentTransaction: (amountSOL: number) => Promise<{ success: boolean; signature: string; error?: string }>;
@@ -57,8 +57,10 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [walletName, setWalletName] = useState<WalletProviderName | null>(null);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [networkStatus, setNetworkStatusState] = useState<SolanaNetwork>("Devnet");
+  const [networkStatus, setNetworkStatusState] = useState<SolanaNetwork>("Mainnet");
   const [isSolflareDetected, setIsSolflareDetected] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [walletNotFound, setWalletNotFound] = useState<string | null>(null);
 
   // Check Solflare extension availability
   useEffect(() => {
@@ -80,15 +82,7 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
-    // Handle mock addresses
-    if (address.startsWith("MOCK_") || address === "SOLCartTestWa11et111111111111111111111111" || net === "Simulated") {
-      const mockBal = await HeliusService.getBalance(address, "Simulated");
-      setBalance(mockBal);
-      return;
-    }
-
     try {
-      // 1. Try injected Solflare/wallet provider RPC connection first
       const currentProvider = walletName ? getWalletProvider(walletName) : getSolflareProvider();
       if (currentProvider && currentProvider.connection && typeof currentProvider.connection.getBalance === "function") {
         try {
@@ -105,10 +99,10 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       }
 
-      // 2. Query via HeliusService multi-RPC failover pool
+      // Query via HeliusService multi-RPC failover pool
       let bal = await HeliusService.getBalance(address, net);
 
-      // If active network returns 0, check alternate network (Devnet <-> Mainnet auto-detect)
+      // If active network returns 0, check alternate network
       if (bal === 0) {
         const altNet: SolanaNetwork = net === "Mainnet" ? "Devnet" : "Mainnet";
         const altBal = await HeliusService.getBalance(address, altNet);
@@ -138,10 +132,9 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => clearInterval(interval);
   }, [walletAddress, networkStatus, refreshBalance]);
 
-
   // Handle Solflare & wallet event listeners (accountChanged, disconnect, connect)
   useEffect(() => {
-    if (!walletName || walletName === "SOLCart Test Wallet") return;
+    if (!walletName) return;
     const provider = getWalletProvider(walletName);
     if (!provider || typeof provider.on !== "function") return;
 
@@ -151,7 +144,6 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setWalletAddress(addr);
         localStorage.setItem("solcart_wallet_address", addr);
       } else {
-        // Disconnected or logged out from wallet popup
         disconnect();
       }
     };
@@ -182,7 +174,7 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const storedConnected = localStorage.getItem("solcart_wallet_connected") === "true";
     const storedAddress = localStorage.getItem("solcart_wallet_address");
     const storedName = localStorage.getItem("solcart_wallet_name") as WalletProviderName | null;
-    const storedNet = (localStorage.getItem("solcart_wallet_network") as SolanaNetwork) || "Devnet";
+    const storedNet = (localStorage.getItem("solcart_wallet_network") as SolanaNetwork) || "Mainnet";
 
     if (storedNet) setNetworkStatusState(storedNet);
 
@@ -191,7 +183,6 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setWalletAddress(storedAddress);
       setWalletName(storedName);
 
-      // Attempt silent reconnect if extension exists
       if (storedName === "Solflare") {
         const solflare = getSolflareProvider();
         if (solflare && typeof solflare.connect === "function") {
@@ -200,33 +191,16 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
               setWalletAddress(solflare.publicKey.toString());
             }
           }).catch(() => {
-            // silent fail if not trusted yet
+            // silent fail
           });
         }
       }
     }
   }, []);
 
-  const connect = async (providerName: WalletProviderName): Promise<{ success: boolean; notFound?: boolean }> => {
+  // Primary connection action
+  const connectDirect = async (providerName: WalletProviderName): Promise<{ success: boolean; notFound?: boolean }> => {
     setLoading(true);
-
-    if (providerName === "SOLCart Test Wallet") {
-      const mockAddress = "SOLCartTestWa11et111111111111111111111111";
-      setConnected(true);
-      setWalletAddress(mockAddress);
-      setWalletName(providerName);
-      setNetworkStatusState("Simulated");
-      
-      localStorage.setItem("solcart_wallet_connected", "true");
-      localStorage.setItem("solcart_wallet_address", mockAddress);
-      localStorage.setItem("solcart_wallet_name", providerName);
-      localStorage.setItem("solcart_wallet_network", "Simulated");
-
-      await refreshBalance(mockAddress, "Simulated");
-      setLoading(false);
-      return { success: true };
-    }
-
     try {
       const provider = getWalletProvider(providerName);
 
@@ -235,7 +209,6 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return { success: false, notFound: true };
       }
 
-      // Connect to browser wallet popup/extension
       const response = await provider.connect();
       const address = (response?.publicKey || provider.publicKey)?.toString();
 
@@ -243,8 +216,7 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
         throw new Error("Public key not received from wallet");
       }
 
-      // Auto-detect network with balance (prefer Mainnet, fallback to Devnet if Devnet has funds)
-      let targetNet: SolanaNetwork = networkStatus === "Simulated" ? "Mainnet" : networkStatus;
+      let targetNet: SolanaNetwork = networkStatus;
       let mainnetBal = await HeliusService.getBalance(address, "Mainnet");
       if (mainnetBal === 0 && targetNet === "Devnet") {
         const devnetBal = await HeliusService.getBalance(address, "Devnet");
@@ -266,6 +238,29 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
       localStorage.setItem("solcart_wallet_network", targetNet);
 
       await refreshBalance(address, targetNet);
+      
+      // Track wallet address in user database as customer
+      try {
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "createUser",
+            payload: {
+              id: address,
+              email: `${address.substring(0, 8)}@solcart-user.io`, // temporary placeholder email
+              name: `Wallet ${address.substring(0, 6)}`,
+              passwordHash: "",
+              role: "customer",
+              isVerified: false,
+              createdAt: new Date().toISOString()
+            }
+          })
+        });
+      } catch (e) {
+        console.warn("Failed to register connected wallet in database", e);
+      }
+
       setLoading(false);
       return { success: true };
 
@@ -276,8 +271,16 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const connect = async (providerName?: WalletProviderName): Promise<{ success: boolean; notFound?: boolean }> => {
+    if (!providerName) {
+      setShowModal(true);
+      return { success: false };
+    }
+    return connectDirect(providerName);
+  };
+
   const disconnect = () => {
-    if (walletName && walletName !== "SOLCart Test Wallet") {
+    if (walletName) {
       const provider = getWalletProvider(walletName);
       if (provider && typeof provider.disconnect === "function") {
         try {
@@ -290,7 +293,7 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setWalletAddress(null);
     setWalletName(null);
     setBalance(0);
-    setNetworkStatusState("Devnet");
+    setNetworkStatusState("Mainnet");
 
     localStorage.removeItem("solcart_wallet_connected");
     localStorage.removeItem("solcart_wallet_address");
@@ -298,205 +301,54 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
     localStorage.removeItem("solcart_wallet_network");
   };
 
+  // Faucet is removed from production
   const requestFaucet = async () => {
-    if (!walletAddress) return;
-    const addedAmount = 10;
-    const nextBal = await HeliusService.addMockFaucet(walletAddress, 10);
-    setBalance(nextBal);
+    console.warn("Faucet has been removed from production environments.");
   };
 
-  const signPaymentTransaction = async (
-    amountSOL: number
-  ): Promise<{ success: boolean; signature: string; error?: string }> => {
-    if (!walletAddress) {
+  const signPaymentTransaction = async (amountSOL: number): Promise<{ success: boolean; signature: string; error?: string }> => {
+    if (!connected || !walletAddress || !walletName) {
       return { success: false, signature: "", error: "Wallet not connected" };
     }
 
-    if (balance < amountSOL) {
-      return { success: false, signature: "", error: `Insufficient balance. Required: ${amountSOL.toFixed(4)} SOL, Current: ${balance.toFixed(4)} SOL` };
+    const provider = getWalletProvider(walletName);
+    if (!provider) {
+      return { success: false, signature: "", error: "Wallet provider not found" };
     }
 
-    // 1. Simulated or Test Sandbox Wallet execution
-    if (walletAddress.startsWith("MOCK_") || walletAddress === "SOLCartTestWa11et111111111111111111111111" || networkStatus === "Simulated") {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const success = await HeliusService.deductMockBalance(walletAddress, amountSOL);
-      if (success) {
-        const txHash = `mock_tx_${Math.random().toString(36).substr(2, 16)}_${Date.now()}`;
-        await refreshBalance(walletAddress, "Simulated");
-        return { success: true, signature: txHash };
-      } else {
-        return { success: false, signature: "", error: "Sandbox transaction failed" };
-      }
-    }
-
-    // 2. Real Solflare / Browser Wallet On-Chain Transaction Signature & Submission
     try {
-      const provider = getWalletProvider(walletName || "Solflare");
+      const endpoint = HeliusService.getRpcUrl(networkStatus);
+      const connection = new Connection(endpoint, "confirmed");
 
-      if (!provider) {
-        return { success: false, signature: "", error: `${walletName || "Solflare"} extension not detected in browser.` };
-      }
+      const recentBlockhash = await connection.getLatestBlockhash();
+      const transaction = new Transaction({
+        feePayer: new PublicKey(walletAddress),
+        blockhash: recentBlockhash.blockhash,
+        lastValidBlockHeight: recentBlockhash.lastValidBlockHeight
+      }).add(
+        SystemProgram.transfer({
+          fromPubkey: new PublicKey(walletAddress),
+          toPubkey: new PublicKey(MERCHANT_WALLET_ADDRESS),
+          lamports: Math.round(amountSOL * LAMPORTS_PER_SOL)
+        })
+      );
 
-      let connection = HeliusService.getConnection(networkStatus === "Mainnet" ? "Mainnet" : "Devnet");
-      const fromPubkey = new PublicKey(walletAddress);
+      const { signature } = await provider.signAndSendTransaction(transaction);
       
-      // Auto-failover blockhash fetch to bypass 403 Forbidden
-      let blockhash = "";
-      try {
-        const bhRes = await connection.getLatestBlockhash("confirmed");
-        blockhash = bhRes.blockhash;
-      } catch (err) {
-        console.warn("Primary RPC connection failed, falling back to public RPC nodes", err);
-        const fallbackUrl = networkStatus === "Mainnet" 
-          ? "https://solana-rpc.publicnode.com" 
-          : "https://api.devnet.solana.com";
-        connection = new Connection(fallbackUrl, "confirmed");
-        const bhRes = await connection.getLatestBlockhash("confirmed");
-        blockhash = bhRes.blockhash;
+      const confirmation = await connection.confirmTransaction({
+        signature,
+        blockhash: recentBlockhash.blockhash,
+        lastValidBlockHeight: recentBlockhash.lastValidBlockHeight
+      });
+
+      if (confirmation.value.err) {
+        throw new Error("On-chain transaction execution failed");
       }
 
-      let txHash = "";
-
-      if (networkStatus === "Mainnet") {
-        // Execute REAL SOL -> USDC Swap with output routing to MERCHANT_WALLET_ADDRESS
-        try {
-          const swapRes = await fetch("/api/swap", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              solAmount: amountSOL,
-              userPublicKey: walletAddress,
-              destinationWallet: MERCHANT_WALLET_ADDRESS
-            })
-          });
-
-          if (!swapRes.ok) {
-            const errBody = await swapRes.json().catch(() => ({ error: "Unknown error" }));
-            throw new Error(errBody.error || `HTTP ${swapRes.status}`);
-          }
-
-          const swapData = await swapRes.json();
-          if (!swapData.success || !swapData.swapTransaction) {
-            throw new Error(swapData.error || "Failed to retrieve swap transaction from proxy.");
-          }
-
-          // Web-safe Base64 deserialization without Node.js Buffer
-          const binaryString = window.atob(swapData.swapTransaction);
-          const len = binaryString.length;
-          const bytes = new Uint8Array(len);
-          for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const transaction = VersionedTransaction.deserialize(bytes);
-
-          if (typeof provider.signTransaction === "function") {
-            const signed = await provider.signTransaction(transaction);
-            const rpcPool = [
-              connection,
-              new Connection("https://rpc.ankr.com/solana", "confirmed"),
-              new Connection("https://api.mainnet-beta.solana.com", "confirmed"),
-              new Connection("https://solana-mainnet.rpc.extrnode.com", "confirmed")
-            ];
-            let broadcastErr: any = null;
-            for (const conn of rpcPool) {
-              try {
-                txHash = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: false });
-                if (txHash) {
-                  connection = conn;
-                  broadcastErr = null;
-                  break;
-                }
-              } catch (err) {
-                console.warn("Failed to broadcast swap transaction on RPC node, trying next...", err);
-                broadcastErr = err;
-              }
-            }
-            if (broadcastErr) throw broadcastErr;
-          } else if (typeof provider.signAndSendTransaction === "function") {
-            const res = await provider.signAndSendTransaction(transaction);
-            txHash = typeof res === "string" ? res : res.signature;
-          } else {
-            throw new Error("Wallet provider does not support signing versioned transactions.");
-          }
-        } catch (swapError: any) {
-          console.warn("Mainnet Jupiter Swap failed, falling back to direct transfer", swapError);
-          const errorMsg = swapError.message || swapError.toString();
-          alert(`Jupiter swap to USDC failed. Error: ${errorMsg}\n\nFalling back to direct SOL transfer to merchant.`);
-          // Fallback to direct SOL transfer if swap fails
-          const toPubkey = new PublicKey(MERCHANT_WALLET_ADDRESS);
-          const lamports = Math.max(1, Math.round(amountSOL * LAMPORTS_PER_SOL));
-          const transaction = new Transaction().add(
-            SystemProgram.transfer({ fromPubkey, toPubkey, lamports })
-          );
-          transaction.recentBlockhash = blockhash;
-          transaction.feePayer = fromPubkey;
-
-          if (typeof provider.signTransaction === "function") {
-            const signed = await provider.signTransaction(transaction);
-            const rpcPool = [
-              connection,
-              new Connection("https://rpc.ankr.com/solana", "confirmed"),
-              new Connection("https://api.mainnet-beta.solana.com", "confirmed")
-            ];
-            let broadcastErr: any = null;
-            for (const conn of rpcPool) {
-              try {
-                txHash = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: false });
-                if (txHash) {
-                  connection = conn;
-                  broadcastErr = null;
-                  break;
-                }
-              } catch (err) {
-                console.warn("Failed to broadcast fallback transaction on RPC node, trying next...", err);
-                broadcastErr = err;
-              }
-            }
-            if (broadcastErr) throw broadcastErr;
-          } else if (typeof provider.signAndSendTransaction === "function") {
-            const res = await provider.signAndSendTransaction(transaction);
-            txHash = typeof res === "string" ? res : res.signature;
-          } else {
-            throw new Error("Wallet provider does not support signTransaction or signAndSendTransaction");
-          }
-        }
-      } else {
-        // Devnet fallback: Direct SOL transfer
-        const toPubkey = new PublicKey(MERCHANT_WALLET_ADDRESS);
-        const lamports = Math.max(1, Math.round(amountSOL * LAMPORTS_PER_SOL));
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({ fromPubkey, toPubkey, lamports })
-        );
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = fromPubkey;
-
-        if (typeof provider.signTransaction === "function") {
-          const signed = await provider.signTransaction(transaction);
-          txHash = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
-        } else if (typeof provider.signAndSendTransaction === "function") {
-          const res = await provider.signAndSendTransaction(transaction);
-          txHash = typeof res === "string" ? res : res.signature;
-        } else {
-          throw new Error("Wallet provider does not support signTransaction or signAndSendTransaction");
-        }
-      }
-
-      // Wait for on-chain block confirmation
-      const confirmed = await HeliusService.confirmTransaction(txHash, networkStatus);
-
-      if (!confirmed) {
-        return { success: false, signature: txHash, error: "Transaction broadcasted but failed to confirm on Solana network." };
-      }
-
-      // Refresh balance after successful transaction
-      await refreshBalance(walletAddress, networkStatus);
-
-      return { success: true, signature: txHash };
+      return { success: true, signature };
     } catch (e: any) {
-      console.error("Solana transaction execution error", e);
-      const msg = e?.message || "User rejected transaction signature";
+      console.error("Payment signing failed", e);
+      const msg = e.message || "User cancelled payment transaction signing";
       return { success: false, signature: "", error: msg };
     }
   };
@@ -519,6 +371,85 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }}
     >
       {children}
+
+      {/* Global Wallet Selection modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-brand-dark/85 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-2xl border border-brand-border bg-brand-card p-6 shadow-2xl relative space-y-4">
+            <button 
+              onClick={() => {
+                setShowModal(false);
+                setWalletNotFound(null);
+              }}
+              className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-brand-border/40 text-brand-text-muted hover:text-white transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center">
+              <h3 className="text-lg font-extrabold text-white">Connect Solana Wallet</h3>
+              <p className="text-xs text-brand-text-muted mt-1 leading-relaxed">
+                Connect your browser wallet to authorize on-chain payments.
+              </p>
+            </div>
+
+            {walletNotFound && (
+              <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg text-center font-bold">
+                {walletNotFound} Extension Not Found! Please install it.
+              </div>
+            )}
+
+            <div className="space-y-2.5 pt-2">
+              <button
+                onClick={async () => {
+                  const res = await connectDirect("Phantom");
+                  if (res.notFound) {
+                    setWalletNotFound("Phantom");
+                  } else if (res.success) {
+                    setShowModal(false);
+                  }
+                }}
+                className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left text-white font-sans"
+              >
+                <span className="text-xs font-bold">Phantom Wallet</span>
+                <span className="text-[10px] text-brand-text-muted font-bold">Browser Wallet</span>
+              </button>
+
+              <button
+                onClick={async () => {
+                  const res = await connectDirect("Solflare");
+                  if (res.notFound) {
+                    setWalletNotFound("Solflare");
+                  } else if (res.success) {
+                    setShowModal(false);
+                  }
+                }}
+                className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left text-white font-sans"
+              >
+                <span className="text-xs font-bold">Solflare Wallet</span>
+                <span className="text-[10px] text-brand-text-muted font-bold">Browser Wallet</span>
+              </button>
+
+              <button
+                onClick={async () => {
+                  const res = await connectDirect("Backpack");
+                  if (res.notFound) {
+                    setWalletNotFound("Backpack");
+                  } else if (res.success) {
+                    setShowModal(false);
+                  }
+                }}
+                className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left text-white font-sans"
+              >
+                <span className="text-xs font-bold">Backpack Wallet</span>
+                <span className="text-[10px] text-brand-text-muted font-bold">Browser Wallet</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </SolanaWalletContext.Provider>
   );
 };
@@ -530,4 +461,3 @@ export const useSolanaWallet = () => {
   }
   return context;
 };
-

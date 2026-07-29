@@ -208,7 +208,7 @@ export default function CartPage() {
                 </Link>
               ) : (
                 <button
-                  onClick={() => connect("SOLCart Test Wallet")}
+                  onClick={() => connect()}
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-purple to-indigo-600 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2 transition-all"
                 >
                   <Coins className="h-4.5 w-4.5 text-brand-green" />

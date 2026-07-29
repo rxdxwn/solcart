@@ -150,6 +150,17 @@ export class SupabaseService {
           if (result.data.settings) {
             localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(result.data.settings));
           }
+          if (result.data.users) {
+            const staffList = result.data.users.filter((u: any) => u.role !== 'customer');
+            localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staffList));
+            localStorage.setItem("solcart_all_users", JSON.stringify(result.data.users));
+          }
+          if (result.data.tickets) {
+            localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(result.data.tickets));
+          }
+          if (result.data.activityLogs) {
+            localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOGS, JSON.stringify(result.data.activityLogs));
+          }
           window.dispatchEvent(new Event("solcart-db-synced"));
         }
       }
@@ -461,46 +472,68 @@ export class SupabaseService {
     return JSON.parse(stored);
   }
 
-  static updateStaff(id: string, updatedFields: any): void {
-    const staff = this.getStaff();
-    const idx = staff.findIndex(s => s.id === id);
+  static async updateStaff(id: string, updatedFields: any): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    
-    if (idx !== -1) {
-      staff[idx] = { ...staff[idx], ...updatedFields };
-      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-      this.logActivity("Staff", `Updated permissions/role for staff member ${staff[idx].name}`, "security", actor);
+    try {
+      const staff = this.getStaff();
+      const member = staff.find(s => s.id === id);
+      if (member) {
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updateUser",
+            payload: { email: member.email, updates: updatedFields }
+          })
+        });
+        this.logActivity("Staff", `Updated permissions/role for staff member ${member.name}`, "security", actor);
+      }
+    } catch (e) {
+      console.error("Failed to update staff:", e);
     }
   }
 
-  static addStaff(newMember: any): void {
-    const staff = this.getStaff();
+  static async addStaff(newMember: any): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    
-    staff.push({
-      id: `staff-${Math.random().toString(36).substr(2, 9)}`,
-      status: "Active",
-      createdAt: new Date().toISOString(),
-      lastActive: "Never",
-      assignedOrders: 0,
-      ...newMember
-    });
-    localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staff));
-    this.logActivity("Staff", `Added new staff member: ${newMember.name} as ${newMember.role}`, "security", actor);
+    const passwordHash = "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // SHA-256 of 'solcart123'
+    const newUser = {
+      id: `staff-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      email: newMember.email.toLowerCase().trim(),
+      name: newMember.name,
+      passwordHash,
+      role: newMember.role,
+      isVerified: true,
+      createdAt: new Date().toISOString()
+    };
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "createUser", payload: newUser })
+      });
+      this.logActivity("Staff", `Added new staff member: ${newMember.name} as ${newMember.role}`, "security", actor);
+    } catch (e) {
+      console.error("Failed to add staff:", e);
+    }
   }
 
-  static removeStaff(id: string): void {
-    const staff = this.getStaff();
-    const member = staff.find(s => s.id === id);
+  static async removeStaff(id: string): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    
-    if (member) {
-      const filtered = staff.filter(s => s.id !== id);
-      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(filtered));
-      this.logActivity("Staff", `Removed staff member: ${member.name}`, "security", actor);
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deleteUser",
+          payload: { id }
+        })
+      });
+      this.logActivity("Staff", `Removed staff member: ${id}`, "security", actor);
+    } catch (e) {
+      console.error("Failed to remove staff:", e);
     }
   }
 
@@ -579,24 +612,24 @@ export class SupabaseService {
     if (typeof window === "undefined") return [];
     const stored = localStorage.getItem(STORAGE_KEYS.TICKETS);
     if (!stored) {
-      localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(DEFAULT_TICKETS));
-      return DEFAULT_TICKETS;
+      return [];
     }
     return JSON.parse(stored);
   }
 
-  static addTicketComment(id: string, text: string, author: string): void {
-    const tickets = this.getTickets();
-    const idx = tickets.findIndex(t => t.id === id);
-    if (idx !== -1) {
-      if (!tickets[idx].comments) tickets[idx].comments = [];
-      tickets[idx].comments.push({
-        author,
-        text,
-        timestamp: new Date().toISOString()
+  static async addTicketComment(id: string, text: string, author: string): Promise<void> {
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "addTicketComment",
+          payload: { ticketId: id, comment: text }
+        })
       });
-      localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(tickets));
-      this.logActivity("Support", `Added internal note to ticket ${id}`, "info", author);
+      this.logActivity("Support", `Added internal note and emailed reply to ticket ${id}`, "info", author);
+    } catch (e) {
+      console.error("Failed to add ticket comment:", e);
     }
   }
 
@@ -684,5 +717,39 @@ export class SupabaseService {
     if (logs.length > 200) logs.pop();
     
     localStorage.setItem(STORAGE_KEYS.ACTIVITY_LOGS, JSON.stringify(logs));
+  }
+
+  static getAllUsers(): any[] {
+    if (typeof window === "undefined") return [];
+    const stored = localStorage.getItem("solcart_all_users");
+    if (!stored) return [];
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [];
+    }
+  }
+
+  static async deleteUser(id: string): Promise<void> {
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deleteUser",
+          payload: { id }
+        })
+      });
+      // also remove from staff local caching
+      const staff = this.getStaff();
+      const filteredStaff = staff.filter(s => s.id !== id);
+      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(filteredStaff));
+      
+      const all = this.getAllUsers();
+      const filteredAll = all.filter(u => u.id !== id);
+      localStorage.setItem("solcart_all_users", JSON.stringify(filteredAll));
+    } catch (e) {
+      console.error("Failed to delete user:", e);
+    }
   }
 }

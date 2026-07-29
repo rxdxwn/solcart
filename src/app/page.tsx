@@ -25,7 +25,7 @@ export default function Home() {
 
   const handleWalletCTA = () => {
     if (!connected) {
-      connect("SOLCart Test Wallet"); // default to test wallet for easy trial
+      connect();
     }
   };
 

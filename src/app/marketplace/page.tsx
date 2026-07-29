@@ -226,42 +226,6 @@ function MarketplaceContent() {
             )}
           </div>
 
-          {/* Sourced Retailers */}
-          <div className="mb-6">
-            <h3 className="text-xs font-bold text-white mb-3">Retailer Stores</h3>
-            <div className="space-y-2.5">
-              {retailers.map(r => (
-                <label key={r.id} className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={selectedRetailers.includes(r.id)}
-                    onChange={() => toggleRetailer(r.id)}
-                    className="h-4 w-4 rounded border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple focus:ring-offset-brand-dark"
-                  />
-                  <span>{r.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Categories */}
-          <div className="mb-6">
-            <h3 className="text-xs font-bold text-white mb-3">Categories</h3>
-            <div className="space-y-2.5">
-              {categories.map(cat => (
-                <label key={cat} className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(cat)}
-                    onChange={() => toggleCategory(cat)}
-                    className="h-4 w-4 rounded border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
-                  />
-                  <span>{cat}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           {/* Brands */}
           <div className="mb-6">
             <h3 className="text-xs font-bold text-white mb-3">Brands</h3>
@@ -297,29 +261,6 @@ function MarketplaceContent() {
                     name="priceRangeRadio"
                     checked={priceRange === opt.value}
                     onChange={() => setPriceRange(opt.value)}
-                    className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
-                  />
-                  <span>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Rating filter */}
-          <div>
-            <h3 className="text-xs font-bold text-white mb-3">Minimum Rating</h3>
-            <div className="space-y-2.5">
-              {[
-                { value: 0, label: "Any Rating" },
-                { value: 4, label: "4.0+ Stars" },
-                { value: 4.5, label: "4.5+ Stars" }
-              ].map(opt => (
-                <label key={opt.value} className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
-                  <input
-                    type="radio"
-                    name="ratingRangeRadio"
-                    checked={minRating === opt.value}
-                    onChange={() => setMinRating(opt.value)}
                     className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
                   />
                   <span>{opt.label}</span>
@@ -500,37 +441,19 @@ function MarketplaceContent() {
               </button>
             </div>
 
-            {/* Sourced Retailers */}
+            {/* Brands */}
             <div className="mb-6">
-              <h3 className="text-xs font-bold text-white mb-3">Retailers</h3>
+              <h3 className="text-xs font-bold text-white mb-3">Brands</h3>
               <div className="space-y-2.5">
-                {retailers.map(r => (
-                  <label key={r.id} className="flex items-center gap-2.5 text-xs text-brand-text-muted">
+                {brands.map(brand => (
+                  <label key={brand} className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
                     <input
                       type="checkbox"
-                      checked={selectedRetailers.includes(r.id)}
-                      onChange={() => toggleRetailer(r.id)}
+                      checked={selectedBrands.includes(brand)}
+                      onChange={() => toggleBrand(brand)}
                       className="h-4 w-4 rounded border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
                     />
-                    <span>{r.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Categories */}
-            <div className="mb-6">
-              <h3 className="text-xs font-bold text-white mb-3">Categories</h3>
-              <div className="space-y-2.5">
-                {categories.map(cat => (
-                  <label key={cat} className="flex items-center gap-2.5 text-xs text-brand-text-muted">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(cat)}
-                      onChange={() => toggleCategory(cat)}
-                      className="h-4 w-4 rounded border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
-                    />
-                    <span>{cat}</span>
+                    <span>{brand}</span>
                   </label>
                 ))}
               </div>

@@ -33,7 +33,8 @@ import {
   Eye,
   Lock,
   Download,
-  Info
+  Info,
+  LogOut
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { RetailerService } from "../../services/retailers";
@@ -96,7 +97,7 @@ const CUSTOMER_GROWTH_DATA = [
 ];
 
 export default function AdminDashboard() {
-  const { user, login, hasPermission, bypassLoginForTesting } = useAuth();
+  const { user, login, logout, hasPermission, bypassLoginForTesting } = useAuth();
 
   // Dynamic Chart Data Helpers
   const getRevenueTrendData = () => {
@@ -183,6 +184,12 @@ export default function AdminDashboard() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>({});
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [editingStockProductId, setEditingStockProductId] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Failed Swaps Alert", text: "Route aggregator returned high-slippage warning.", type: "error" },
+    { id: 2, title: "Fulfillment Delay", text: "Brand inventory dispatch tracking is pending.", type: "warning" }
+  ]);
 
   // Detailed Modal/Drawer state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -218,6 +225,30 @@ export default function AdminDashboard() {
   const [editingCustomerName, setEditingCustomerName] = useState("");
   const [isEditingCustomer, setIsEditingCustomer] = useState(false);
 
+  // Admin Login States
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    setLoginLoading(true);
+    try {
+      const res = await login(adminEmail, adminPassword);
+      if (!res.success) {
+        setLoginError(res.error || "Invalid administrator credentials.");
+      }
+    } catch (e: any) {
+      setLoginError(e.message || "Failed to log in.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const isStaff = user && user.role !== "customer";
+
   // Add Staff form state
   const [showStaffForm, setShowStaffForm] = useState(false);
   const [newStaffName, setNewStaffName] = useState("");
@@ -229,6 +260,7 @@ export default function AdminDashboard() {
 
   // Sync admin database logs on load/changes
   const refreshAllData = async () => {
+    setDataLoading(true);
     try {
       await Promise.all([
         RetailerService.syncWithServer(),
@@ -247,6 +279,7 @@ export default function AdminDashboard() {
     setTickets(SupabaseService.getTickets());
     setSettings(SupabaseService.getSettings());
     setLogs(SupabaseService.getActivityLogs());
+    setDataLoading(false);
   };
 
   useEffect(() => {
@@ -260,7 +293,8 @@ export default function AdminDashboard() {
   };
 
   // Helper colors for status badges
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | undefined | null) => {
+    if (!status) return 'bg-brand-border/10 text-brand-text-muted border border-brand-border/20';
     switch (status.toLowerCase()) {
       case 'paid':
       case 'active':
@@ -332,6 +366,27 @@ export default function AdminDashboard() {
   const totalSOL = orders.reduce((acc, o) => acc + o.paidSOL, 0);
   const taxRate = settings.taxRate !== undefined ? settings.taxRate : 5;
   const totalFEEUSD = orders.reduce((acc, o) => acc + (o.retailPriceUSD * (taxRate / 100)), 0);
+
+  // Dynamic Time-Based Revenue aggregates
+  const todaysRevenueUSD = orders
+    .filter(o => {
+      const orderDate = new Date(o.timestamp);
+      const today = new Date();
+      return orderDate.getDate() === today.getDate() &&
+             orderDate.getMonth() === today.getMonth() &&
+             orderDate.getFullYear() === today.getFullYear();
+    })
+    .reduce((acc, o) => acc + o.retailPriceUSD, 0);
+
+  const weeklyRevenueUSD = orders
+    .filter(o => {
+      const orderDate = new Date(o.timestamp);
+      const today = new Date();
+      const diffTime = Math.abs(today.getTime() - orderDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays <= 7;
+    })
+    .reduce((acc, o) => acc + o.retailPriceUSD, 0);
   
   const totalSourcedRetailUSD = orders.reduce((acc, o) => {
     const innerSum = o.items.reduce((ac, it) => ac + (it.retailPriceUSD * it.quantity), 0);
@@ -579,11 +634,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleAddStaff = (e: React.FormEvent) => {
+  const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasPermission("staff", "edit")) return;
     if (newStaffName && newStaffEmail) {
-      SupabaseService.addStaff({
+      await SupabaseService.addStaff({
         name: newStaffName,
         email: newStaffEmail,
         role: newStaffRole,
@@ -592,22 +647,29 @@ export default function AdminDashboard() {
       setNewStaffName("");
       setNewStaffEmail("");
       setShowStaffForm(false);
-      refreshAllData();
+      await refreshAllData();
     }
   };
 
-  const handleRemoveStaff = (id: string) => {
+  const handleRemoveStaff = async (id: string) => {
     if (!hasPermission("staff", "edit")) return;
-    SupabaseService.removeStaff(id);
-    refreshAllData();
+    await SupabaseService.removeStaff(id);
+    await refreshAllData();
   };
 
-  const handleTicketComment = (e: React.FormEvent) => {
+  const handleDeleteCustomer = async (userId: string) => {
+    if (!hasPermission("staff", "edit")) return;
+    if (!confirm("Are you sure you want to delete this customer record?")) return;
+    await SupabaseService.deleteUser(userId);
+    await refreshAllData();
+  };
+
+  const handleTicketComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTicketNote.trim() || !selectedTicket) return;
-    SupabaseService.addTicketComment(selectedTicket.id, newTicketNote, user?.name || "Agent Support");
+    await SupabaseService.addTicketComment(selectedTicket.id, newTicketNote, user?.name || "Agent Support");
     setNewTicketNote("");
-    refreshAllData();
+    await refreshAllData();
     
     // Refresh detailed ticket modal
     const updated = SupabaseService.getTickets().find(t => t.id === selectedTicket.id);
@@ -622,6 +684,60 @@ export default function AdminDashboard() {
 
   const uniqueCustomers = Array.from(new Set(orders.map(o => o.customerDetails?.name).filter(Boolean)));
 
+  const getAggregatedCustomers = () => {
+    const dbCustomers = SupabaseService.getAllUsers().filter((u: any) => u.role === 'customer');
+    
+    const customerMap: Record<string, {
+      id: string;
+      name: string;
+      email: string;
+      walletAddress: string;
+      totalOrders: number;
+      totalSpend: number;
+      status: string;
+    }> = {};
+
+    dbCustomers.forEach((u: any) => {
+      const wallet = u.id;
+      customerMap[wallet.toLowerCase()] = {
+        id: u.id,
+        name: u.name || `Wallet ${u.id.substring(0, 6)}`,
+        email: u.email || "N/A",
+        walletAddress: u.id,
+        totalOrders: 0,
+        totalSpend: 0,
+        status: u.isVerified ? "Verified" : "Registered"
+      };
+    });
+
+    orders.forEach(o => {
+      const walletKey = o.walletAddress.toLowerCase();
+      if (!customerMap[walletKey]) {
+        customerMap[walletKey] = {
+          id: o.walletAddress,
+          name: o.customerDetails.name,
+          email: o.customerDetails.email,
+          walletAddress: o.walletAddress,
+          totalOrders: 0,
+          totalSpend: 0,
+          status: "Unregistered Buyer"
+        };
+      }
+      
+      const cust = customerMap[walletKey];
+      cust.totalOrders += 1;
+      cust.totalSpend += o.retailPriceUSD;
+      if (o.customerDetails.name && o.customerDetails.name !== cust.name) {
+        cust.name = o.customerDetails.name;
+      }
+      if (o.customerDetails.email && o.customerDetails.email !== cust.email && !cust.email.includes("@solcart-user.io")) {
+        cust.email = o.customerDetails.email;
+      }
+    });
+
+    return Object.values(customerMap);
+  };
+
   // Filter orders based on query & state
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.id.includes(searchQuery) || 
@@ -631,6 +747,65 @@ export default function AdminDashboard() {
     const matchesCustomer = selectedCustomerFilter === "all" || o.customerDetails.name === selectedCustomerFilter;
     return matchesSearch && matchesStatus && matchesCustomer;
   });
+
+  if (!isStaff) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-brand-dark px-4 py-12 sm:px-6 lg:px-8 font-sans">
+        <div className="w-full max-w-md space-y-8 glass-panel border border-brand-border/40 p-8 rounded-2xl relative shadow-2xl">
+          <div className="text-center">
+            <div className="mx-auto h-12 w-12 rounded-xl bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-brand-purple mb-4">
+              <Lock className="h-6 w-6" />
+            </div>
+            <h2 className="text-2xl font-black text-white tracking-tight">SOLCart Admin Portal</h2>
+            <p className="text-xs text-brand-text-muted mt-2">
+              Access restricted to authorized personnel. Please sign in.
+            </p>
+          </div>
+
+          {loginError && (
+            <div className="p-3.5 bg-red-500/15 border border-red-500/30 rounded-xl text-red-400 text-xs">
+              {loginError}
+            </div>
+          )}
+
+          <form className="mt-8 space-y-6" onSubmit={handleAdminLogin}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1.5">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@solcart.io"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1.5">Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full h-10 px-3.5 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/40 focus:outline-none focus:border-brand-purple/40"
+                />
+              </div>
+            </div>
+
+            <button
+               type="submit"
+               disabled={loginLoading}
+               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand-purple to-indigo-600 font-extrabold text-xs text-white hover:scale-[1.01] shadow-lg shadow-brand-purple/10 flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+            >
+              {loginLoading ? "Authenticating..." : "Sign In to Operations"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-brand-dark text-white font-sans overflow-hidden">
@@ -659,11 +834,10 @@ export default function AdminDashboard() {
             { id: "customers", label: "Customer List", icon: Users },
             { id: "payments", label: "Payments Ledger", icon: Coins },
             { id: "refunds", label: "Returns & Refunds", icon: RotateCcw },
-            { id: "retailers", label: "Retailers Markup", icon: Tag },
             { id: "products", label: "Product Catalog", icon: Cpu },
-            { id: "inventory", label: "Suppliers & Inventory", icon: Layers },
-            { id: "staff", label: "Staff & RBAC", icon: ShieldAlert },
-            { id: "support", label: "Support Center", icon: HelpCircle },
+            { id: "inventory", label: "Inventory Catalog", icon: Layers },
+            { id: "staff", label: "Staff Directory", icon: ShieldAlert },
+            { id: "support", label: "Support Desk", icon: HelpCircle },
             { id: "finance", label: "Financial Reports", icon: FileText },
             { id: "logs", label: "Activity Audit Logs", icon: Activity },
             { id: "settings", label: "System Settings", icon: Settings }
@@ -694,13 +868,22 @@ export default function AdminDashboard() {
         </nav>
 
         {/* Sidebar Footer - Current Profile info */}
-        <div className="p-4 border-t border-brand-border/40 bg-brand-dark/20 text-xs">
-          <p className="text-[10px] font-bold text-brand-text-muted uppercase">Signed in as</p>
-          <p className="font-extrabold text-white truncate mt-0.5">{user?.name || "Super Admin"}</p>
-          <div className="flex items-center gap-1.5 mt-1 text-[10px] font-semibold text-brand-purple">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-purple animate-pulse"></span>
-            <span>{user?.role || "Owner"}</span>
+        <div className="p-4 border-t border-brand-border/40 bg-brand-dark/20 flex items-center justify-between gap-2 text-xs">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-brand-text-muted uppercase">Signed in as</p>
+            <p className="font-extrabold text-white truncate mt-0.5">{user?.name || "Super Admin"}</p>
+            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-semibold text-brand-purple">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-purple animate-pulse"></span>
+              <span>{user?.role || "Owner"}</span>
+            </div>
           </div>
+          <button
+            onClick={() => logout()}
+            className="p-1.5 text-brand-text-muted hover:text-red-400 hover:bg-red-500/5 rounded-lg transition-all shrink-0"
+            title="Log Out Staff Session"
+          >
+            <LogOut className="h-4.5 w-4.5" />
+          </button>
         </div>
       </aside>
 
@@ -728,33 +911,7 @@ export default function AdminDashboard() {
           {/* User Controls / Alerts / Switcher */}
           <div className="flex items-center gap-4 text-xs font-semibold">
             
-            {/* Developer Role Switcher & Sync Tool */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={async () => {
-                  await refreshAllData();
-                }}
-                className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-brand-purple/15 text-brand-purple border border-brand-purple/30 hover:bg-brand-purple/25 transition-all flex items-center gap-1"
-                title="Sync database state across all browser windows and incognito mode"
-              >
-                <RotateCcw className="h-3 w-3" />
-                Sync & Refresh
-              </button>
-
-
-              <div className="flex items-center gap-1.5 bg-brand-card border border-brand-border/60 px-3 py-1 rounded-lg">
-                <span className="text-[10px] text-brand-text-muted uppercase tracking-wider hidden lg:inline">Switch Role:</span>
-                <select
-                  onChange={(e) => handleRoleSwitch(e.target.value)}
-                  value={user?.email || "owner@solcart.io"}
-                  className="bg-transparent text-xs font-bold text-white border-none focus:outline-none cursor-pointer text-brand-purple"
-                >
-                  <option value="owner@solcart.io" className="bg-brand-card text-white">Owner</option>
-                  <option value="superadmin@solcart.io" className="bg-brand-card text-white">Super Admin</option>
-                  <option value="finance@solcart.io" className="bg-brand-card text-white">Finance Manager</option>
-                </select>
-              </div>
-            </div>
+            {/* Admin Header Controls */}
 
 
             {/* Alert Notifications center */}
@@ -769,16 +926,41 @@ export default function AdminDashboard() {
               
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-72 rounded-xl border border-brand-border bg-brand-card p-3 shadow-xl backdrop-blur-lg z-30 space-y-2.5">
-                  <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider border-b border-brand-border/40 pb-1.5">System Alerts</p>
+                  <div className="flex justify-between items-center border-b border-brand-border/40 pb-1.5">
+                    <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">System Alerts ({notifications.length})</p>
+                    {notifications.length > 0 && (
+                      <button 
+                        onClick={() => setNotifications([])}
+                        className="text-[9px] font-bold text-brand-purple hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-2 max-h-56 overflow-y-auto font-sans">
-                    <div className="p-2 bg-red-500/5 border border-red-500/10 rounded-lg text-[10px]">
-                      <p className="font-bold text-red-400">Failed Swaps Alert</p>
-                      <p className="text-brand-text-muted mt-0.5">Route aggregator returned high-slippage warning.</p>
-                    </div>
-                    <div className="p-2 bg-amber-500/5 border border-amber-500/10 rounded-lg text-[10px]">
-                      <p className="font-bold text-amber-400">Fulfillment Delay</p>
-                      <p className="text-brand-text-muted mt-0.5">Amazon tracking #UPS-12999 is stuck in transit.</p>
-                    </div>
+                    {notifications.length === 0 ? (
+                      <p className="text-center text-[10px] text-brand-text-muted py-4">No active system alerts.</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div 
+                          key={n.id} 
+                          className={`p-2 rounded-lg text-[10px] relative group border ${
+                            n.type === 'error' ? 'bg-red-500/5 border-red-500/10' : 'bg-amber-500/5 border-amber-500/10'
+                          }`}
+                        >
+                          <button
+                            onClick={() => setNotifications(prev => prev.filter(item => item.id !== n.id))}
+                            className="absolute top-1.5 right-1.5 p-0.5 rounded hover:bg-brand-border/40 text-brand-text-muted hover:text-white"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          <p className={`font-bold ${n.type === 'error' ? 'text-red-400' : 'text-amber-400'} pr-5`}>
+                            {n.title}
+                          </p>
+                          <p className="text-brand-text-muted mt-0.5 pr-5 leading-normal">{n.text}</p>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
@@ -832,73 +1014,137 @@ export default function AdminDashboard() {
                     {/* Financial Metrics */}
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Today's Revenue</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${(totalSalesUSD * 0.15).toFixed(2)}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${todaysRevenueUSD.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Weekly Revenue</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${(totalSalesUSD * 0.68).toFixed(2)}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${weeklyRevenueUSD.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Total Revenue</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${totalSalesUSD.toFixed(2)}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${totalSalesUSD.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Net profit</span>
-                      <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">${netProfitUSD.toFixed(2)}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">${netProfitUSD.toFixed(2)}</p>
+                      )}
                     </div>
 
                     {/* Order Metrics */}
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Total Orders</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{orders.length}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-12 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{orders.length}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Pending orders</span>
-                      <p className="text-lg sm:text-2xl font-black text-amber-400 mt-1.5">{pendingOrders}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-12 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-amber-400 mt-1.5">{pendingOrders}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Completed orders</span>
-                      <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">{completedOrders}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-12 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">{completedOrders}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Refunded orders</span>
-                      <p className="text-lg sm:text-2xl font-black text-red-400 mt-1.5">{refundedOrders}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-12 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-red-400 mt-1.5">{refundedOrders}</p>
+                      )}
                     </div>
 
                     {/* Crypto & Swap Metrics */}
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">SOL Volume Paid</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{totalSOL.toFixed(2)} SOL</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{totalSOL.toFixed(2)} SOL</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">USDC Converted</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${totalUSDC.toFixed(2)}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${totalUSDC.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Marketplace fees</span>
-                      <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">${totalFEEUSD.toFixed(2)}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-20 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">${totalFEEUSD.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Failed payments</span>
-                      <p className="text-lg sm:text-2xl font-black text-red-400 mt-1.5">{failedPayments}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-12 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-red-400 mt-1.5">{failedPayments}</p>
+                      )}
                     </div>
 
                     {/* Customers & Health */}
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Active Customers</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{uniqueBuyersCount}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-12 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{uniqueBuyersCount}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">AOV (Avg Basket)</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${orders.length > 0 ? (totalSalesUSD / orders.length).toFixed(2) : "0"}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-16 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">${orders.length > 0 ? (totalSalesUSD / orders.length).toFixed(2) : "0"}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Payment Success</span>
-                      <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">{paymentSuccessRate}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-16 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-brand-green mt-1.5">{paymentSuccessRate}</p>
+                      )}
                     </div>
                     <div className="glass-panel p-4 rounded-xl border border-brand-border/40 flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-brand-text-muted uppercase">Conversion rate</span>
-                      <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{conversionRate}</p>
+                      {dataLoading ? (
+                        <div className="h-6 w-16 bg-brand-border/40 animate-pulse rounded mt-1.5"></div>
+                      ) : (
+                        <p className="text-lg sm:text-2xl font-black text-white mt-1.5">{conversionRate}</p>
+                      )}
                     </div>
                   </div>
 
@@ -1338,7 +1584,7 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   <div>
                     <h1 className="text-xl font-bold">Registered Customer Directory</h1>
-                    <p className="text-xs text-brand-text-muted mt-1">Review lifetime shopping volumes, risk scores, and account status flags.</p>
+                    <p className="text-xs text-brand-text-muted mt-1">Review lifetime shopping volumes, wallets, and account statuses.</p>
                   </div>
 
                   <div className="rounded-xl border border-brand-border/40 overflow-hidden bg-brand-card/15">
@@ -1350,26 +1596,46 @@ export default function AdminDashboard() {
                           <th className="p-3.5">Wallet Client</th>
                           <th className="p-3.5">Total Orders</th>
                           <th className="p-3.5">Total Spend</th>
-                          <th className="p-3.5">Risk Score</th>
                           <th className="p-3.5">Status</th>
+                          <th className="p-3.5 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-brand-border/40">
-                        {orders.map((o, idx) => (
-                          <tr key={idx} className="hover:bg-brand-card/25">
-                            <td className="p-3.5 font-bold text-white">{o.customerDetails.name}</td>
-                            <td className="p-3.5 text-brand-text-muted">{o.customerDetails.email}</td>
-                            <td className="p-3.5 font-mono text-brand-text-muted text-[10px]">{o.walletAddress}</td>
-                            <td className="p-3.5 font-bold text-white">1</td>
-                            <td className="p-3.5 font-bold text-brand-green">${o.retailPriceUSD.toFixed(2)}</td>
-                            <td className="p-3.5">
-                              <span className="px-2 py-1 rounded bg-brand-green/10 text-brand-green font-semibold">Low</span>
-                            </td>
-                            <td className="p-3.5">
-                              <span className="px-2 py-1 rounded-full text-[9px] font-bold bg-brand-green/10 text-brand-green border border-brand-green/20">Active</span>
+                        {getAggregatedCustomers().length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-8 text-center text-brand-text-muted">
+                              No registered customers found.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          getAggregatedCustomers().map((cust, idx) => (
+                            <tr key={idx} className="hover:bg-brand-card/25">
+                              <td className="p-3.5 font-bold text-white">{cust.name}</td>
+                              <td className="p-3.5 text-brand-text-muted">{cust.email}</td>
+                              <td className="p-3.5 font-mono text-brand-text-muted text-[10px] select-all">{cust.walletAddress}</td>
+                              <td className="p-3.5 font-bold text-white">{cust.totalOrders}</td>
+                              <td className="p-3.5 font-bold text-brand-green">${cust.totalSpend.toFixed(2)}</td>
+                              <td className="p-3.5">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                  cust.status === "Verified" 
+                                    ? "bg-brand-green/10 text-brand-green border border-brand-green/20" 
+                                    : "bg-brand-purple/10 text-brand-purple border border-brand-purple/20"
+                                }`}>
+                                  {cust.status}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right">
+                                <button
+                                  onClick={() => handleDeleteCustomer(cust.id)}
+                                  className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/5 rounded transition-all"
+                                  title="Delete User Account"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1607,20 +1873,7 @@ export default function AdminDashboard() {
                             className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white"
                           />
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-brand-text-muted font-bold">Retailer Partner</label>
-                          <select
-                            value={newProdRetailer}
-                            onChange={(e) => setNewProdRetailer(e.target.value)}
-                            className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white cursor-pointer"
-                          >
-                            <option value="amazon">Amazon</option>
-                            <option value="nike">Nike</option>
-                            <option value="apple">Apple</option>
-                            <option value="walmart">Walmart</option>
-                            <option value="target">Target</option>
-                          </select>
-                        </div>
+                         {/* Retailer select removed */}
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Base Retail Cost (USD)</label>
                           <input
@@ -1706,7 +1959,6 @@ export default function AdminDashboard() {
                         <tr>
                           <th className="p-3.5">Product Name</th>
                           <th className="p-3.5">Category</th>
-                          <th className="p-3.5">Retailer</th>
                           <th className="p-3.5">Cost Price</th>
                           <th className="p-3.5">Stock Status</th>
                           <th className="p-3.5 text-right">Action</th>
@@ -1717,7 +1969,6 @@ export default function AdminDashboard() {
                           <tr key={prod.id} className="hover:bg-brand-card/25">
                             <td className="p-3.5 font-bold text-white">{prod.name}</td>
                             <td className="p-3.5 text-brand-text-muted">{prod.category}</td>
-                            <td className="p-3.5 capitalize font-bold text-brand-text-muted text-[10px]">{prod.retailerId}</td>
                             <td className="p-3.5 font-bold text-white">${prod.retailPrice.toFixed(2)}</td>
                             <td className="p-3.5 font-bold">
                               <span className={`px-2 py-0.5 rounded text-[10px] ${prod.stockCount > 10 ? 'text-brand-green bg-brand-green/5' : 'text-amber-400 bg-amber-500/5'}`}>
@@ -1746,57 +1997,21 @@ export default function AdminDashboard() {
                   PANEL: SUPPLIERS & INVENTORY
                   ================================================================== */}
               {activeTab === "inventory" && (
-                <div className="space-y-4">
+                <div className="space-y-4 font-sans">
                   <div>
-                    <h1 className="text-xl font-bold">Suppliers channels & Inventory health</h1>
-                    <p className="text-xs text-brand-text-muted mt-1">Review average delivery times, order failure percentages, and channel statuses.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {suppliers.map(sup => (
-                      <div key={sup.id} className="p-5 rounded-2xl border border-brand-border/40 bg-brand-card/15 flex flex-col justify-between gap-4 font-sans">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-extrabold text-sm text-white">{sup.name}</h3>
-                            <span className="text-[10px] text-brand-text-muted">Supplier ID: {sup.id}</span>
-                          </div>
-                          <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase ${getStatusBadge(sup.status)}`}>
-                            {sup.status}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-xs border-t border-brand-border/40 pt-3">
-                          <div>
-                            <p className="text-brand-text-muted uppercase text-[9px]">Sourced Catalog</p>
-                            <p className="font-bold text-white mt-0.5">{sup.productsCount} Items</p>
-                          </div>
-                          <div>
-                            <p className="text-brand-text-muted uppercase text-[9px]">Orders Settled</p>
-                            <p className="font-bold text-white mt-0.5">{sup.ordersCount} Fulfilled</p>
-                          </div>
-                          <div>
-                            <p className="text-brand-text-muted uppercase text-[9px]">Avg Lead Time</p>
-                            <p className="font-bold text-white mt-0.5">{sup.avgDeliveryDays} Days</p>
-                          </div>
-                          <div>
-                            <p className="text-brand-text-muted uppercase text-[9px]">Fulfillment Failure</p>
-                            <p className={`font-bold mt-0.5 ${sup.failureRate < 2 ? 'text-brand-green' : 'text-red-400'}`}>{sup.failureRate}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    <h1 className="text-xl font-bold">Product Stock & Catalog Control</h1>
+                    <p className="text-xs text-brand-text-muted mt-1">Adjust and manage inventory stock counts for all active gift card brands.</p>
                   </div>
 
                   {/* Product Stock Levels Table */}
-                  <div className="pt-6 border-t border-brand-border/20">
-                    <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-3">Product Stock Levels</h2>
+                  <div className="pt-2">
+                     <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-3">Product Stock Levels</h2>
                     <div className="rounded-xl border border-brand-border/40 overflow-hidden bg-brand-card/15">
                       <table className="w-full text-left text-xs">
                         <thead className="bg-brand-dark/80 text-brand-text-muted border-b border-brand-border/40">
                           <tr>
                             <th className="p-3.5">Product / Gift Card</th>
                             <th className="p-3.5">Brand</th>
-                            <th className="p-3.5">Retailer</th>
                             <th className="p-3.5">Stock Level</th>
                             <th className="p-3.5">Status</th>
                             <th className="p-3.5 text-right">Update Stock</th>
@@ -1805,7 +2020,7 @@ export default function AdminDashboard() {
                         <tbody className="divide-y divide-brand-border/40">
                           {products.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="p-8 text-center text-brand-text-muted">
+                              <td colSpan={5} className="p-8 text-center text-brand-text-muted">
                                 No products in catalog yet. Please add a product to track its stock.
                               </td>
                             </tr>
@@ -1835,7 +2050,6 @@ export default function AdminDashboard() {
                                     <span className="font-bold text-white">{prod.name}</span>
                                   </td>
                                   <td className="p-3.5 text-brand-text-muted">{prod.brand}</td>
-                                  <td className="p-3.5 capitalize text-brand-text-muted">{prod.retailerId}</td>
                                   <td className="p-3.5 font-bold text-white font-mono">{stock}</td>
                                   <td className="p-3.5 font-bold">
                                     <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-wider ${statusClass}`}>
@@ -1843,26 +2057,50 @@ export default function AdminDashboard() {
                                     </span>
                                   </td>
                                   <td className="p-3.5 text-right">
-                                    <div className="inline-flex items-center gap-2">
-                                      <input
-                                        type="number"
-                                        placeholder="Set Stock"
-                                        value={editingStock[prod.id] !== undefined ? editingStock[prod.id] : stock.toString()}
-                                        onChange={(e) => {
+                                    {editingStockProductId === prod.id ? (
+                                      <div className="inline-flex items-center gap-2">
+                                        <input
+                                          type="number"
+                                          placeholder="Set Stock"
+                                          value={editingStock[prod.id] !== undefined ? editingStock[prod.id] : stock.toString()}
+                                          onChange={(e) => {
+                                            setEditingStock(prev => ({
+                                              ...prev,
+                                              [prod.id]: e.target.value
+                                            }));
+                                          }}
+                                          className="w-16 px-2 py-1 bg-brand-dark border border-brand-purple/40 rounded text-center text-white font-mono text-xs focus:outline-none"
+                                        />
+                                        <button
+                                          onClick={async () => {
+                                            await handleUpdateStock(prod.id, editingStock[prod.id] !== undefined ? editingStock[prod.id] : stock.toString());
+                                            setEditingStockProductId(null);
+                                          }}
+                                          className="px-2.5 py-1 bg-brand-green hover:bg-brand-green/90 rounded text-[10px] font-bold text-brand-dark transition-colors"
+                                        >
+                                          Save
+                                        </button>
+                                        <button
+                                          onClick={() => setEditingStockProductId(null)}
+                                          className="px-2.5 py-1 bg-brand-card hover:bg-brand-border border border-brand-border rounded text-[10px] font-bold text-white transition-colors"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => {
+                                          setEditingStockProductId(prod.id);
                                           setEditingStock(prev => ({
                                             ...prev,
-                                            [prod.id]: e.target.value
+                                            [prod.id]: stock.toString()
                                           }));
                                         }}
-                                        className="w-16 px-2 py-1 bg-brand-dark border border-brand-border/60 rounded text-center text-white font-mono text-xs"
-                                      />
-                                      <button
-                                        onClick={() => handleUpdateStock(prod.id, editingStock[prod.id] !== undefined ? editingStock[prod.id] : stock.toString())}
-                                        className="px-2.5 py-1 bg-brand-purple hover:bg-brand-purple/90 rounded text-[10px] font-bold text-white transition-colors"
+                                        className="px-3 py-1 bg-brand-purple/10 hover:bg-brand-purple/20 border border-brand-purple/25 rounded text-[10px] font-bold text-brand-purple transition-all"
                                       >
-                                        Save
+                                        Edit Stock
                                       </button>
-                                    </div>
+                                    )}
                                   </td>
                                 </tr>
                               );
@@ -2368,25 +2606,7 @@ export default function AdminDashboard() {
                       </button>
                     </div>
 
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-bold text-white">Marketplace Default Markup</p>
-                        <p className="text-[10px] text-brand-text-muted">Set global default markup value in percentage.</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="number"
-                          value={settings.marketplaceMarkup !== undefined ? settings.marketplaceMarkup : 10}
-                          onChange={(e) => {
-                            if (!hasPermission("settings", "edit")) return;
-                            SupabaseService.updateSettings({ marketplaceMarkup: parseFloat(e.target.value) });
-                            refreshAllData();
-                          }}
-                          className="w-16 px-2 py-1 bg-brand-dark border border-brand-border/60 rounded text-center text-white"
-                        />
-                        <span className="font-bold text-white">%</span>
-                      </div>
-                    </div>
+                    {/* Markup configuration removed */}
 
                     <div className="flex justify-between items-center">
                       <div>

@@ -116,6 +116,14 @@ export async function POST(request: Request) {
     } else if (action === "addTicketComment") {
       const { ticketId, comment } = payload;
       resultData = await DbAdapter.addTicketComment(ticketId, comment);
+    } else if (action === "createUser") {
+      resultData = await DbAdapter.createUser(payload);
+    } else if (action === "updateUser") {
+      const { email, updates } = payload;
+      resultData = await DbAdapter.updateUser(email, updates);
+    } else if (action === "deleteUser") {
+      const { id } = payload;
+      resultData = await DbAdapter.deleteUser(id);
     }
 
     return NextResponse.json({

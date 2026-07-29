@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 import { Product, Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails } from "@/types";
+import { sendEmail } from "./email";
 
 // =========================================================================
 // LOCAL FILE DATABASE FALLBACK
@@ -675,7 +676,7 @@ export class DbAdapter {
 
       const { error } = await supabaseAdmin
         .from("users")
-        .insert(dbPayload);
+        .upsert(dbPayload, { onConflict: "id" });
 
       if (error) {
         console.error("Supabase createUser failed:", error);
@@ -684,7 +685,12 @@ export class DbAdapter {
       return user;
     }
     const store = readLocalDb();
-    store.users.push(user);
+    const existingIdx = store.users.findIndex((u: any) => u.id === user.id);
+    if (existingIdx !== -1) {
+      store.users[existingIdx] = { ...store.users[existingIdx], ...user };
+    } else {
+      store.users.push(user);
+    }
     writeLocalDb(store);
     return user;
   }
@@ -722,6 +728,26 @@ export class DbAdapter {
       return true;
     }
     return false;
+  }
+
+  static async deleteUser(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      if (!supabaseAdmin) throw new Error("Supabase admin client not initialized");
+      const { error } = await supabaseAdmin
+        .from("users")
+        .delete()
+        .eq("id", id);
+      if (error) {
+        console.error("Supabase deleteUser failed:", error);
+        throw new Error(`Supabase query error: ${error.message}`);
+      }
+      return true;
+    }
+    const store = readLocalDb();
+    const lenBefore = store.users.length;
+    store.users = store.users.filter((u: any) => u.id !== id);
+    writeLocalDb(store);
+    return store.users.length < lenBefore;
   }
 
   // 6. Tickets operations
@@ -800,7 +826,7 @@ export class DbAdapter {
       
       const { data: ticket, error: fetchErr } = await supabaseAdmin
         .from("tickets")
-        .select("comments")
+        .select("*")
         .eq("id", ticketId)
         .single();
 
@@ -825,20 +851,69 @@ export class DbAdapter {
         console.error("Supabase addTicketComment failed:", updateErr);
         throw new Error(`Supabase query error: ${updateErr.message}`);
       }
+
+      // Send email to customer directly with the comment reply
+      try {
+        await sendEmail({
+          to: ticket.email,
+          subject: `Re: [SOLCart Support] ${ticket.subject}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+              <h2 style="color: #8b5cf6;">SOLCart Support Response</h2>
+              <p>Dear ${ticket.customer},</p>
+              <p>Our support team has responded to your inquiry regarding <strong>"${ticket.subject}"</strong>:</p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #8b5cf6; margin: 20px 0; font-style: italic; white-space: pre-wrap;">
+                ${comment}
+              </div>
+              <p style="color: #666; font-size: 11px; margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 15px;">
+                This is a response to the support ticket you created on our site. You can reply directly to this email if you have any follow-up questions.
+              </p>
+            </div>
+          `
+        });
+      } catch (emailErr) {
+        console.error("Failed to email ticket reply:", emailErr);
+      }
+
       return comments;
     }
     const store = readLocalDb();
     const idx = store.tickets.findIndex((t: any) => t.id === ticketId);
     if (idx !== -1) {
-      if (!store.tickets[idx].comments) store.tickets[idx].comments = [];
+      const ticket = store.tickets[idx];
+      if (!ticket.comments) ticket.comments = [];
       const newComment = {
         id: `cmt-${Date.now()}`,
         comment,
         timestamp: new Date().toISOString()
       };
-      store.tickets[idx].comments.push(newComment);
+      ticket.comments.push(newComment);
       writeLocalDb(store);
-      return store.tickets[idx].comments;
+
+      // Send email to customer directly
+      try {
+        await sendEmail({
+          to: ticket.email,
+          subject: `Re: [SOLCart Support] ${ticket.subject}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+              <h2 style="color: #8b5cf6;">SOLCart Support Response</h2>
+              <p>Dear ${ticket.customer},</p>
+              <p>Our support team has responded to your inquiry regarding <strong>"${ticket.subject}"</strong>:</p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #8b5cf6; margin: 20px 0; font-style: italic; white-space: pre-wrap;">
+                ${comment}
+              </div>
+              <p style="color: #666; font-size: 11px; margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 15px;">
+                This is a response to the support ticket you created on our site. You can reply directly to this email if you have any follow-up questions.
+              </p>
+            </div>
+          `
+        });
+      } catch (emailErr) {
+        console.error("Failed to email ticket reply:", emailErr);
+      }
+
+      return ticket.comments;
     }
     return null;
   }

@@ -272,15 +272,7 @@ export default function Navbar() {
               <div ref={walletRef} className="relative">
                 {mounted && connected ? (
                   <div className="flex items-center gap-2">
-                    {walletName === "SOLCart Test Wallet" && (
-                      <button 
-                        onClick={requestFaucet}
-                        className="px-2.5 py-1 text-xs font-semibold rounded bg-brand-green/10 text-brand-green border border-brand-green/20 hover:bg-brand-green/20 transition-all flex items-center gap-1.5"
-                      >
-                        <Coins className="h-3 w-3" />
-                        Faucet
-                      </button>
-                    )}
+                    {/* Faucet button removed */}
                     <button
                       onClick={() => setShowWalletDropdown(!showWalletDropdown)}
                       className="flex h-9 items-center gap-2 rounded-full border border-brand-border bg-brand-card/60 px-4 text-xs font-medium text-white hover:border-brand-purple/30 transition-all"
@@ -348,60 +340,14 @@ export default function Navbar() {
 
 
               {/* Profile Account */}
-              <div ref={profileRef} className="relative">
-                {mounted && user ? (
-                  <button
-                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-brand-card/60 text-brand-text-muted hover:text-white hover:border-brand-purple/30 transition-all"
-                  >
-                    <UserCheck className="h-5 w-5 text-brand-green" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-brand-card/60 text-brand-text-muted hover:text-white hover:border-brand-purple/30 transition-all"
-                  >
-                    <User className="h-5 w-5" />
-                  </button>
-                )}
-
-                {/* Profile Dropdown */}
-                {showProfileDropdown && user && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-brand-border bg-brand-card p-1.5 shadow-xl backdrop-blur-lg">
-                    <div className="px-3 py-2 border-b border-brand-border/40 mb-1">
-                      <p className="text-xs font-semibold text-white truncate">{user.name}</p>
-                      <p className="text-[10px] text-brand-text-muted truncate mt-0.5">{user.email}</p>
-                    </div>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-brand-text-muted hover:text-white hover:bg-brand-border/40 transition-colors"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
-                    </Link>
-                    {isAdmin && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setShowProfileDropdown(false)}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-brand-text-muted hover:text-white hover:bg-brand-border/40 transition-colors"
-                      >
-                        <Settings className="h-4 w-4" />
-                        Admin Panel
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => {
-                        setShowProfileDropdown(false);
-                        logout();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
+              <div>
+                <Link
+                  href="/dashboard"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-brand-card/60 text-brand-text-muted hover:text-white hover:border-brand-purple/30 transition-all"
+                  title="Go to Customer Dashboard"
+                >
+                  <User className="h-5 w-5" />
+                </Link>
               </div>
 
             </div>
@@ -485,17 +431,7 @@ export default function Navbar() {
                     <span>{truncateAddress(walletAddress!)}</span>
                     <span className="font-bold text-white">{balance.toFixed(2)} SOL</span>
                   </div>
-                  {walletName === "SOLCart Test Wallet" && (
-                    <button 
-                      onClick={() => {
-                        requestFaucet();
-                        setShowMobileMenu(false);
-                      }}
-                      className="w-full py-2 text-xs font-semibold rounded-lg bg-brand-green/10 text-brand-green border border-brand-green/20"
-                    >
-                      Request Faucet (+10 SOL)
-                    </button>
-                  )}
+                  {/* Mobile faucet button removed */}
                   <button
                     onClick={() => {
                       disconnect();
@@ -518,30 +454,17 @@ export default function Navbar() {
                 </button>
               )}
 
-              {mounted && user ? (
-                <div className="flex items-center justify-between px-3 pt-1 text-xs">
-                  <span className="text-brand-text-muted truncate">User: {user.email}</span>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setShowMobileMenu(false);
-                    }}
-                    className="text-red-400 font-medium hover:underline"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setShowAuthModal(true);
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full py-2.5 rounded-full border border-brand-border bg-brand-card text-xs font-semibold text-white"
+              {/* Mobile Profile Link */}
+              <div className="pt-2 border-t border-brand-border/25">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full py-2.5 rounded-xl border border-brand-border bg-brand-card/60 text-xs font-semibold text-white flex items-center justify-center gap-2"
                 >
-                  Sign In / Register
-                </button>
-              )}
+                  <User className="h-4 w-4 text-brand-purple" />
+                  Go to Dashboard
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -584,21 +507,7 @@ export default function Navbar() {
                 )}
               </button>
 
-              <button
-                onClick={() => handleWalletSelect("SOLCart Test Wallet")}
-                className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-purple/30 bg-brand-purple/5 hover:bg-brand-purple/10 text-white transition-all text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-brand-purple to-brand-green p-0.5">
-                    <div className="h-full w-full bg-brand-card rounded-[6px] flex items-center justify-center font-bold text-white text-xs">SOL</div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-white">SOLCart Test Wallet</p>
-                    <p className="text-[10px] text-brand-green font-semibold">Instant Faucet & Dev Sandbox</p>
-                  </div>
-                </div>
-                <span className="text-[10px] text-brand-green font-bold">Sandbox</span>
-              </button>
+              {/* Sandbox option removed */}
 
               <button
                 onClick={() => handleWalletSelect("Phantom")}
@@ -665,295 +574,14 @@ export default function Navbar() {
               >
                 Open Solflare Web Wallet
               </a>
-              <button
-                onClick={() => {
-                  setSolflareNotFoundModal(false);
-                  connect("SOLCart Test Wallet");
-                }}
-                className="w-full py-2 text-xs font-bold text-brand-green hover:underline mt-1"
-              >
-                Use SOLCart Test Wallet Sandbox Instead
-              </button>
+              {/* Test wallet button removed */}
             </div>
           </div>
         </div>
       )}
 
 
-      {/* Auth Login Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-brand-border bg-brand-card p-6 shadow-2xl relative">
-            <button 
-              onClick={() => {
-                setShowAuthModal(false);
-                resetAuthFields();
-              }}
-              className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-brand-border/40 text-brand-text-muted hover:text-white transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {authMode === "login" && (
-              <>
-                <h3 className="text-lg font-bold text-white tracking-tight">Sign In</h3>
-                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
-                  Access your order history, digital gift card codes, and refunds.
-                </p>
-                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
-                {authSuccessMessage && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-[11px] text-brand-green font-semibold">{authSuccessMessage}</div>}
-                <form onSubmit={loginWithCredentials} className="space-y-3.5">
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="name@example.com"
-                      value={authEmail}
-                      onChange={(e) => setAuthEmail(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">Password</label>
-                      <button 
-                        type="button"
-                        onClick={() => { setAuthMode("reset-request"); setAuthError(""); setAuthSuccessMessage(""); }}
-                        className="text-[10px] text-brand-purple hover:underline"
-                      >
-                        Forgot?
-                      </button>
-                    </div>
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={authPassword}
-                      onChange={(e) => setAuthPassword(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
-                  >
-                    Sign In
-                  </button>
-                  <div className="pt-2 text-center text-xs">
-                    <span className="text-brand-text-muted">Don't have an account? </span>
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthMode("signup"); setAuthError(""); setAuthSuccessMessage(""); }}
-                      className="text-brand-purple font-semibold hover:underline"
-                    >
-                      Register
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {authMode === "signup" && (
-              <>
-                <h3 className="text-lg font-bold text-white tracking-tight">Register Account</h3>
-                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
-                  Create a new secure credentials account to order and retrieve gift cards.
-                </p>
-                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
-                <form onSubmit={signupWithCredentials} className="space-y-3.5">
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="John Doe"
-                      value={authName}
-                      onChange={(e) => setAuthName(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="name@example.com"
-                      value={authEmail}
-                      onChange={(e) => setAuthEmail(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Password</label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={authPassword}
-                      onChange={(e) => setAuthPassword(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
-                  >
-                    Register
-                  </button>
-                  <div className="pt-2 text-center text-xs">
-                    <span className="text-brand-text-muted">Already have an account? </span>
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
-                      className="text-brand-purple font-semibold hover:underline"
-                    >
-                      Sign In
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {authMode === "verify" && (
-              <>
-                <h3 className="text-lg font-bold text-white tracking-tight">Verify Email</h3>
-                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
-                  We sent a 6-digit verification code to <strong>{authEmail}</strong>. Please check your inbox.
-                </p>
-                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
-                {authSuccessMessage && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-[11px] text-brand-green font-semibold">{authSuccessMessage}</div>}
-                <form onSubmit={verifyAccount} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1.5 text-center">Verification Code</label>
-                    <input
-                      type="text"
-                      required
-                      maxLength={6}
-                      placeholder="123456"
-                      value={authCode}
-                      onChange={(e) => setAuthCode(e.target.value)}
-                      className="w-full h-12 text-center text-lg font-bold tracking-widest rounded-lg border border-brand-border bg-brand-dark/40 text-white focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
-                  >
-                    Verify & Login
-                  </button>
-                  <div className="pt-2 text-center text-xs">
-                    <button 
-                      type="button" 
-                      onClick={async () => {
-                        setAuthError("");
-                        setAuthSuccessMessage("");
-                        const res = await signup(authEmail, authPassword, authName);
-                        if (res.success) {
-                          setAuthSuccessMessage("A new code was sent to your email!");
-                        } else {
-                          setAuthError(res.error || "Failed to resend code");
-                        }
-                      }}
-                      className="text-brand-purple font-semibold hover:underline"
-                    >
-                      Resend Code
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {authMode === "reset-request" && (
-              <>
-                <h3 className="text-lg font-bold text-white tracking-tight">Forgot Password</h3>
-                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
-                  Enter your email address and we'll send you a temporary code to reset your password.
-                </p>
-                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
-                <form onSubmit={requestPasswordReset} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1.5">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="name@example.com"
-                      value={authEmail}
-                      onChange={(e) => setAuthEmail(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
-                  >
-                    Send Reset Code
-                  </button>
-                  <div className="pt-2 text-center text-xs">
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
-                      className="text-brand-purple font-semibold hover:underline"
-                    >
-                      Back to Sign In
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {authMode === "reset-confirm" && (
-              <>
-                <h3 className="text-lg font-bold text-white tracking-tight">Reset Password</h3>
-                <p className="text-xs text-brand-text-muted mt-1.5 mb-4">
-                  Check your email for the reset code and enter it below along with your new password.
-                </p>
-                {authError && <div className="p-2 mb-3 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 font-semibold">{authError}</div>}
-                {authSuccessMessage && <div className="p-2 mb-3 rounded bg-green-500/10 border border-green-500/20 text-[11px] text-brand-green font-semibold">{authSuccessMessage}</div>}
-                <form onSubmit={confirmPasswordReset} className="space-y-3.5">
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Reset Code</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="123456"
-                      value={authCode}
-                      onChange={(e) => setAuthCode(e.target.value)}
-                      className="w-full h-10 text-center text-sm font-semibold tracking-wider rounded-lg border border-brand-border bg-brand-dark/40 text-white focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">New Password</label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={authPassword}
-                      onChange={(e) => setAuthPassword(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-brand-border bg-brand-dark/40 text-xs text-white placeholder-brand-text-muted/50 focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/20"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-lg bg-brand-purple text-xs font-bold text-white shadow-md shadow-brand-purple/20 hover:bg-brand-purple/95 transition-all"
-                  >
-                    Update Password
-                  </button>
-                  <div className="pt-2 text-center text-xs">
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthMode("login"); setAuthError(""); setAuthSuccessMessage(""); }}
-                      className="text-brand-purple font-semibold hover:underline"
-                    >
-                      Back to Sign In
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Auth Login Modal removed */}
     </>
   );
 }
