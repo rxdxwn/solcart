@@ -133,6 +133,40 @@ export class DbAdapter {
           freeShippingThresholdUSD: parseFloat(data.free_shipping_threshold_usd),
           featureFlags: data.feature_flags
         };
+      } else {
+        // Automatically seed settings table with defaults if row is missing
+        const defaultSettings = {
+          id: "default",
+          marketplace_markup: 0.00,
+          supported_cryptos: ["SOL", "USDC"],
+          default_sol_wallet: "So11111111111111111111111111111111111111112",
+          rpc_provider: "Helius Mainnet Beta",
+          email_alerts: false,
+          maintenance_mode: false,
+          tax_rate: 0.00,
+          shipping_fee_usd: 0.00,
+          free_shipping_threshold_usd: 0.00,
+          feature_flags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
+        };
+        const { error: insertErr } = await supabaseAdmin
+          .from("settings")
+          .insert(defaultSettings);
+        if (insertErr) {
+          console.error("Supabase auto-seed settings failed:", insertErr);
+          throw new Error(`Supabase insert error: ${insertErr.message}`);
+        }
+        return {
+          marketplaceMarkup: 0,
+          supportedCryptos: ["SOL", "USDC"],
+          defaultSolWallet: "So11111111111111111111111111111111111111112",
+          rpcProvider: "Helius Mainnet Beta",
+          emailAlerts: false,
+          maintenanceMode: false,
+          taxRate: 0,
+          shippingFeeUSD: 0,
+          freeShippingThresholdUSD: 0,
+          featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
+        };
       }
     }
     return readLocalDb().settings;

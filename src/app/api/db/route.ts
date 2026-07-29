@@ -11,8 +11,10 @@ export async function GET() {
     const tickets = await DbAdapter.getTickets();
     const activityLogs = await DbAdapter.getActivityLogs();
 
+    const safeSettings = settings || { marketplaceMarkup: 0 };
+
     const data = {
-      settings,
+      settings: safeSettings,
       products,
       orders,
       transactions,
@@ -24,7 +26,7 @@ export async function GET() {
           id: "amazon",
           name: "Amazon",
           logo: "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=100&auto=format&fit=crop&q=60",
-          markupPercentage: settings.marketplaceMarkup || 0,
+          markupPercentage: safeSettings.marketplaceMarkup || 0,
           isActive: true,
           description: "Sourced globally. Delivering electronics, books, home products, and daily essentials."
         },
@@ -32,7 +34,7 @@ export async function GET() {
           id: "apple",
           name: "Apple",
           logo: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=100&auto=format&fit=crop&q=60",
-          markupPercentage: settings.marketplaceMarkup || 0,
+          markupPercentage: safeSettings.marketplaceMarkup || 0,
           isActive: true,
           description: "Premium computers, smartphones, tablets, and accessories with top-tier technology."
         },
@@ -40,7 +42,7 @@ export async function GET() {
           id: "nike",
           name: "Nike",
           logo: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&auto=format&fit=crop&q=60",
-          markupPercentage: settings.marketplaceMarkup || 0,
+          markupPercentage: safeSettings.marketplaceMarkup || 0,
           isActive: true,
           description: "Athletic footwear, activewear, sports equipment, and street-style fashion."
         },
@@ -48,7 +50,7 @@ export async function GET() {
           id: "walmart",
           name: "Walmart",
           logo: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=100&auto=format&fit=crop&q=60",
-          markupPercentage: settings.marketplaceMarkup || 0,
+          markupPercentage: safeSettings.marketplaceMarkup || 0,
           isActive: true,
           description: "Everyday low prices on groceries, home appliances, household goods, and toys."
         },
@@ -56,7 +58,7 @@ export async function GET() {
           id: "target",
           name: "Target",
           logo: "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=100&auto=format&fit=crop&q=60",
-          markupPercentage: settings.marketplaceMarkup || 0,
+          markupPercentage: safeSettings.marketplaceMarkup || 0,
           isActive: true,
           description: "Trendy home decor, fashionable apparel, beauty essentials, and kitchen supplies."
         }
