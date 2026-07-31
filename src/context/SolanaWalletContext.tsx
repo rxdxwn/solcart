@@ -280,25 +280,43 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const disconnect = () => {
-    if (walletName) {
-      const provider = getWalletProvider(walletName);
-      if (provider && typeof provider.disconnect === "function") {
-        try {
-          provider.disconnect();
-        } catch {}
-      }
+    if (typeof window !== "undefined" && (window as any)._is_disconnecting) return;
+    if (typeof window !== "undefined") {
+      (window as any)._is_disconnecting = true;
     }
 
-    setConnected(false);
-    setWalletAddress(null);
-    setWalletName(null);
-    setBalance(0);
-    setNetworkStatusState("Mainnet");
+    try {
+      if (walletName) {
+        const provider = getWalletProvider(walletName);
+        if (provider) {
+          try {
+            if (typeof provider.off === "function") {
+              provider.off("disconnect");
+            }
+          } catch {}
+          if (typeof provider.disconnect === "function") {
+            try {
+              provider.disconnect();
+            } catch {}
+          }
+        }
+      }
+    } finally {
+      setConnected(false);
+      setWalletAddress(null);
+      setWalletName(null);
+      setBalance(0);
+      setNetworkStatusState("Mainnet");
 
-    localStorage.removeItem("solcart_wallet_connected");
-    localStorage.removeItem("solcart_wallet_address");
-    localStorage.removeItem("solcart_wallet_name");
-    localStorage.removeItem("solcart_wallet_network");
+      localStorage.removeItem("solcart_wallet_connected");
+      localStorage.removeItem("solcart_wallet_address");
+      localStorage.removeItem("solcart_wallet_name");
+      localStorage.removeItem("solcart_wallet_network");
+      
+      if (typeof window !== "undefined") {
+        (window as any)._is_disconnecting = false;
+      }
+    }
   };
 
   // Faucet is removed from production

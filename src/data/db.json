@@ -50,7 +50,7 @@
       "name": "Gift Card (UAE)",
       "description": "Buy now $50 USD worth of Amazon Gift Card for UAE region only. ",
       "brand": "Amazon",
-      "image": "https://images.unsplash.com/photo-1704204656144-3dd12c110dd8?q=80&w=1618&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "image": "/images/amazon-card.jpg",
       "category": "Retail",
       "retailPrice": 50,
       "specs": {
@@ -66,6 +66,64 @@
           "rating": 4,
           "comment": "Worked instantly",
           "date": "25/07/2026"
+        }
+      ]
+    },
+    {
+      "rating": 4.8,
+      "reviewsCount": 12,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "id": "p-apple-appstore-100",
+      "name": "Apple App Store & iTunes Gift Card",
+      "description": "Redeem for apps, games, music, movies, iCloud storage, and more on the Apple App Store, iTunes, and Apple Books.",
+      "brand": "Apple",
+      "image": "/images/apple-card.jpg",
+      "category": "Entertainment",
+      "retailPrice": 100,
+      "specs": {
+        "Region": "US",
+        "Type": "Digital Code",
+        "Retailer Sourced": "apple"
+      },
+      "retailerId": "apple",
+      "stockCount": 50,
+      "isFeatured": true,
+      "marketplacePrice": 100,
+      "reviews": [
+        {
+          "author": "Sarah J.",
+          "rating": 5,
+          "comment": "Instant delivery, worked perfectly on my US Apple ID",
+          "date": "15/07/2026"
+        }
+      ]
+    },
+    {
+      "rating": 4.6,
+      "reviewsCount": 8,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "id": "p-nike-50",
+      "name": "Nike Gift Card $50",
+      "description": "Shop the latest Nike footwear, apparel, and equipment online or in-store. No expiration date.",
+      "brand": "Nike",
+      "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60",
+      "category": "Apparel",
+      "retailPrice": 50,
+      "specs": {
+        "Region": "Global",
+        "Type": "Digital/Physical",
+        "Retailer Sourced": "nike"
+      },
+      "retailerId": "nike",
+      "stockCount": 100,
+      "isFeatured": true,
+      "marketplacePrice": 50,
+      "reviews": [
+        {
+          "author": "Mike T.",
+          "rating": 5,
+          "comment": "Used for new Air Max, seamless checkout with SOL",
+          "date": "10/07/2026"
         }
       ]
     }
@@ -289,6 +347,15 @@
       "createdAt": "2026-07-29T22:34:51.281Z",
       "verificationCode": "302860",
       "resetCode": "2026-07-29T22:35:44.047Z"
+    },
+    {
+      "id": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
+      "email": "DTfTH9fs@solcart-user.io",
+      "name": "Wallet DTfTH9",
+      "passwordHash": "",
+      "role": "customer",
+      "isVerified": false,
+      "createdAt": "2026-07-31T19:52:19.420Z"
     }
   ],
   "tickets": [],

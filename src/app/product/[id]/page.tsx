@@ -14,11 +14,14 @@ import {
   Package, 
   Truck,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  Zap
 } from "lucide-react";
 import { RetailerService } from "../../../services/retailers";
 import { useCart } from "../../../context/CartContext";
+import { motion } from "framer-motion";
 import { Product } from "../../../types";
+import { GiftCardArtwork } from "../../../components/ui/GiftCardArtwork";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -31,7 +34,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"specs" | "shipping" | "reviews">("specs");
+  const [activeTab, setActiveTab] = useState<"specs" | "delivery" | "reviews">("specs");
   
   // Product Reviews Submission States
   const [revAuthor, setRevAuthor] = useState("");
@@ -118,31 +121,42 @@ export default function ProductDetailPage({ params }: PageProps) {
       author: "Alex M.",
       rating: 5,
       date: "2 days ago",
-      title: "Extremely fast fulfillment!",
-      comment: `Ordered this shoe with SOL. SOLCart swapped it to USDC and Nike placed the order within 10 minutes. Delivered in pristine Nike box. Amazing experience!`
+      title: "Extremely fast delivery!",
+      comment: `Purchased this gift card with SOL. Swapped instantly and the digital code was emailed within seconds. Super convenient!`
     },
     {
       id: "r2",
       author: "David K.",
-      rating: 4,
+      rating: 5,
       date: "1 week ago",
-      title: "Decent markup, seamless experience",
-      comment: "A small 10% markup, but totally worth it to avoid off-ramping to fiat. Transaction was confirmed on-chain in 2 seconds. Highly recommend."
+      title: "Zero added markup, seamless experience",
+      comment: "Absolutely love the zero added markup fees on direct face-value gift cards. Transaction was confirmed on-chain in 2 seconds."
     },
     {
       id: "r3",
       author: "Sarah L.",
       rating: 5,
       date: "3 weeks ago",
-      title: "Apple product via Solana!",
-      comment: "Was skeptical at first, but my order number registered on Apple's tracking portal. Perfect shipping. Will buy again!"
+      title: "Voucher redeemed instantly!",
+      comment: "Redeemed my code on the brand store immediately without any region locked issues. Will buy my gaming credits here again!"
     }
   ];
 
-  // Retrieve related products in same category
-  const relatedProducts = RetailerService.getProducts()
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 3);
+  // Retrieve related products in same category, fallback to same retailer
+  const relatedProducts = (() => {
+    const allProducts = RetailerService.getProducts();
+    const sameCategory = allProducts.filter(p => p.category === product.category && p.id !== product.id);
+    if (sameCategory.length > 0) {
+      return sameCategory.slice(0, 3);
+    }
+    // Fallback: same retailer, different category
+    const sameRetailer = allProducts.filter(p => p.retailerId === product.retailerId && p.id !== product.id);
+    if (sameRetailer.length > 0) {
+      return sameRetailer.slice(0, 3);
+    }
+    // Fallback: any other products
+    return allProducts.filter(p => p.id !== product.id).slice(0, 3);
+  })();
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -154,7 +168,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-brand-text-muted mb-8">
@@ -170,34 +184,32 @@ export default function ProductDetailPage({ params }: PageProps) {
         
         {/* Gallery / Image Card */}
         <div className="flex flex-col gap-4">
-          <div className="relative aspect-[4/3] rounded-2xl border border-brand-border/40 bg-brand-card/40 overflow-hidden shadow-2xl">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              className="object-cover"
-              priority
-            />
+          <div className="p-8 aspect-[4/3] rounded-3xl border border-brand-border/40 bg-gradient-to-br from-brand-card/50 to-indigo-950/20 flex items-center justify-center relative overflow-hidden shadow-2xl group">
+            {/* Background subtle glow */}
+            <div className="absolute inset-0 bg-radial-gradient from-brand-purple/10 to-transparent pointer-events-none"></div>
+            
+            <GiftCardArtwork brand={product.brand} value={product.retailPrice} imageUrl={product.image} className="shadow-2xl max-w-[90%] transform group-hover:scale-[1.01] transition-transform duration-500" />
+            
             {/* Retailer badge */}
-            <span className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-brand-dark/95 border border-brand-border/60 text-xs font-bold text-white flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-brand-purple"></span>
-              Sourced from {retailer?.name || product.retailerId}
+            <span className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-brand-dark/95 border border-brand-border/60 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-brand-dark/50 z-10">
+              <span className="h-2 w-2 rounded-full bg-brand-purple animate-pulse"></span>
+              Official Digital Card for {retailer?.name || product.retailerId}
             </span>
           </div>
 
           {/* Secure Purchase assurances */}
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-brand-border/30 bg-brand-card/20 p-3 text-center flex flex-col items-center justify-center">
-              <ShieldCheck className="h-4 w-4 text-brand-purple mb-1" />
-              <span className="text-[9px] font-bold text-white">Non-Custodial</span>
+              <Zap className="h-4 w-4 text-brand-purple mb-1 animate-pulse" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Instant Delivery</span>
             </div>
             <div className="rounded-xl border border-brand-border/30 bg-brand-card/20 p-3 text-center flex flex-col items-center justify-center">
               <Sparkles className="h-4 w-4 text-brand-green mb-1" />
-              <span className="text-[9px] font-bold text-white">Auto-Swapped</span>
+              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Best Price</span>
             </div>
             <div className="rounded-xl border border-brand-border/30 bg-brand-card/20 p-3 text-center flex flex-col items-center justify-center">
-              <RotateCcw className="h-4 w-4 text-indigo-400 mb-1" />
-              <span className="text-[9px] font-bold text-white">Refund Protection</span>
+              <ShieldCheck className="h-4 w-4 text-indigo-400 mb-1" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Secure Checkout</span>
             </div>
           </div>
         </div>
@@ -233,31 +245,30 @@ export default function ProductDetailPage({ params }: PageProps) {
           </p>
 
           {/* Pricing Block */}
-          <div className="mt-8 p-6 rounded-2xl border border-brand-border/60 bg-brand-card/30">
-            <div className="flex items-baseline justify-between">
-              <span className="text-xs text-brand-text-muted font-semibold">Price (USD):</span>
-              <span className="text-2xl font-black text-white">${product.retailPrice.toFixed(2)}</span>
-            </div>
-
-            {/* Pay with SOL Equivalent */}
-            <div className="mt-4 pt-4 border-t border-brand-border/40 flex items-center justify-between">
-              <span className="text-xs font-bold text-brand-purple">PAY IN SOL</span>
-              <div className="text-right">
-                <p className="text-xl font-extrabold text-brand-green">{solPriceEquivalent.toFixed(4)} SOL</p>
-                <p className="text-[10px] text-brand-text-muted mt-0.5">1 SOL = ${solPrice.toFixed(2)} (Jupiter Price API)</p>
+          <div className="mt-8 p-6 rounded-2xl border border-brand-border/60 bg-gradient-to-tr from-brand-card/50 to-indigo-950/20 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-brand-purple/5 rounded-full blur-xl pointer-events-none"></div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">USD Price</span>
+                <span className="text-3xl font-black text-white">${product.retailPrice.toFixed(2)}</span>
+              </div>
+              <div className="text-right bg-brand-green/5 border border-brand-green/20 rounded-xl px-4 py-2.5 shadow-inner">
+                <span className="text-[9px] text-brand-purple uppercase tracking-wider block font-bold">SOL Amount</span>
+                <span className="text-lg font-black text-brand-green">{solPriceEquivalent.toFixed(4)} SOL</span>
+                <span className="text-[8px] text-brand-text-muted block mt-0.5 font-mono">1 SOL = ${solPrice.toFixed(0)}</span>
               </div>
             </div>
 
             {/* Inventory Status */}
-            <div className="mt-4 flex items-center gap-2 text-xs">
-              <span className={`h-2 w-2 rounded-full ${product.stockCount > 10 ? 'bg-brand-green' : 'bg-amber-500'}`}></span>
-              <span className="text-brand-text-muted">
-                {product.stockCount > 0 ? `In Stock (${product.stockCount} left)` : "Out of Stock"}
-              </span>
-              <span className="text-brand-text-muted">•</span>
-              <span className="text-brand-text-muted flex items-center gap-1">
+            <div className="mt-5 pt-4 border-t border-brand-border/20 flex items-center justify-between text-xs text-brand-text-muted">
+              <div className="flex items-center gap-1.5">
+                <span className={`h-2.5 w-2.5 rounded-full ${product.stockCount > 10 ? 'bg-brand-green' : 'bg-amber-500'} animate-pulse`}></span>
+                <span>{product.stockCount > 0 ? `In Stock (${product.stockCount} left)` : "Out of Stock"}</span>
+              </div>
+              <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5 text-brand-purple" />
-                Est: {product.estimatedDelivery}
+                Delivery: Instant Email
               </span>
             </div>
           </div>
@@ -303,26 +314,26 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       </div>
 
-      {/* Tabs section (Specs / Shipping / Reviews) */}
+      {/* Tabs section (Details / Delivery Info / Reviews) */}
       <div className="mt-20 border-b border-brand-border/40">
         <div className="flex gap-8 text-sm font-bold">
           <button
             onClick={() => setActiveTab("specs")}
             className={`pb-4 border-b-2 transition-all ${activeTab === "specs" ? 'border-brand-purple text-white' : 'border-transparent text-brand-text-muted hover:text-white'}`}
           >
-            Specifications
+            Details
           </button>
           <button
-            onClick={() => setActiveTab("shipping")}
-            className={`pb-4 border-b-2 transition-all ${activeTab === "shipping" ? 'border-brand-purple text-white' : 'border-transparent text-brand-text-muted hover:text-white'}`}
+            onClick={() => setActiveTab("delivery")}
+            className={`pb-4 border-b-2 transition-all ${activeTab === "delivery" ? 'border-brand-purple text-white' : 'border-transparent text-brand-text-muted hover:text-white'}`}
           >
-            Fulfillment & Delivery
+            Delivery Info
           </button>
           <button
             onClick={() => setActiveTab("reviews")}
             className={`pb-4 border-b-2 transition-all ${activeTab === "reviews" ? 'border-brand-purple text-white' : 'border-transparent text-brand-text-muted hover:text-white'}`}
           >
-            Reviews (${(product.reviews || []).length})
+            Reviews ({(product.reviews || []).length + mockReviews.length})
           </button>
         </div>
       </div>
@@ -343,16 +354,30 @@ export default function ProductDetailPage({ params }: PageProps) {
           </div>
         )}
 
-        {activeTab === "shipping" && (
+        {activeTab === "delivery" && (
           <div className="max-w-3xl space-y-6 text-xs sm:text-sm leading-relaxed text-brand-text-muted">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-brand-purple/10 border border-brand-purple/20 rounded-xl text-brand-purple">
+              <div className="p-3 bg-brand-purple/10 border border-brand-purple/20 rounded-xl text-brand-purple shrink-0">
                 <Package className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white">Digital Code Delivery</h4>
+                <h4 className="font-bold text-white">Instant Digital Fulfillment</h4>
                 <p className="mt-1">
-                  Once your SOL payment is broadcasted and verified on-chain, we convert the payment to USDC via Jupiter Swap API. Your gift card order details are sent to our admin team who will assign your code. Codes will appear on your customer dashboard and be sent to your email.
+                  Once your Solana transaction is broadcasted and confirmed on-chain, our automated system immediately processes the order and secures your digital gift card code.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4 pt-4 border-t border-brand-border/20">
+              <div className="p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl text-brand-green shrink-0">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white">Redemption Guide</h4>
+                <p className="mt-1">
+                  1. Copy the digital code delivered directly on your screen post-checkout or in your email inbox.<br/>
+                  2. Go to the brand's official store/app store account page.<br/>
+                  3. Select "Redeem Gift Card" or input the code in the voucher box at checkout.
                 </p>
               </div>
             </div>
@@ -446,38 +471,47 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       {/* Related Products carousel */}
       {relatedProducts.length > 0 && (
-        <div className="mt-20 pt-8 border-t border-brand-border/20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mt-20 pt-8 border-t border-brand-border/20"
+        >
           <h3 className="text-lg font-bold text-white mb-6">Related Products</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {relatedProducts.map(rel => {
+            {relatedProducts.map((rel, relIdx) => {
               const relSol = parseFloat((rel.marketplacePrice / solPrice).toFixed(4));
               return (
-                <Link 
+                <motion.div
                   key={rel.id}
-                  href={`/product/${rel.id}`}
-                  className="glass-card rounded-2xl border border-brand-border/40 p-4 flex flex-col group"
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: relIdx * 0.1 }}
+                  whileHover={{ y: -4 }}
                 >
-                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-brand-dark/20 mb-4">
-                    <Image
-                      src={rel.image}
-                      alt={rel.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-                  <span className="text-[9px] font-bold text-brand-text-muted uppercase">{rel.brand}</span>
-                  <h4 className="text-xs font-bold text-white line-clamp-1 mt-1 group-hover:text-brand-purple transition-colors">
-                    {rel.name}
-                  </h4>
-                  <div className="mt-4 pt-3 border-t border-brand-border/30 flex items-center justify-between">
-                    <span className="text-xs font-black text-white">${rel.marketplacePrice.toFixed(2)}</span>
-                    <span className="text-xs font-extrabold text-brand-green">{relSol.toFixed(4)} SOL</span>
-                  </div>
-                </Link>
+                  <Link 
+                    href={`/product/${rel.id}`}
+                    className="glass-card rounded-2xl border border-brand-border/40 p-4 flex flex-col group h-full"
+                  >
+                    <div className="p-4 aspect-[4/3] rounded-xl bg-brand-dark/20 mb-4 flex items-center justify-center relative overflow-hidden">
+                      <GiftCardArtwork brand={rel.brand} value={rel.marketplacePrice} imageUrl={rel.image} className="shadow-md transform group-hover:scale-102 transition-transform duration-500" />
+                    </div>
+                    <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest">{rel.brand}</span>
+                    <h4 className="text-xs font-bold text-white line-clamp-1 mt-1 group-hover:text-brand-purple transition-colors">
+                      {rel.name}
+                    </h4>
+                    <div className="mt-4 pt-3 border-t border-brand-border/30 flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-white">${rel.marketplacePrice.toFixed(2)}</span>
+                      <span className="text-xs font-black text-brand-green">{relSol.toFixed(4)} SOL</span>
+                    </div>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
 
     </div>

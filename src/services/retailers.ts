@@ -5,61 +5,200 @@ const DEFAULT_RETAILERS: RetailerConfig[] = [
     id: "amazon",
     name: "Amazon",
     logo: "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 10,
+    markupPercentage: 0,
     isActive: true,
-    description: "Sourced globally. Delivering electronics, books, home products, and daily essentials."
+    description: "Shop millions of items worldwide with Amazon Digital Gift Cards."
   },
   {
     id: "apple",
     name: "Apple",
     logo: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 12,
+    markupPercentage: 0,
     isActive: true,
-    description: "Premium computers, smartphones, tablets, and accessories with top-tier technology."
+    description: "App Store & iTunes credit for apps, games, music, movies, and iCloud storage."
   },
   {
-    id: "nike",
-    name: "Nike",
-    logo: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 8,
+    id: "steam",
+    name: "Steam",
+    logo: "https://images.unsplash.com/photo-1612287230202-1bf1d85d1bdf?w=100&auto=format&fit=crop&q=60",
+    markupPercentage: 0,
     isActive: true,
-    description: "Innovative athletic footwear, apparel, accessories, and sporting gear."
+    description: "Top up Steam Wallets to buy thousands of PC games instantly."
   },
   {
-    id: "adidas",
-    name: "Adidas",
-    logo: "https://images.unsplash.com/photo-1587563876167-18d96b6e029d?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 8,
+    id: "playstation",
+    name: "PlayStation",
+    logo: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=100&auto=format&fit=crop&q=60",
+    markupPercentage: 0,
     isActive: true,
-    description: "Original sportswear, classics sneakers, and high-performance training clothing."
+    description: "Download the latest PS5 games and add-ons via PlayStation Network store."
   },
   {
-    id: "bestbuy",
-    name: "Best Buy",
-    logo: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 10,
+    id: "xbox",
+    name: "Xbox",
+    logo: "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=100&auto=format&fit=crop&q=60",
+    markupPercentage: 0,
     isActive: true,
-    description: "Top-tier consumer electronics, 4K TVs, gaming consoles, and smart appliances."
+    description: "Redeem Xbox Game Pass and purchase Microsoft digital store credits."
   },
   {
-    id: "walmart",
-    name: "Walmart",
-    logo: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 6,
+    id: "spotify",
+    name: "Spotify",
+    logo: "https://images.unsplash.com/photo-1614680376593-902f74fa0d41?w=100&auto=format&fit=crop&q=60",
+    markupPercentage: 0,
     isActive: true,
-    description: "Everyday low prices on groceries, home appliances, household goods, and toys."
+    description: "Upgrade or renew Spotify Premium for uninterrupted ad-free music."
   },
   {
-    id: "target",
-    name: "Target",
-    logo: "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=100&auto=format&fit=crop&q=60",
-    markupPercentage: 7,
+    id: "netflix",
+    name: "Netflix",
+    logo: "https://images.unsplash.com/photo-1574375927938-d5a98e8edd85?w=100&auto=format&fit=crop&q=60",
+    markupPercentage: 0,
     isActive: true,
-    description: "Trendy home decor, fashionable apparel, beauty essentials, and kitchen supplies."
+    description: "Settle subscription payments for unlimited streaming of movies and TV shows."
   }
 ];
 
-const DEFAULT_PRODUCTS: Product[] = [];
+const DEFAULT_PRODUCTS: Product[] = [
+  {
+    id: "p-amazon-50",
+    name: "Amazon Gift Card $50",
+    description: "Shop millions of products globally. Amazon gift card codes are region-locked to Amazon.com stores.",
+    brand: "Amazon",
+    image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=600&auto=format&fit=crop&q=80",
+    category: "Retail",
+    rating: 4.9,
+    reviewsCount: 142,
+    retailPrice: 50.00,
+    marketplacePrice: 50.00,
+    estimatedDelivery: "Instant Digital Delivery",
+    specs: {
+      "Region": "United States",
+      "Format": "Digital Code",
+      "Redemption": "Online Store",
+      "Expiration": "None"
+    },
+    retailerId: "amazon",
+    stockCount: 500,
+    isFeatured: true,
+    reviews: []
+  },
+  {
+    id: "p-apple-100",
+    name: "Apple App Store & iTunes Gift Card $100",
+    description: "Redeem on Apple Store, iTunes, Apple Books, or iCloud subscriptions. Perfect gift for any Apple user.",
+    brand: "Apple",
+    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
+    category: "Entertainment",
+    rating: 4.8,
+    reviewsCount: 96,
+    retailPrice: 100.00,
+    marketplacePrice: 100.00,
+    estimatedDelivery: "Instant Digital Delivery",
+    specs: {
+      "Region": "United States",
+      "Format": "Digital Code",
+      "Redemption": "App Store / iTunes",
+      "Expiration": "None"
+    },
+    retailerId: "apple",
+    stockCount: 200,
+    isFeatured: true,
+    reviews: []
+  },
+  {
+    id: "p-steam-50",
+    name: "Steam Wallet Code $50",
+    description: "Add funds directly to your Steam Account. Instant access to purchase games, expansions, and community items.",
+    brand: "Steam",
+    image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80",
+    category: "Gaming",
+    rating: 4.9,
+    reviewsCount: 312,
+    retailPrice: 50.00,
+    marketplacePrice: 50.00,
+    estimatedDelivery: "Instant Digital Delivery",
+    specs: {
+      "Region": "Global / USD",
+      "Format": "Digital Code",
+      "Redemption": "Steam Client",
+      "Expiration": "None"
+    },
+    retailerId: "steam",
+    stockCount: 800,
+    isFeatured: true,
+    reviews: []
+  },
+  {
+    id: "p-psn-50",
+    name: "PlayStation Store Gift Card $50",
+    description: "Buy and download games, DLCs, and subscribe to PlayStation Plus directly through your console.",
+    brand: "PlayStation",
+    image: "https://images.unsplash.com/photo-1592155931584-901ac15763e3?w=600&auto=format&fit=crop&q=80",
+    category: "Gaming",
+    rating: 4.7,
+    reviewsCount: 215,
+    retailPrice: 50.00,
+    marketplacePrice: 50.00,
+    estimatedDelivery: "Instant Digital Delivery",
+    specs: {
+      "Region": "United States",
+      "Format": "Digital Code",
+      "Redemption": "PSN Console / Web",
+      "Expiration": "None"
+    },
+    retailerId: "playstation",
+    stockCount: 450,
+    isFeatured: true,
+    reviews: []
+  },
+  {
+    id: "p-spotify-30",
+    name: "Spotify Premium 3-Month Subscription Card $30",
+    description: "Enjoy ad-free music, offline playback, and unlimited skips with a premium individual Spotify account.",
+    brand: "Spotify",
+    image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
+    category: "Entertainment",
+    rating: 4.7,
+    reviewsCount: 88,
+    retailPrice: 30.00,
+    marketplacePrice: 30.00,
+    estimatedDelivery: "Instant Digital Delivery",
+    specs: {
+      "Region": "United States",
+      "Format": "Digital Code",
+      "Redemption": "Spotify Web Portal",
+      "Expiration": "None"
+    },
+    retailerId: "spotify",
+    stockCount: 150,
+    isFeatured: false,
+    reviews: []
+  },
+  {
+    id: "p-netflix-50",
+    name: "Netflix Digital Gift Card $50",
+    description: "Stream premium films, television shows, and original documentaries. Automatically applied directly to your Netflix account billing.",
+    brand: "Netflix",
+    image: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=600&auto=format&fit=crop&q=80",
+    category: "Entertainment",
+    rating: 4.8,
+    reviewsCount: 174,
+    retailPrice: 50.00,
+    marketplacePrice: 50.00,
+    estimatedDelivery: "Instant Digital Delivery",
+    specs: {
+      "Region": "United States",
+      "Format": "Digital Code",
+      "Redemption": "Netflix Web Portal",
+      "Expiration": "None"
+    },
+    retailerId: "netflix",
+    stockCount: 300,
+    isFeatured: true,
+    reviews: []
+  }
+];
 
 
 export class RetailerService {

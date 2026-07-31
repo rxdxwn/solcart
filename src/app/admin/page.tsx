@@ -210,8 +210,9 @@ export default function AdminDashboard() {
   const [newTrackingNum, setNewTrackingNum] = useState("");
   const [newCarrier, setNewCarrier] = useState("");
 
-  // Add Product form state
+  // Add/Edit Product form state
   const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [newProdName, setNewProdName] = useState("");
   const [newProdBrand, setNewProdBrand] = useState("");
   const [newProdCategory, setNewProdCategory] = useState("Electronics");
@@ -474,22 +475,38 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!hasPermission("products", "edit")) return;
     if (newProdName && newProdBrand && newProdRetailPrice) {
-      RetailerService.addProduct({
-        id: `p-${Math.random().toString(36).substr(2, 9)}`,
-        name: newProdName,
-        description: newProdDesc || "No description provided",
-        brand: newProdBrand,
-        image: newProdImage || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop",
-        category: newProdCategory,
-        rating: 4.5,
-        reviewsCount: 1,
-        retailPrice: parseFloat(newProdRetailPrice),
-        estimatedDelivery: "3-5 business days",
-        specs: { "Retailer Sourced": newProdRetailer },
-        retailerId: newProdRetailer,
-        stockCount: parseInt(newProdStock) || 50,
-        isFeatured: false
-      });
+      if (editingProductId) {
+        // Edit existing product
+        RetailerService.updateProduct(editingProductId, {
+          name: newProdName,
+          description: newProdDesc || "No description provided",
+          brand: newProdBrand,
+          image: newProdImage || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop",
+          category: newProdCategory,
+          retailPrice: parseFloat(newProdRetailPrice),
+          specs: { "Retailer Sourced": newProdRetailer },
+          retailerId: newProdRetailer,
+          stockCount: parseInt(newProdStock) || 50,
+        });
+      } else {
+        // Add new product
+        RetailerService.addProduct({
+          id: `p-${Math.random().toString(36).substr(2, 9)}`,
+          name: newProdName,
+          description: newProdDesc || "No description provided",
+          brand: newProdBrand,
+          image: newProdImage || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop",
+          category: newProdCategory,
+          rating: 4.5,
+          reviewsCount: 1,
+          retailPrice: parseFloat(newProdRetailPrice),
+          estimatedDelivery: "3-5 business days",
+          specs: { "Retailer Sourced": newProdRetailer },
+          retailerId: newProdRetailer,
+          stockCount: parseInt(newProdStock) || 50,
+          isFeatured: false
+        });
+      }
 
       // Clear Form
       setNewProdName("");
@@ -497,9 +514,27 @@ export default function AdminDashboard() {
       setNewProdRetailPrice("");
       setNewProdImage("");
       setNewProdDesc("");
+      setNewProdRetailer("amazon");
+      setNewProdStock("50");
+      setNewProdCategory("Electronics");
+      setEditingProductId(null);
       setShowProductForm(false);
       refreshAllData();
     }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    if (!hasPermission("products", "edit")) return;
+    setEditingProductId(product.id);
+    setNewProdName(product.name);
+    setNewProdBrand(product.brand);
+    setNewProdCategory(product.category);
+    setNewProdRetailPrice(product.retailPrice.toString());
+    setNewProdRetailer(product.retailerId);
+    setNewProdStock(product.stockCount.toString());
+    setNewProdImage(product.image);
+    setNewProdDesc(product.description);
+    setShowProductForm(true);
   };
 
   const handleDeleteProduct = (id: string) => {
@@ -1837,7 +1872,18 @@ export default function AdminDashboard() {
                     </div>
                     {hasPermission("products", "edit") && (
                       <button
-                        onClick={() => setShowProductForm(!showProductForm)}
+                        onClick={() => {
+                          setNewProdName("");
+                          setNewProdBrand("");
+                          setNewProdCategory("Electronics");
+                          setNewProdRetailPrice("");
+                          setNewProdRetailer("amazon");
+                          setNewProdStock("50");
+                          setNewProdImage("");
+                          setNewProdDesc("");
+                          setEditingProductId(null);
+                          setShowProductForm(true);
+                        }}
                         className="px-4 py-2 bg-brand-purple hover:bg-brand-purple/95 rounded-lg text-xs font-bold text-white flex items-center gap-1.5"
                       >
                         <Plus className="h-4 w-4" />
@@ -1846,10 +1892,12 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  {/* Add Product Form */}
+{/* Add Product Form */}
                   {showProductForm && (
                     <form onSubmit={handleAddProduct} className="p-5 rounded-2xl border border-brand-border/40 bg-brand-card/25 max-w-2xl space-y-4 animate-fade-in text-xs">
-                      <h3 className="text-xs font-bold text-brand-purple uppercase tracking-wider">New Product Details</h3>
+                      <h3 className="text-xs font-bold text-brand-purple uppercase tracking-wider">
+                        {editingProductId ? "Edit Product Details" : "New Product Details"}
+                      </h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Product Name</label>
@@ -1873,7 +1921,18 @@ export default function AdminDashboard() {
                             className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white"
                           />
                         </div>
-                         {/* Retailer select removed */}
+                        <div className="space-y-1">
+                          <label className="text-brand-text-muted font-bold">Retailer</label>
+                          <select
+                            value={newProdRetailer}
+                            onChange={(e) => setNewProdRetailer(e.target.value)}
+                            className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white cursor-pointer"
+                          >
+                            {retailers.filter(r => r.isActive).map(r => (
+                              <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                          </select>
+                        </div>
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Base Retail Cost (USD)</label>
                           <input
@@ -1903,11 +1962,12 @@ export default function AdminDashboard() {
                             onChange={(e) => setNewProdCategory(e.target.value)}
                             className="w-full px-3 py-2 bg-brand-dark border border-brand-border/60 rounded-lg text-white cursor-pointer"
                           >
+                            <option value="Electronics">Electronics</option>
+                            <option value="Apparel">Apparel</option>
                             <option value="Gaming">Gaming</option>
                             <option value="Retail">Retail</option>
                             <option value="Food & Drink">Food & Drink</option>
                             <option value="Entertainment">Entertainment</option>
-                            <option value="Apparel">Apparel</option>
                           </select>
                         </div>
                       </div>
@@ -1939,11 +1999,14 @@ export default function AdminDashboard() {
                           type="submit"
                           className="flex-1 py-2 bg-brand-purple hover:bg-brand-purple/95 rounded-lg text-xs font-bold text-white"
                         >
-                          Confirm & Add
+                          {editingProductId ? "Save Changes" : "Confirm & Add"}
                         </button>
                         <button
                           type="button"
-                          onClick={() => setShowProductForm(false)}
+                          onClick={() => {
+                            setShowProductForm(false);
+                            setEditingProductId(null);
+                          }}
                           className="px-6 py-2 bg-brand-dark hover:bg-brand-border border border-brand-border rounded-lg text-xs font-bold text-white"
                         >
                           Cancel
@@ -1977,12 +2040,22 @@ export default function AdminDashboard() {
                             </td>
                             <td className="p-3.5 text-right font-sans">
                               {hasPermission("products", "edit") && (
-                                <button
-                                  onClick={() => handleDeleteProduct(prod.id)}
-                                  className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => handleEditProduct(prod)}
+                                    className="p-1.5 text-brand-purple hover:text-brand-green hover:bg-brand-purple/10 rounded-lg transition-all"
+                                    title="Edit Product"
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteProduct(prod.id)}
+                                    className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
+                                    title="Delete Product"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                               )}
                             </td>
                           </tr>

@@ -19,6 +19,8 @@ import {
 import { RetailerService } from "../../services/retailers";
 import { useCart } from "../../context/CartContext";
 import { Product, RetailerConfig } from "../../types";
+import { motion } from "framer-motion";
+import { GiftCardArtwork } from "../../components/ui/GiftCardArtwork";
 
 function MarketplaceContent() {
   const router = useRouter();
@@ -170,28 +172,43 @@ function MarketplaceContent() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+    <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-10">
       
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Marketplace</h1>
-          <p className="text-xs text-brand-text-muted mt-1">
-            Browse and search products. Price in SOL dynamically fetches from Jupiter Price API.
-          </p>
-        </div>
+      {/* Header Banner Section */}
+      <div className="rounded-3xl border border-brand-border/40 bg-gradient-to-r from-brand-card/40 via-indigo-950/10 to-brand-dark p-8 sm:p-10 relative overflow-hidden mb-10 shadow-2xl">
+        {/* Background glows */}
+        <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-brand-purple/5 rounded-full blur-[100px] pointer-events-none"></div>
         
-        {/* SOL Price indicator */}
-        <div className="flex items-center gap-3 self-start md:self-auto bg-brand-card/40 border border-brand-border/60 rounded-full px-4 py-2 text-xs">
-          <span className="h-2 w-2 rounded-full bg-brand-green animate-pulse-slow"></span>
-          <span className="font-semibold text-brand-text-muted">Live Jupiter SOL/USD:</span>
-          <span className="font-bold text-white">${solPrice.toFixed(2)}</span>
-          <button 
-            onClick={() => refreshSOLPrice()}
-            className={`text-brand-purple hover:text-brand-green transition-colors ml-1 ${isRefreshingPrice ? 'animate-spin' : ''}`}
-          >
-            <RefreshCw className="h-3 w-3" />
-          </button>
+        {/* Floating cards in banner background (Desktop only) */}
+        <div className="absolute right-12 top-0 bottom-0 w-1/3 hidden lg:flex items-center justify-center gap-6 opacity-15 pointer-events-none select-none">
+          <div className="transform -rotate-12 scale-[0.8] -translate-y-2">
+            <GiftCardArtwork brand="Amazon" value="$50" className="w-36 shadow-2xl blur-[0.5px]" />
+          </div>
+          <div className="transform rotate-12 scale-[0.9] translate-y-4">
+            <GiftCardArtwork brand="Apple" value="$100" className="w-36 shadow-2xl" />
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Marketplace</h1>
+            <p className="text-xs text-brand-text-muted mt-2 leading-relaxed max-w-md">
+              Digital gift cards from top global brands. Sourced officially and delivered instantly.
+            </p>
+          </div>
+          
+          {/* SOL Price indicator */}
+          <div className="flex items-center gap-3 self-start md:self-auto bg-brand-dark/85 backdrop-blur-sm border border-brand-border/60 rounded-full px-4 py-2 text-xs">
+            <span className="h-2 w-2 rounded-full bg-brand-green animate-pulse"></span>
+            <span className="font-semibold text-brand-text-muted">SOL Rate:</span>
+            <span className="font-bold text-white">${solPrice.toFixed(2)}</span>
+            <button 
+              onClick={() => refreshSOLPrice()}
+              className={`text-brand-purple hover:text-brand-green transition-colors ml-1 ${isRefreshingPrice ? 'animate-spin' : ''}`}
+            >
+              <RefreshCw className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -324,74 +341,83 @@ function MarketplaceContent() {
               {products.map((product) => {
                 const solPriceEquivalent = parseFloat((product.retailPrice / solPrice).toFixed(4));
                 return (
-                  <div 
+                  <motion.div 
                     key={product.id}
-                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 transition-colors"
+                    layout
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 hover:shadow-lg hover:shadow-brand-purple/5 transition-all duration-300"
                   >
+                    {/* Brand Colored Accent Strip */}
+                    <div className="h-1 w-full bg-gradient-to-r from-brand-purple to-brand-green opacity-70 group-hover:opacity-100 transition-opacity"></div>
+
                     <Link href={`/product/${product.id}`} className="flex flex-col flex-1">
                       {/* Image Area */}
-                      <div className="relative aspect-[4/3] bg-brand-dark/40 overflow-hidden shrink-0 border-b border-brand-border/40">
-                        <Image
-                          src={product.image || "https://images.unsplash.com/photo-1574634534894-89d7576c8259?w=400"}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          priority={product.isFeatured}
-                        />
+                      <div className="p-5 aspect-[4/3] bg-brand-dark/20 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-brand-border/40">
+                        {/* Background subtle glow */}
+                        <div className="absolute inset-0 bg-radial-gradient from-brand-purple/5 to-transparent pointer-events-none"></div>
+                        <GiftCardArtwork brand={product.brand} value={product.retailPrice} imageUrl={product.image} className="shadow-lg transform group-hover:scale-[1.03] group-hover:rotate-1 transition-all duration-300" />
                         
                         {/* Retailer badge */}
-                        <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold rounded-md bg-brand-dark/80 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-brand-purple"></span>
+                        <span className="absolute top-3 left-3 px-2.5 py-1 text-[9px] font-extrabold rounded-md bg-brand-dark/85 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5 shadow-md z-10">
+                          <span className="h-1.5 w-1.5 rounded-full bg-brand-green animate-pulse"></span>
                           {getRetailerName(product.retailerId)}
                         </span>
                       </div>
 
                       {/* Description Details */}
-                      <div className="p-5 flex flex-col flex-1">
-                        <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">
-                          {product.brand}
-                        </span>
-                        
-                        <h4 className="text-xs font-bold text-white group-hover:text-brand-purple transition-colors line-clamp-1 mt-1">
-                          {product.name}
-                        </h4>
-
-                        {/* Ratings */}
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <div className="flex items-center text-amber-400">
-                            <Star className="h-3 w-3 fill-current" />
-                            <span className="text-[11px] font-bold text-white ml-1">{product.rating}</span>
-                          </div>
-                          <span className="text-[10px] text-brand-text-muted">
-                            ({product.reviewsCount.toLocaleString()} reviews)
+                      <div className="p-5 flex flex-col flex-1 justify-between">
+                        <div>
+                          <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest">
+                            {product.brand}
                           </span>
-                        </div>
+                          
+                          <h4 className="text-xs font-bold text-white group-hover:text-brand-purple transition-colors line-clamp-1 mt-1 leading-snug">
+                            {product.name}
+                          </h4>
 
-                        <div className="flex items-center gap-2 text-[10px] text-brand-text-muted mt-3">
-                          <Clock className="h-3.5 w-3.5 text-brand-purple/80" />
-                          <span>Est. delivery: {product.estimatedDelivery}</span>
+                          {/* Ratings & Badges */}
+                          <div className="flex items-center justify-between gap-1.5 mt-2 flex-wrap">
+                            <div className="flex items-center gap-1">
+                              <div className="flex items-center text-amber-400">
+                                <Star className="h-3 w-3 fill-current" />
+                                <span className="text-[11px] font-bold text-white ml-1">{product.rating}</span>
+                              </div>
+                              <span className="text-[10px] text-brand-text-muted">
+                                ({product.reviewsCount.toLocaleString()})
+                              </span>
+                            </div>
+                            <span className="px-2 py-0.5 rounded text-[8px] bg-brand-green/10 text-brand-green border border-brand-green/20 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+                              <span className="h-1 w-1 rounded-full bg-brand-green animate-pulse"></span>
+                              Instant
+                            </span>
+                          </div>
+
+                          {/* Stock status */}
+                          <div className="flex items-center gap-2 text-[10px] text-brand-text-muted mt-3">
+                            <span className={`h-1.5 w-1.5 rounded-full ${product.stockCount > 10 ? 'bg-brand-green' : 'bg-amber-500'} animate-pulse`}></span>
+                            <span>In Stock ({product.stockCount} left)</span>
+                          </div>
                         </div>
 
                         {/* Pricing block */}
-                        <div className="mt-5 pt-4 border-t border-brand-border/30 flex flex-col gap-1.5">
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-[10px] text-brand-text-muted font-medium">Price:</span>
-                            <span className="text-xs font-bold text-white">${product.retailPrice.toFixed(2)}</span>
+                        <div className="mt-4 pt-3.5 border-t border-brand-border/20 flex items-center justify-between">
+                          <div>
+                            <span className="text-[9px] text-brand-text-muted uppercase tracking-wider block font-semibold">USD Price</span>
+                            <span className="text-sm font-extrabold text-white">${product.retailPrice.toFixed(2)}</span>
                           </div>
 
-                          {/* SOL equivalent conversion */}
-                          <div className="flex items-center justify-between bg-brand-purple/5 border border-brand-purple/10 rounded-lg p-2 mt-1">
-                            <span className="text-[9px] font-bold text-brand-purple tracking-wider uppercase">Pay In SOL</span>
-                            <span className="text-xs font-extrabold text-brand-green flex items-center gap-1">
-                              {solPriceEquivalent.toFixed(4)} SOL
-                            </span>
+                          <div className="text-right">
+                            <span className="text-[9px] text-brand-purple uppercase tracking-wider block font-bold">SOL Amount</span>
+                            <span className="text-xs font-black text-brand-green">{solPriceEquivalent.toFixed(4)} SOL</span>
                           </div>
                         </div>
                       </div>
                     </Link>
 
-                    {/* Actions block outside Link overlay to avoid nested anchor tags, styled z-10 relative */}
+                    {/* Actions block outside Link overlay */}
                     <div className="px-5 pb-5 pt-0 flex gap-2.5 relative z-10">
                       <button
                         onClick={(e) => {
@@ -399,19 +425,19 @@ function MarketplaceContent() {
                           e.stopPropagation();
                           addToCart(product, 1);
                         }}
-                        className="flex-1 py-2 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors"
+                        className="flex-1 py-2.5 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-[11px] font-bold text-white flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
                       >
-                        <ShoppingCart className="h-4.5 w-4.5 text-brand-purple" />
+                        <ShoppingCart className="h-4 w-4 text-brand-purple" />
                         Add to Cart
                       </button>
                       <Link
                         href={`/product/${product.id}`}
-                        className="px-4 py-2 rounded-lg bg-brand-purple hover:bg-brand-purple/90 text-xs font-bold text-white flex items-center justify-center transition-colors"
+                        className="px-4 py-2.5 rounded-lg bg-brand-purple hover:bg-brand-purple/95 text-[11px] font-extrabold text-white flex items-center justify-center transition-all hover:scale-[1.01]"
                       >
                         Buy Now
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

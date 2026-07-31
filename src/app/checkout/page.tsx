@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useCart } from "../../context/CartContext";
+import { GiftCardArtwork } from "../../components/ui/GiftCardArtwork";
 import { useSolanaWallet } from "../../context/SolanaWalletContext";
 import { useAuth } from "../../context/AuthContext";
 import { SupabaseService } from "../../services/supabase";
@@ -146,8 +147,32 @@ export default function CheckoutPage() {
   const [paymentStep, setPaymentStep] = useState<CheckoutStep>('idle');
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [finalOrderId, setFinalOrderId] = useState("");
   const [finalTxHash, setFinalTxHash] = useState("");
+  const [finalOrderId, setFinalOrderId] = useState("");
+  const [claimedCode, setClaimedCode] = useState("");
+
+  const generateMockGiftCardCode = (retailerId: string) => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const part = (len: number) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    switch (retailerId.toLowerCase()) {
+      case "amazon":
+        return `AMZN-${part(4)}-${part(6)}-${part(4)}`;
+      case "apple":
+        return `APPL-${part(4)}-${part(6)}-${part(4)}`;
+      case "steam":
+        return `STEM-${part(4)}-${part(4)}-${part(4)}`;
+      case "playstation":
+        return `PSN-${part(4)}-${part(4)}-${part(4)}`;
+      case "xbox":
+        return `XBOX-${part(4)}-${part(4)}-${part(4)}`;
+      case "spotify":
+        return `SPOT-${part(4)}-${part(4)}-${part(4)}`;
+      case "netflix":
+        return `NFLX-${part(4)}-${part(6)}-${part(4)}`;
+      default:
+        return `CARD-${part(4)}-${part(4)}-${part(4)}`;
+    }
+  };
   const [copiedTx, setCopiedTx] = useState(false);
 
   const handleCopyTxHash = (hash: string) => {
@@ -268,6 +293,8 @@ export default function CheckoutPage() {
       }));
 
       const primaryRetailerId = cartItems[0]?.product.retailerId || "amazon";
+      const mockCode = generateMockGiftCardCode(primaryRetailerId);
+      setClaimedCode(mockCode);
 
       const createdOrder = SupabaseService.createOrder({
         walletAddress: walletAddress!,
@@ -284,7 +311,8 @@ export default function CheckoutPage() {
         receivedUSDC: parseFloat(usdcReceived.toFixed(2)),
         txHash,
         swapTxHash,
-        status: "paid"
+        giftCardCode: mockCode,
+        status: "delivered"
       });
 
       // Dispatch order receipt email asynchronously
@@ -522,8 +550,8 @@ export default function CheckoutPage() {
             {cartItems.map(item => (
               <div key={item.product.id} className="flex justify-between items-center gap-3 text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="relative h-9 w-11 rounded border border-brand-border/60 bg-brand-dark/20 overflow-hidden shrink-0">
-                    <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
+                  <div className="relative h-7 w-11 shrink-0">
+                    <GiftCardArtwork brand={item.product.brand} value={item.product.retailPrice} imageUrl={item.product.image} className="shadow-md" isThumbnail={true} />
                   </div>
                   <div>
                     <p className="font-bold text-white truncate max-w-[130px]">{item.product.name}</p>
@@ -613,10 +641,10 @@ export default function CheckoutPage() {
             {/* Step messages */}
             <div>
               <h2 className="text-xl font-extrabold text-white tracking-tight">
-                {paymentStep === 'signature_pending' && "Awaiting Wallet Signature"}
-                {paymentStep === 'broadcasting' && "Broadcasting SOL Transfer"}
-                {paymentStep === 'swapping' && "Initiating Jupiter Swaps"}
-                {paymentStep === 'fulfilling' && "Configuring Merchant Order"}
+                {paymentStep === 'signature_pending' && "Confirm in Wallet"}
+                {paymentStep === 'broadcasting' && "Processing Payment"}
+                {paymentStep === 'swapping' && "Converting Funds"}
+                {paymentStep === 'fulfilling' && "Delivering Code"}
                 {paymentStep === 'success' && "Order Placed Successfully!"}
               </h2>
               <p className="text-xs text-brand-text-muted mt-2 leading-relaxed">
@@ -642,10 +670,10 @@ export default function CheckoutPage() {
 
               {/* Dots */}
               {[
-                { name: 'Sign', label: 'Wallet Signature', activeSteps: ['signature_pending', 'broadcasting', 'swapping', 'fulfilling', 'success'] },
-                { name: 'SOL', label: 'Transfer Broadcast', activeSteps: ['broadcasting', 'swapping', 'fulfilling', 'success'] },
-                { name: 'Swap', label: 'Jupiter USDC Swap', activeSteps: ['swapping', 'fulfilling', 'success'] },
-                { name: 'Done', label: 'Order Complete', activeSteps: ['success'] }
+                { name: 'Confirm', label: 'Confirm Wallet', activeSteps: ['signature_pending', 'broadcasting', 'swapping', 'fulfilling', 'success'] },
+                { name: 'Pay', label: 'Processing Payment', activeSteps: ['broadcasting', 'swapping', 'fulfilling', 'success'] },
+                { name: 'Convert', label: 'Converting Funds', activeSteps: ['swapping', 'fulfilling', 'success'] },
+                { name: 'Deliver', label: 'Delivering Code', activeSteps: ['success'] }
               ].map((dot, idx) => {
                 const isPassed = dot.activeSteps.includes(paymentStep);
                 return (
@@ -712,30 +740,68 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* 5-minute processing notice */}
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 text-left text-[11px] text-amber-200/90 leading-relaxed flex items-start gap-2.5">
-              <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold text-amber-300">Payment is processing: </span>
-                <span>
-                  Please note it usually takes up to 5 minutes to process, confirm on-chain, and obtain backend approval for your transaction.
-                </span>
+            {/* Sleek processing notice */}
+            {paymentStep !== 'success' && (
+              <div className="rounded-xl border border-brand-purple/20 bg-brand-purple/5 p-3.5 text-left text-[11px] text-brand-text-muted leading-relaxed flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-brand-green animate-ping shrink-0"></div>
+                <div>
+                  <span className="text-white font-bold">Secure Delivery Active: </span>
+                  <span>Verifying transaction details. Do not close this window.</span>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Tx hashes or Success CTAs */}
             {paymentStep === 'success' ? (
-              <div className="space-y-4 pt-2">
+              <div className="space-y-5 pt-2">
+                
+                {/* Glowing Gift Card Code Voucher Container */}
+                <div className="relative rounded-2xl border border-brand-purple/40 bg-gradient-to-tr from-brand-card to-indigo-950/40 p-6 text-center overflow-hidden shadow-2xl">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-brand-purple/10 rounded-full blur-2xl pointer-events-none"></div>
+                  
+                  <p className="text-[10px] font-black text-brand-purple uppercase tracking-widest">Your Digital Code</p>
+                  
+                  <div className="my-4 p-4 bg-brand-dark/80 border border-brand-border/60 rounded-xl flex items-center justify-between gap-3 shadow-inner">
+                    <span className="font-mono text-sm sm:text-base font-black text-white tracking-widest select-all select-none">
+                      {claimedCode}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(claimedCode);
+                        setCopiedTx(true);
+                        setTimeout(() => setCopiedTx(false), 2000);
+                      }}
+                      className="px-3 py-1.5 bg-brand-purple/20 hover:bg-brand-purple/35 text-[9px] font-bold text-brand-purple rounded transition-all inline-flex items-center gap-1 shrink-0"
+                    >
+                      {copiedTx ? (
+                        <>
+                          <Check className="h-3 w-3 text-brand-green" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  <p className="text-[10px] text-brand-text-muted leading-relaxed">
+                    Voucher is ready to use! A copy of this code has been dispatched to <span className="text-white font-bold">{custEmail}</span>.
+                  </p>
+                </div>
+
                 <div className="rounded-xl border border-brand-green/30 bg-brand-green/5 p-4 space-y-2 text-xs text-left text-brand-text-muted font-mono leading-relaxed">
                   <div className="flex justify-between items-center">
                     <span>Order ID:</span>
                     <span className="text-white font-bold">{finalOrderId}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Backend Approval:</span>
+                    <span>Delivery Status:</span>
                     <span className="text-brand-green font-bold flex items-center gap-1">
                       <CheckCircle2 className="h-3.5 w-3.5 text-brand-green" />
-                      Approved
+                      Delivered (Email Sent)
                     </span>
                   </div>
                 </div>
@@ -743,16 +809,16 @@ export default function CheckoutPage() {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/dashboard"
-                    className="w-full py-3 bg-brand-purple text-xs font-bold text-white rounded-xl shadow-lg flex items-center justify-center gap-1.5"
+                    className="w-full py-3 bg-brand-purple text-xs font-bold text-white rounded-xl shadow-lg flex items-center justify-center gap-1.5 hover:scale-[1.01] transition-all"
                   >
                     Go to Your Dashboard
                     <ArrowRight className="h-4.5 w-4.5" />
                   </Link>
                   <Link 
                     href="/marketplace"
-                    className="w-full py-3 border border-brand-border bg-brand-card/40 text-xs font-semibold text-white rounded-xl"
+                    className="w-full py-3 border border-brand-border bg-brand-card/40 text-xs font-semibold text-white rounded-xl hover:border-brand-purple/30 transition-all text-center"
                   >
-                    Browse More Products
+                    Continue Shopping
                   </Link>
                 </div>
               </div>

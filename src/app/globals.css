@@ -1,17 +1,54 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-purple: #9945FF;
-  --color-brand-green: #14F195;
-  --color-brand-dark: #070311;
-  --color-brand-card: #0F0A20;
-  --color-brand-border: #231B38;
-  --color-brand-text-muted: #9C9AAB;
+  --color-brand-purple: var(--color-brand-purple);
+  --color-brand-green: var(--color-brand-green);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-brand-card: var(--color-brand-card);
+  --color-brand-border: var(--color-brand-border);
+  --color-brand-text-muted: var(--color-brand-text-muted);
   
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-glow: glow 2s ease-in-out infinite alternate;
   --animate-shimmer: shimmer 2s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
+  
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+  --animate-slide-down: slide-down 0.4s ease-out;
+  --animate-scale-in: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-slide-in-left: slide-in-left 0.4s ease-out;
+  --animate-slide-in-right: slide-in-right 0.4s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes glow {
@@ -42,21 +79,89 @@
 }
 
 :root {
+  --color-brand-purple: #9945FF;
+  --color-brand-green: #14F195;
+  --color-brand-dark: #06020D;
+  --color-brand-card: #0C081A;
+  --color-brand-border: #1F1930;
+  --color-brand-text-muted: #9C9AAB;
+
   --background: #06020D;
   --foreground: #F1EFF8;
   --card-bg: #0C081A;
   --border-color: #1F1930;
   --font-sans: var(--font-geist-sans), Inter, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
+
+  --bg-image: 
+    radial-gradient(circle at 15% 15%, rgba(153, 69, 255, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(20, 241, 149, 0.02) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(15, 10, 32, 0.4) 0%, transparent 70%);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --color-brand-purple: #6200EE;
+  --color-brand-green: #03DAC6;
+  --color-brand-dark: #F5F5F7;
+  --color-brand-card: #FFFFFF;
+  --color-brand-border: #E5E5EA;
+  --color-brand-text-muted: #6E6E73;
+  
+  --background: #F5F5F7;
+  --foreground: #1D1D1F;
+  --card-bg: #FFFFFF;
+  --border-color: #E5E5EA;
+  
+  --bg-image: 
+    radial-gradient(circle at 15% 15%, rgba(98, 0, 238, 0.02) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(3, 218, 198, 0.02) 0%, transparent 45%);
+}
+
+/* Classic Dark Theme */
+[data-theme="dark"] {
+  --color-brand-purple: #9D4EDD;
+  --color-brand-green: #2EC4B6;
+  --color-brand-dark: #121212;
+  --color-brand-card: #1E1E1E;
+  --color-brand-border: #2D2D2D;
+  --color-brand-text-muted: #A0A0A0;
+  
+  --background: #121212;
+  --foreground: #F8F9FA;
+  --card-bg: #1E1E1E;
+  --border-color: #2D2D2D;
+  
+  --bg-image: 
+    radial-gradient(circle at 15% 15%, rgba(157, 78, 221, 0.03) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(46, 196, 182, 0.02) 0%, transparent 45%);
+}
+
+/* Black and Red Theme (Logo Style) */
+[data-theme="red-black"] {
+  --color-brand-purple: #E50914; /* Red matching Logo style */
+  --color-brand-green: #E50914;
+  --color-brand-dark: #000000;
+  --color-brand-card: #0B0B0C;
+  --color-brand-border: #221515;
+  --color-brand-text-muted: #8E8E93;
+  
+  --background: #000000;
+  --foreground: #F2F2F7;
+  --card-bg: #0B0B0C;
+  --border-color: #221515;
+  
+  --bg-image: 
+    radial-gradient(circle at 15% 15%, rgba(229, 9, 20, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(229, 9, 20, 0.02) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(20, 5, 5, 0.4) 0%, transparent 70%);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(153, 69, 255, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(20, 241, 149, 0.05) 0%, transparent 40%);
+  background-image: var(--bg-image);
   background-attachment: fixed;
   overflow-x: hidden;
 }
@@ -162,4 +267,12 @@ body {
     transform: scale(2.2);
     opacity: 0;
   }
+}
+
+/* Premium gift card glow helpers */
+.glow-card-purple {
+  box-shadow: 0 0 25px rgba(153, 69, 255, 0.2);
+}
+.glow-card-green {
+  box-shadow: 0 0 25px rgba(20, 241, 149, 0.2);
 }

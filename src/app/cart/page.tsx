@@ -2,19 +2,23 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { 
   ShoppingBag, 
   Trash2, 
-  ArrowRight, 
+  Plus, 
+  Minus, 
   ShieldCheck, 
-  Info,
+  ArrowRight, 
+  RefreshCw, 
+  Sparkles, 
   ArrowLeft,
-  RefreshCw,
+  Info,
   Coins
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../../context/CartContext";
 import { useSolanaWallet } from "../../context/SolanaWalletContext";
+import { GiftCardArtwork } from "../../components/ui/GiftCardArtwork";
 
 export default function CartPage() {
   const { 
@@ -53,7 +57,7 @@ export default function CartPage() {
           <ShoppingBag className="h-12 w-12 text-brand-text-muted mb-4" />
           <p className="text-sm font-bold text-white">Your cart is empty</p>
           <p className="text-xs text-brand-text-muted mt-1.5 max-w-xs">
-            Browse our catalog and add items sourced from Amazon, Nike, Apple, Best Buy, and Walmart.
+            Browse our catalog and add digital gift cards from top global brands.
           </p>
           <Link
             href="/marketplace"
@@ -67,77 +71,80 @@ export default function CartPage() {
           
           {/* 1. Items List */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => {
-              const solItemEquivalent = parseFloat((item.product.retailPrice / solPrice).toFixed(4));
-              return (
-                <div 
-                  key={item.product.id}
-                  className="rounded-2xl border border-brand-border/40 bg-brand-card/20 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-4">
-                    
-                    {/* Thumbnail */}
-                    <div className="relative h-16 w-20 rounded-lg overflow-hidden bg-brand-dark/40 border border-brand-border/40 shrink-0">
-                      <Image
-                        src={item.product.image}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover"
-                      />
+            <AnimatePresence initial={false}>
+              {cartItems.map((item) => {
+                const solItemEquivalent = parseFloat((item.product.retailPrice / solPrice).toFixed(4));
+                return (
+                  <motion.div 
+                    key={item.product.id}
+                    initial={{ opacity: 0, height: 0, y: 15 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -15 }}
+                    transition={{ duration: 0.25 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="rounded-2xl border border-brand-border/40 bg-brand-card/20 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-4">
+                        
+                        {/* Thumbnail */}
+                        <div className="relative h-12 w-20 shrink-0">
+                          <GiftCardArtwork brand={item.product.brand} value={item.product.retailPrice} imageUrl={item.product.image} className="shadow-md" isThumbnail={true} />
+                        </div>
+
+                        <div>
+                          <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest">{item.product.brand}</span>
+                          <h3 className="text-xs font-bold text-white line-clamp-1 max-w-[250px] mt-0.5">
+                            <Link href={`/product/${item.product.id}`} className="hover:underline">{item.product.name}</Link>
+                          </h3>
+                          <p className="text-[10px] text-brand-text-muted mt-1">Delivery: <span className="text-white font-medium">Instant Digital</span></p>
+                        </div>
+
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-brand-border/20">
+                        
+                        {/* Quantity controls */}
+                        <div className="flex items-center border border-brand-border rounded-lg bg-brand-dark/40 overflow-hidden h-9">
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            className="px-3 hover:bg-brand-card text-brand-text-muted hover:text-white h-full cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="px-4 text-xs font-bold text-white">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            className="px-3 hover:bg-brand-card text-brand-text-muted hover:text-white h-full cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Price in USD / SOL */}
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-white">
+                            ${(item.product.retailPrice * item.quantity).toFixed(2)}
+                          </p>
+                          <p className="text-[10px] text-brand-green font-semibold mt-0.5">
+                            {(solItemEquivalent * item.quantity).toFixed(4)} SOL
+                          </p>
+                        </div>
+
+                        {/* Remove */}
+                        <button
+                          onClick={() => removeFromCart(item.product.id)}
+                          className="p-2 text-brand-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                          title="Remove product"
+                        >
+                          <Trash2 className="h-4.5 w-4.5" />
+                        </button>
+
+                      </div>
                     </div>
-
-                    <div>
-                      <span className="text-[9px] font-bold text-brand-purple uppercase tracking-wider">{item.product.brand}</span>
-                      <h3 className="text-xs font-bold text-white line-clamp-1 max-w-[250px] mt-0.5">
-                        <Link href={`/product/${item.product.id}`} className="hover:underline">{item.product.name}</Link>
-                      </h3>
-                      <p className="text-[10px] text-brand-text-muted mt-1">Sourced from: <span className="text-white capitalize">{item.product.retailerId}</span></p>
-                    </div>
-
-                  </div>
-
-                  <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-brand-border/20">
-                    
-                    {/* Quantity controls */}
-                    <div className="flex items-center border border-brand-border rounded-lg bg-brand-dark/40 overflow-hidden h-9">
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                        className="px-3 hover:bg-brand-card text-brand-text-muted hover:text-white h-full"
-                      >
-                        -
-                      </button>
-                      <span className="px-4 text-xs font-bold text-white">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        className="px-3 hover:bg-brand-card text-brand-text-muted hover:text-white h-full"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    {/* Price in USD / SOL */}
-                    <div className="text-right">
-                      <p className="text-xs font-bold text-white">
-                        ${(item.product.retailPrice * item.quantity).toFixed(2)}
-                      </p>
-                      <p className="text-[10px] text-brand-green font-semibold mt-0.5">
-                        {(solItemEquivalent * item.quantity).toFixed(4)} SOL
-                      </p>
-                    </div>
-
-                    {/* Remove */}
-                    <button
-                      onClick={() => removeFromCart(item.product.id)}
-                      className="p-2 text-brand-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Remove product"
-                    >
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </button>
-
-                  </div>
-                </div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
 
           {/* 2. Order Summary Sidebar */}
@@ -148,10 +155,10 @@ export default function CartPage() {
               <span className="text-xs font-bold text-white">Order Summary</span>
               <button 
                 onClick={() => refreshSOLPrice()}
-                className="text-[10px] text-brand-text-muted hover:text-white flex items-center gap-1 hover:underline"
+                title="Refresh SOL conversion rate"
+                className="text-brand-text-muted hover:text-white flex items-center justify-center p-1.5 hover:bg-brand-purple/10 rounded-lg transition-colors cursor-pointer"
               >
-                <RefreshCw className={`h-3 w-3 ${isRefreshingPrice ? 'animate-spin' : ''}`} />
-                SOL Price Updated
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingPrice ? 'animate-spin' : ''}`} />
               </button>
             </div>
 
@@ -163,19 +170,19 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span className="flex items-center gap-1">
-                  Shipping Cost:
-                  <span title="Free shipping over $100 orders">
+                  Digital Delivery:
+                  <span title="Instant automated digital code dispatch is free">
                     <Info className="h-3 w-3 text-brand-text-muted/60" />
                   </span>
                 </span>
                 <span className="text-white font-medium">
-                  {shippingUSD > 0 ? `$${shippingUSD.toFixed(2)}` : "FREE"}
+                  FREE
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="flex items-center gap-1">
-                  Platform Checkout Fee (1.5%):
-                  <span title="Covers automatic swap and order creation mechanics">
+                  Service Fee:
+                  <span title="Covers secure transaction routing operations">
                     <Info className="h-3 w-3 text-brand-text-muted/60" />
                   </span>
                 </span>
@@ -188,10 +195,11 @@ export default function CartPage() {
               </div>
 
               {/* Dynamic SOL total */}
-              <div className="rounded-xl border border-brand-purple/20 bg-brand-purple/5 p-4 mt-2 flex flex-col gap-1 text-center">
-                <span className="text-[10px] font-black text-brand-purple tracking-widest uppercase">Pay Equivalent SOL</span>
-                <span className="text-xl font-extrabold text-brand-green">{totalSOL.toFixed(4)} SOL</span>
-                <span className="text-[9px] text-brand-text-muted">1 SOL = ${solPrice.toFixed(2)} (Jupiter Price API)</span>
+              <div className="rounded-xl border border-brand-purple/30 bg-gradient-to-tr from-brand-purple/5 to-indigo-950/20 p-4 mt-2 flex flex-col gap-1.5 text-center shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-12 h-12 bg-brand-purple/5 rounded-full blur-xl pointer-events-none"></div>
+                <span className="text-[9px] font-black text-brand-purple tracking-widest uppercase font-semibold">Pay with SOL</span>
+                <span className="text-2xl font-black text-brand-green">{totalSOL.toFixed(4)} SOL</span>
+                <span className="text-[9px] text-brand-text-muted">1 SOL = ${solPrice.toFixed(2)}</span>
               </div>
 
             </div>
@@ -209,7 +217,7 @@ export default function CartPage() {
               ) : (
                 <button
                   onClick={() => connect()}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-purple to-indigo-600 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-purple to-indigo-600 font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Coins className="h-4.5 w-4.5 text-brand-green" />
                   Connect Wallet to Checkout
@@ -220,7 +228,7 @@ export default function CartPage() {
             {/* Shopping Security Guarantees */}
             <div className="flex items-center gap-2 text-[10px] text-brand-text-muted justify-center pt-2">
               <ShieldCheck className="h-4.5 w-4.5 text-brand-green" />
-              <span>Payments secured by Solana & Jupiter V6</span>
+              <span>Payments secured by Solana</span>
             </div>
 
           </div>

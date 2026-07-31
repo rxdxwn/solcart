@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ShoppingBag, 
   Search, 
@@ -20,12 +21,13 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useSolanaWallet, WalletProviderName } from "../../context/SolanaWalletContext";
 import { useCart } from "../../context/CartContext";
-import { APP_VERSION } from "../../lib/version";
+import { Logo } from "../ui/Logo";
 
 
 export default function Navbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { user, login, signup, verify, requestReset, confirmReset, logout, isAdmin } = useAuth();
   const { 
     connected, 
@@ -204,41 +206,39 @@ export default function Navbar() {
             
             {/* Logo */}
             <div className="flex items-center">
-              <Link href="/" className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-tr from-brand-purple to-brand-green p-0.5 shadow-md shadow-brand-purple/20">
-                  <div className="flex h-full w-full items-center justify-center rounded-[6px] bg-brand-dark font-black tracking-tighter text-white">
-                    S
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold tracking-tight text-white">
-                    SOL<span className="solana-gradient-text">Cart</span>
-                  </span>
-                  <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-brand-purple/20 text-brand-purple border border-brand-purple/30 shadow-sm">
-                    {APP_VERSION}
-                  </span>
-                </div>
-              </Link>
+              <Logo size="lg" showVersion />
             </div>
 
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center gap-6">
-              <Link href="/marketplace" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors">
+              <Link href="/marketplace" className={`text-sm font-medium relative py-1 transition-colors ${pathname === "/marketplace" ? "text-white font-semibold" : "text-brand-text-muted hover:text-white"}`}>
                 Marketplace
-              </Link>
-              <Link href="/contact" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors">
-                Contact Us
+                {pathname === "/marketplace" && (
+                  <motion.span layoutId="nav-indicator" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-purple to-brand-green rounded-full shadow-[0_0_8px_rgba(153,69,255,0.4)]"></motion.span>
+                )}
               </Link>
               {mounted && connected && (
-                <Link href="/dashboard" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors">
+                <Link href="/dashboard" className={`text-sm font-medium relative py-1 transition-colors ${pathname === "/dashboard" ? "text-white font-semibold" : "text-brand-text-muted hover:text-white"}`}>
                   Dashboard
+                  {pathname === "/dashboard" && (
+                    <motion.span layoutId="nav-indicator" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-purple to-brand-green rounded-full shadow-[0_0_8px_rgba(153,69,255,0.4)]"></motion.span>
+                  )}
                 </Link>
               )}
+              <Link href="/contact" className={`text-sm font-medium relative py-1 transition-colors ${pathname === "/contact" ? "text-white font-semibold" : "text-brand-text-muted hover:text-white"}`}>
+                Support
+                {pathname === "/contact" && (
+                  <motion.span layoutId="nav-indicator" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-purple to-brand-green rounded-full shadow-[0_0_8px_rgba(153,69,255,0.4)]"></motion.span>
+                )}
+              </Link>
               {mounted && user && isAdmin && (
-                <Link href="/admin" className="text-sm font-medium text-brand-text-muted hover:text-white transition-colors flex items-center gap-1">
+                <Link href="/admin" className={`text-sm font-medium relative py-1 transition-colors flex items-center gap-1 ${pathname === "/admin" ? "text-white font-semibold" : "text-brand-text-muted hover:text-white"}`}>
                   <LayoutDashboard className="h-4 w-4" />
                   Admin
+                  {pathname === "/admin" && (
+                    <motion.span layoutId="nav-indicator" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-purple to-brand-green rounded-full shadow-[0_0_8px_rgba(153,69,255,0.4)]"></motion.span>
+                  )}
                 </Link>
               )}
             </div>
@@ -294,48 +294,56 @@ export default function Navbar() {
                 )}
 
                 {/* Wallet Dropdown menu */}
-                {mounted && showWalletDropdown && connected && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl border border-brand-border bg-brand-card p-2 shadow-xl backdrop-blur-lg z-50">
-                    <div className="px-3 py-2 border-b border-brand-border/40 mb-2">
-                      <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Active Network</p>
-                      <div className="flex gap-1.5">
-                        <button
-                          onClick={() => setNetworkStatus("Devnet")}
-                          className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all ${
-                            networkStatus === "Devnet"
-                              ? "bg-brand-purple text-white border-brand-purple"
-                              : "bg-brand-dark/40 text-brand-text-muted border-brand-border/60 hover:text-white"
-                          }`}
-                        >
-                          Devnet
-                        </button>
-                        <button
-                          onClick={() => setNetworkStatus("Mainnet")}
-                          className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all ${
-                            networkStatus === "Mainnet"
-                              ? "bg-brand-green/20 text-brand-green border-brand-green/40"
-                              : "bg-brand-dark/40 text-brand-text-muted border-brand-border/60 hover:text-white"
-                          }`}
-                        >
-                          Mainnet
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="px-3 py-1.5 text-xs text-brand-text-muted flex justify-between items-center mb-1">
-                      <span>Connected via:</span>
-                      <span className="text-white font-semibold">{walletName}</span>
-                    </div>
-
-                    <button
-                      onClick={disconnect}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors mt-1"
+                <AnimatePresence>
+                  {mounted && showWalletDropdown && connected && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-64 rounded-xl border border-brand-border bg-brand-card p-2 shadow-xl backdrop-blur-lg z-50"
                     >
-                      <LogOut className="h-4 w-4" />
-                      Disconnect Wallet
-                    </button>
-                  </div>
-                )}
+                      <div className="px-3 py-2 border-b border-brand-border/40 mb-2">
+                        <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider mb-1">Active Network</p>
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => setNetworkStatus("Devnet")}
+                            className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all ${
+                              networkStatus === "Devnet"
+                                ? "bg-brand-purple text-white border-brand-purple"
+                                : "bg-brand-dark/40 text-brand-text-muted border-brand-border/60 hover:text-white"
+                            }`}
+                          >
+                            Devnet
+                          </button>
+                          <button
+                            onClick={() => setNetworkStatus("Mainnet")}
+                            className={`flex-1 py-1 text-[10px] font-bold rounded border transition-all ${
+                              networkStatus === "Mainnet"
+                                ? "bg-brand-green/20 text-brand-green border-brand-green/40"
+                                : "bg-brand-dark/40 text-brand-text-muted border-brand-border/60 hover:text-white"
+                            }`}
+                          >
+                            Mainnet
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="px-3 py-1.5 text-xs text-brand-text-muted flex justify-between items-center mb-1">
+                        <span>Connected via:</span>
+                        <span className="text-white font-semibold">{walletName}</span>
+                      </div>
+
+                      <button
+                        onClick={disconnect}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors mt-1"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Disconnect Wallet
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
 
@@ -374,166 +382,179 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        {showMobileMenu && (
-          <div className="md:hidden border-t border-brand-border/40 bg-brand-dark px-4 py-4 space-y-4">
-            {/* Search */}
-            <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 rounded-full border border-brand-border bg-brand-dark/40 pl-10 pr-4 text-sm text-white"
-              />
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-brand-text-muted/60" />
-            </form>
+        <AnimatePresence>
+          {showMobileMenu && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="md:hidden border-t border-brand-border/40 bg-brand-dark px-4 py-4 space-y-4 overflow-hidden"
+            >
+              {/* Search */}
+              <form onSubmit={handleSearchSubmit} className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 rounded-full border border-brand-border bg-brand-dark/40 pl-10 pr-4 text-sm text-white"
+                />
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-brand-text-muted/60" />
+              </form>
 
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/marketplace"
-                onClick={() => setShowMobileMenu(false)}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-brand-text-muted hover:text-white hover:bg-brand-card"
-              >
-                Marketplace
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setShowMobileMenu(false)}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-brand-text-muted hover:text-white hover:bg-brand-card"
-              >
-                Contact Us
-              </Link>
-              {mounted && connected && (
+              <div className="flex flex-col gap-2">
                 <Link
-                  href="/dashboard"
+                  href="/marketplace"
                   onClick={() => setShowMobileMenu(false)}
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-brand-text-muted hover:text-white hover:bg-brand-card"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === "/marketplace" ? "text-white bg-brand-purple/10 border border-brand-purple/25" : "text-brand-text-muted hover:text-white hover:bg-brand-card"}`}
                 >
-                  Dashboard
+                  Marketplace
                 </Link>
-              )}
-              {mounted && user && isAdmin && (
+                {mounted && connected && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === "/dashboard" ? "text-white bg-brand-purple/10 border border-brand-purple/25" : "text-brand-text-muted hover:text-white hover:bg-brand-card"}`}
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <Link
-                  href="/admin"
+                  href="/contact"
                   onClick={() => setShowMobileMenu(false)}
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-brand-text-muted hover:text-white hover:bg-brand-card"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === "/contact" ? "text-white bg-brand-purple/10 border border-brand-purple/25" : "text-brand-text-muted hover:text-white hover:bg-brand-card"}`}
                 >
-                  Admin Panel
+                  Support
                 </Link>
-              )}
-            </div>
+                {mounted && user && isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pathname === "/admin" ? "text-white bg-brand-purple/10 border border-brand-purple/25" : "text-brand-text-muted hover:text-white hover:bg-brand-card"}`}
+                  >
+                    Admin Panel
+                  </Link>
+                )}
+              </div>
 
-            {/* Wallet & Auth triggers */}
-            <div className="flex flex-col gap-3 pt-2 border-t border-brand-border/25">
-              {mounted && connected ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between px-3 text-xs text-brand-text-muted">
-                    <span>{truncateAddress(walletAddress!)}</span>
-                    <span className="font-bold text-white">{balance.toFixed(2)} SOL</span>
+              {/* Wallet & Auth triggers */}
+              <div className="flex flex-col gap-3 pt-2 border-t border-brand-border/25">
+                {mounted && connected ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between px-3 text-xs text-brand-text-muted">
+                      <span>{truncateAddress(walletAddress!)}</span>
+                      <span className="font-bold text-white">{balance.toFixed(2)} SOL</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        disconnect();
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full py-2 text-xs font-semibold rounded-lg bg-red-500/10 text-red-400 border border-red-500/20"
+                    >
+                      Disconnect Wallet
+                    </button>
                   </div>
-                  {/* Mobile faucet button removed */}
+                ) : (
                   <button
                     onClick={() => {
-                      disconnect();
+                      setShowWalletModal(true);
                       setShowMobileMenu(false);
                     }}
-                    className="w-full py-2 text-xs font-semibold rounded-lg bg-red-500/10 text-red-400 border border-red-500/20"
+                    className="w-full py-2.5 rounded-full bg-gradient-to-r from-brand-purple to-indigo-600 text-xs font-semibold text-white"
                   >
-                    Disconnect Wallet
+                    Connect Wallet
                   </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setShowWalletModal(true);
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full py-2.5 rounded-full bg-gradient-to-r from-brand-purple to-indigo-600 text-xs font-semibold text-white"
-                >
-                  Connect Wallet
-                </button>
-              )}
+                )}
 
-              {/* Mobile Profile Link */}
-              <div className="pt-2 border-t border-brand-border/25">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="w-full py-2.5 rounded-xl border border-brand-border bg-brand-card/60 text-xs font-semibold text-white flex items-center justify-center gap-2"
-                >
-                  <User className="h-4 w-4 text-brand-purple" />
-                  Go to Dashboard
-                </Link>
+                {/* Mobile Profile Link */}
+                <div className="pt-2 border-t border-brand-border/25">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="w-full py-2.5 rounded-xl border border-brand-border bg-brand-card/60 text-xs font-semibold text-white flex items-center justify-center gap-2"
+                  >
+                    <User className="h-4 w-4 text-brand-purple" />
+                    Go to Dashboard
+                  </Link>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Wallet Selector Modal */}
-      {showWalletModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-brand-border bg-brand-card p-6 shadow-2xl relative">
-            <button 
-              onClick={() => setShowWalletModal(false)}
-              className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-brand-border/40 text-brand-text-muted hover:text-white transition-colors"
+      <AnimatePresence>
+        {showWalletModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-2xl border border-brand-border bg-brand-card p-6 shadow-2xl relative"
             >
-              <X className="h-4 w-4" />
-            </button>
-            <h3 className="text-lg font-bold text-white tracking-tight">Connect a Wallet</h3>
-            <p className="text-xs text-brand-text-muted mt-1.5 mb-6">
-              Connect your Solflare extension, browser wallet, or use the Sandbox Test Wallet.
-            </p>
-            <div className="flex flex-col gap-2.5">
-              <button
-                onClick={() => handleWalletSelect("Solflare")}
-                className="flex items-center justify-between w-full p-3 rounded-xl border border-[#ff4a00]/40 bg-[#ff4a00]/10 hover:bg-[#ff4a00]/20 text-white transition-all text-left group"
+              <button 
+                onClick={() => setShowWalletModal(false)}
+                className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-brand-border/40 text-brand-text-muted hover:text-white transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-[#ff4a00] flex items-center justify-center font-bold text-white text-xs shadow-md shadow-[#ff4a00]/20">
-                    S
+                <X className="h-4 w-4" />
+              </button>
+              <h3 className="text-lg font-bold text-white tracking-tight">Connect a Wallet</h3>
+              <p className="text-xs text-brand-text-muted mt-1.5 mb-6">
+                Connect your Solflare extension, browser wallet, or use the Sandbox Test Wallet.
+              </p>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  onClick={() => handleWalletSelect("Solflare")}
+                  className="flex items-center justify-between w-full p-3 rounded-xl border border-[#ff4a00]/40 bg-[#ff4a00]/10 hover:bg-[#ff4a00]/20 text-white transition-all text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-[#ff4a00] flex items-center justify-center font-bold text-white text-xs shadow-md shadow-[#ff4a00]/20">
+                      S
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white group-hover:text-[#ff4a00] transition-colors">Solflare Wallet</span>
+                      <p className="text-[10px] text-brand-text-muted">Full Native Integration</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-white group-hover:text-[#ff4a00] transition-colors">Solflare Wallet</span>
-                    <p className="text-[10px] text-brand-text-muted">Full Native Integration</p>
+                  {isSolflareDetected ? (
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-brand-green/20 text-brand-green border border-brand-green/30">
+                      Detected
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-brand-text-muted">Extension / Web</span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => handleWalletSelect("Phantom")}
+                  className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-[#ab9ef4] flex items-center justify-center font-bold text-brand-dark text-xs">P</div>
+                    <span className="text-xs font-semibold text-white">Phantom Wallet</span>
                   </div>
-                </div>
-                {isSolflareDetected ? (
-                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-brand-green/20 text-brand-green border border-brand-green/30">
-                    Detected
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-brand-text-muted">Extension / Web</span>
-                )}
-              </button>
+                  <span className="text-[10px] text-brand-text-muted">Browser Wallet</span>
+                </button>
 
-              {/* Sandbox option removed */}
-
-              <button
-                onClick={() => handleWalletSelect("Phantom")}
-                className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-[#ab9ef4] flex items-center justify-center font-bold text-brand-dark text-xs">P</div>
-                  <span className="text-xs font-semibold text-white">Phantom Wallet</span>
-                </div>
-                <span className="text-[10px] text-brand-text-muted">Browser Wallet</span>
-              </button>
-
-              <button
-                onClick={() => handleWalletSelect("Backpack")}
-                className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-[#e21a24]/10 border border-[#e21a24]/30 flex items-center justify-center font-bold text-[#e21a24] text-xs">B</div>
-                  <span className="text-xs font-semibold text-white">Backpack Wallet</span>
-                </div>
-                <span className="text-[10px] text-brand-text-muted">Browser Wallet</span>
-              </button>
-            </div>
+                <button
+                  onClick={() => handleWalletSelect("Backpack")}
+                  className="flex items-center justify-between w-full p-3 rounded-xl border border-brand-border/80 bg-brand-dark/20 hover:bg-brand-card transition-all text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-[#e21a24]/10 border border-[#e21a24]/30 flex items-center justify-center font-bold text-[#e21a24] text-xs">B</div>
+                    <span className="text-xs font-semibold text-white">Backpack Wallet</span>
+                  </div>
+                  <span className="text-[10px] text-brand-text-muted">Browser Wallet</span>
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Solflare Extension Not Found Dialog */}
       {solflareNotFoundModal && (

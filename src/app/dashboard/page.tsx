@@ -16,12 +16,14 @@ import {
   Activity,
   CheckCircle,
   Copy,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 import { useSolanaWallet } from "../../context/SolanaWalletContext";
 import { SupabaseService } from "../../services/supabase";
 import { APP_VERSION } from "../../lib/version";
 import { Order, Transaction, ActivityLog } from "../../types";
+import { motion } from "framer-motion";
 
 export default function CustomerDashboard() {
   const { connected, walletAddress, balance, connect, disconnect, networkStatus } = useSolanaWallet();
@@ -31,6 +33,20 @@ export default function CustomerDashboard() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [currentTheme, setCurrentTheme] = useState("purple");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const theme = localStorage.getItem("solcart_active_theme") || "purple";
+      setCurrentTheme(theme);
+    }
+  }, []);
+
+  const handleThemeChange = (theme: string) => {
+    setCurrentTheme(theme);
+    localStorage.setItem("solcart_active_theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  };
 
   // Sync data from Server
   const refreshData = async () => {
@@ -144,7 +160,7 @@ export default function CustomerDashboard() {
           {[
             { id: "orders", label: "Order History", icon: <ShoppingBag className="h-4 w-4" /> },
             { id: "transactions", label: "Transactions Log", icon: <Coins className="h-4 w-4" /> },
-            { id: "settings", label: "Account Security", icon: <Settings className="h-4 w-4" /> }
+            { id: "settings", label: "Settings", icon: <Settings className="h-4 w-4" /> }
           ].map(tab => (
             <button
               key={tab.id}
@@ -188,10 +204,11 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="grid grid-cols-1 gap-4">
                   {orders.map(o => (
-                    <div 
+                    <motion.div 
                       key={o.id} 
                       onClick={() => setSelectedOrder(o)}
-                      className="glass-panel border border-brand-border/40 hover:border-brand-purple/40 rounded-2xl p-5 cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                      whileHover={{ scale: 1.005, x: 2 }}
+                      className="glass-panel border border-brand-border/40 hover:border-brand-purple/40 hover:bg-brand-card/25 rounded-2xl p-5 cursor-pointer transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -219,7 +236,7 @@ export default function CustomerDashboard() {
                           </span>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
@@ -284,7 +301,7 @@ export default function CustomerDashboard() {
           {/* SETTINGS TAB */}
           {activeTab === "settings" && (
             <div className="space-y-6">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Account Activity & Security</h3>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Account Settings</h3>
               
               <div className="glass-panel border border-brand-border/40 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center gap-3">
@@ -292,7 +309,7 @@ export default function CustomerDashboard() {
                     <Shield className="h-4.5 w-4.5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-white">Cryptographic Node Address</h4>
+                    <h4 className="text-xs font-extrabold text-white">Your Wallet Address</h4>
                     <p className="text-[10px] text-brand-text-muted mt-0.5">Your primary identity key used to track digital purchases.</p>
                   </div>
                 </div>
@@ -301,46 +318,45 @@ export default function CustomerDashboard() {
                   <span className="truncate flex-1 select-all">{walletAddress}</span>
                   <button 
                     onClick={() => handleCopy(walletAddress, "wallet")}
-                    className="text-brand-text-muted hover:text-white transition-colors"
+                    className="text-brand-text-muted hover:text-white transition-colors cursor-pointer"
                   >
                     {copiedText === "wallet" ? <CheckCircle className="h-4 w-4 text-brand-green" /> : <Copy className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Account Security Monitor */}
+              {/* Theme Settings Selector */}
               <div className="glass-panel border border-brand-border/40 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center text-amber-500">
-                    <Activity className="h-4.5 w-4.5" />
+                  <div className="h-9 w-9 bg-brand-purple/10 border border-brand-purple/20 rounded-xl flex items-center justify-center text-brand-purple">
+                    <Sparkles className="h-4.5 w-4.5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-extrabold text-white">Account Security Monitor</h4>
-                    <p className="text-[10px] text-brand-text-muted mt-0.5">Recent authentication history, on-chain activities, and connection events.</p>
+                    <h4 className="text-xs font-extrabold text-white">Display Theme</h4>
+                    <p className="text-[10px] text-brand-text-muted mt-0.5">Customize the visual style of your storefront interface.</p>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-brand-border/40 overflow-hidden bg-brand-dark/20 text-[10px] font-sans">
-                  <div className="grid grid-cols-3 bg-brand-dark/60 text-brand-text-muted p-3 font-bold border-b border-brand-border/40">
-                    <span>Action / Event</span>
-                    <span>Details</span>
-                    <span className="text-right">Timestamp</span>
-                  </div>
-                  <div className="divide-y divide-brand-border/30 max-h-56 overflow-y-auto">
-                    {logs.length === 0 ? (
-                      <div className="p-4 text-center text-brand-text-muted">
-                        No security activity logged.
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { id: "purple", name: "Purplish (Default)", preview: "bg-[#06020D] border-[#9945FF]" },
+                    { id: "light", name: "Light Mode", preview: "bg-[#F5F5F7] border-zinc-300" },
+                    { id: "dark", name: "Classic Dark", preview: "bg-[#121212] border-zinc-700" },
+                    { id: "red-black", name: "Black & Red", preview: "bg-[#000000] border-[#E50914]" }
+                  ].map(theme => (
+                    <button
+                      key={theme.id}
+                      onClick={() => handleThemeChange(theme.id)}
+                      className={`flex flex-col items-center gap-2 p-3.5 rounded-xl border transition-all hover:bg-brand-card/25 cursor-pointer ${
+                        currentTheme === theme.id ? "border-brand-purple bg-brand-purple/5 shadow-md" : "border-brand-border/40 bg-brand-dark/20"
+                      }`}
+                    >
+                      <div className={`h-8 w-12 rounded-lg border-2 ${theme.preview} flex items-center justify-center`}>
+                        <div className="h-2 w-4 rounded-full bg-brand-purple/40"></div>
                       </div>
-                    ) : (
-                      logs.map(log => (
-                        <div key={log.id} className="grid grid-cols-3 p-3 text-brand-text-muted hover:bg-brand-card/15 transition-all">
-                          <span className="font-bold text-white">{log.action}</span>
-                          <span className="truncate pr-2">{log.details}</span>
-                          <span className="text-right text-[9px] font-mono">{new Date(log.timestamp).toLocaleString()}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                      <span className="text-[10px] font-bold text-white">{theme.name}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

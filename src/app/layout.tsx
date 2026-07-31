@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SOLCart – Shop Major Online Retailers Using Solana",
-  description: "Spend your SOL directly on Amazon, Nike, Apple, Best Buy, and Walmart. Fast conversions to USDC, automatic order fulfillment, and live tracking.",
+  title: "SOLCart — Buy Digital Gift Cards with Solana",
+  description: "Spend your SOL directly on digital gift cards from top global brands with instant email code delivery and secure on-chain payments.",
 };
 
 export default function RootLayout({
@@ -32,8 +32,23 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#06020D] text-[#F1EFF8]">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const stored = localStorage.getItem('solcart_active_theme');
+                  if (stored) {
+                    document.documentElement.setAttribute('data-theme', stored);
+                  }
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
         <AuthProvider>
           <SolanaWalletProvider>
             <CartProvider>
