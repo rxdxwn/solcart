@@ -248,10 +248,6 @@ export class HeliusService {
       }
 
       if (!parsedTx) {
-        const txStatus = await connection.getSignatureStatus(txHash, { searchTransactionHistory: true });
-        if (txStatus.value && !txStatus.value.err) {
-          return { verified: true, blockSlot: txStatus.value.slot };
-        }
         return { verified: false, error: "Transaction signature not found on Solana blockchain network." };
       }
 
@@ -259,10 +255,70 @@ export class HeliusService {
         return { verified: false, error: "Transaction failed or was reverted on-chain." };
       }
 
+      // Validate that the transaction contains a transfer to the expected merchant wallet
+      // with the expected amount
+      const expectedMerchantPubkey = new PublicKey(expectedMerchantWallet);
+      const expectedLamports = Math.floor(expectedAmountSOL * 1e9);
+
+      // Check parsed instructions for SOL transfers
+      let foundValidTransfer = false;
+      
+      if (parsedTx.transaction?.message?.instructions) {
+        for (const instruction of parsedTx.transaction.message.instructions) {
+          // Check for parsed system transfer instruction
+          if ('parsed' in instruction && instruction.parsed) {
+            const parsed = instruction.parsed;
+            if (parsed.type === 'transfer' && parsed.info) {
+              const destination = parsed.info.destination;
+              const lamports = parsed.info.lamports;
+              
+              // Verify destination matches expected merchant wallet
+              if (destination === expectedMerchantWallet && typeof lamports === 'number') {
+                // Verify amount meets or exceeds expected amount
+                if (lamports >= expectedLamports) {
+                  foundValidTransfer = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Also check account balance changes as a fallback verification method
+      if (!foundValidTransfer && parsedTx.meta?.postBalances && parsedTx.meta?.preBalances) {
+        const accountKeys = parsedTx.transaction?.message?.accountKeys;
+        if (accountKeys) {
+          for (let i = 0; i < accountKeys.length; i++) {
+            const accountKey = accountKeys[i];
+            const pubkeyStr = typeof accountKey === 'string' ? accountKey : accountKey.pubkey?.toString();
+            
+            if (pubkeyStr === expectedMerchantWallet) {
+              const preBalance = parsedTx.meta.preBalances[i] || 0;
+              const postBalance = parsedTx.meta.postBalances[i] || 0;
+              const receivedLamports = postBalance - preBalance;
+              
+              // Verify the merchant received at least the expected amount
+              if (receivedLamports >= expectedLamports) {
+                foundValidTransfer = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (!foundValidTransfer) {
+        return { 
+          verified: false, 
+          error: `Transaction does not contain a valid transfer of ${expectedAmountSOL} SOL to merchant wallet ${expectedMerchantWallet}.` 
+        };
+      }
+
       return { verified: true, blockSlot: parsedTx.slot };
     } catch (e: any) {
       console.error("Solana on-chain transaction verification error", e);
-      return { verified: true, blockSlot: 0 };
+      return { verified: false, error: "Transaction verification failed due to an internal error." };
     }
   }
 
