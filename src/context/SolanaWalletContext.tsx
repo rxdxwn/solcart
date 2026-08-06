@@ -241,20 +241,11 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Track wallet address in user database as customer
       try {
-        await fetch("/api/db", {
+        await fetch("/api/wallet/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            action: "createUser",
-            payload: {
-              id: address,
-              email: `${address.substring(0, 8)}@solcart-user.io`, // temporary placeholder email
-              name: `Wallet ${address.substring(0, 6)}`,
-              passwordHash: "",
-              role: "customer",
-              isVerified: false,
-              createdAt: new Date().toISOString()
-            }
+            walletAddress: address
           })
         });
       } catch (e) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import { authenticateRequest, isAdmin } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -81,6 +82,33 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, payload } = body;
 
+    // Authenticate the request
+    const user = await authenticateRequest(request);
+
+    // Define actions that require authentication
+    const publicActions = ["createSupportTicket", "addProductReview"];
+    const adminOnlyActions = ["createUser", "updateUser", "deleteUser", "updateSettings", "updateRetailerMarkup", "addProduct", "deleteProduct", "updateProductStock"];
+    
+    // Check if action requires authentication
+    if (!publicActions.includes(action)) {
+      if (!user) {
+        return NextResponse.json(
+          { success: false, error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+    }
+
+    // Check if action requires admin privileges
+    if (adminOnlyActions.includes(action)) {
+      if (!isAdmin(user)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions. Admin access required." },
+          { status: 403 }
+        );
+      }
+    }
+
     let resultData = null;
 
     if (action === "updateRetailerMarkup") {
@@ -117,13 +145,33 @@ export async function POST(request: Request) {
       const { ticketId, comment } = payload;
       resultData = await DbAdapter.addTicketComment(ticketId, comment);
     } else if (action === "createUser") {
-      resultData = await DbAdapter.createUser(payload);
+      // Validate and sanitize user creation payload
+      // Only allow admin to set role, isVerified, and other sensitive fields
+      const sanitizedPayload = {
+        id: payload.id,
+        email: payload.email?.toLowerCase().trim(),
+        name: payload.name,
+        passwordHash: payload.passwordHash,
+        role: payload.role || "customer", // Admin can set role
+        isVerified: payload.isVerified !== undefined ? payload.isVerified : false,
+        verificationCode: payload.verificationCode,
+        resetCode: payload.resetCode,
+        createdAt: payload.createdAt || new Date().toISOString()
+      };
+      resultData = await DbAdapter.createUser(sanitizedPayload);
     } else if (action === "updateUser") {
+      // Validate and sanitize user update payload
+      // Admin can update any field including role and passwordHash
       const { email, updates } = payload;
       resultData = await DbAdapter.updateUser(email, updates);
     } else if (action === "deleteUser") {
       const { id } = payload;
       resultData = await DbAdapter.deleteUser(id);
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Unknown action" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
