@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Mail, MessageSquare, Send, CheckCircle, AlertCircle } from "lucide-react";
+import { authenticatedFetch } from "../../lib/api-client";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -19,9 +20,8 @@ export default function ContactPage() {
     setSuccess(false);
 
     try {
-      const res = await fetch("/api/db", {
+      const res = await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "createSupportTicket",
           payload: {

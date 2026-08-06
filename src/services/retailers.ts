@@ -1,4 +1,5 @@
 import { Product, RetailerConfig } from "../types";
+import { authenticatedFetch } from "../lib/api-client";
 
 const DEFAULT_RETAILERS: RetailerConfig[] = [
   {
@@ -239,7 +240,7 @@ export class RetailerService {
     if (typeof window === "undefined" || this.isSyncing) return;
     this.isSyncing = true;
     try {
-      const res = await fetch("/api/db");
+      const res = await authenticatedFetch("/api/db");
       if (res.ok) {
         const result = await res.json();
         if (result.success && result.data) {
@@ -280,9 +281,8 @@ export class RetailerService {
       localStorage.setItem("solcart_products", JSON.stringify(updatedProducts));
 
       // Post to central server DB API
-      fetch("/api/db", {
+      authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "updateRetailerMarkup",
           payload: { retailerId, markupPercentage: newMarkup }
@@ -314,9 +314,8 @@ export class RetailerService {
     products.push(newProduct);
     localStorage.setItem("solcart_products", JSON.stringify(products));
 
-    fetch("/api/db", {
+    authenticatedFetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "addProduct",
         payload: newProduct
@@ -328,9 +327,8 @@ export class RetailerService {
     const products = this.getStoredProducts().filter(p => p.id !== productId);
     localStorage.setItem("solcart_products", JSON.stringify(products));
 
-    fetch("/api/db", {
+    authenticatedFetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "deleteProduct",
         payload: { productId }
@@ -356,9 +354,8 @@ export class RetailerService {
       localStorage.removeItem("solcart_retailers");
       localStorage.removeItem("solcart_products");
     }
-    fetch("/api/db", {
+    authenticatedFetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "resetToDefault", payload: {} })
     }).catch(() => {});
   }

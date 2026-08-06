@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Transaction, SystemProgram, PublicKey, LAMPORTS_PER_SOL, VersionedTransaction, Connection } from "@solana/web3.js";
 import { HeliusService, MERCHANT_WALLET_ADDRESS } from "../services/helius";
 import { JupiterService } from "../services/jupiter";
+import { authenticatedFetch } from "../lib/api-client";
 
 export type WalletProviderName = "Phantom" | "Solflare" | "Backpack";
 export type SolanaNetwork = "Mainnet" | "Devnet";
@@ -241,9 +242,8 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Track wallet address in user database as customer
       try {
-        await fetch("/api/db", {
+        await authenticatedFetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "createUser",
             payload: {

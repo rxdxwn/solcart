@@ -22,6 +22,7 @@ import { useCart } from "../../../context/CartContext";
 import { motion } from "framer-motion";
 import { Product } from "../../../types";
 import { GiftCardArtwork } from "../../../components/ui/GiftCardArtwork";
+import { authenticatedFetch } from "../../../lib/api-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -54,9 +55,8 @@ export default function ProductDetailPage({ params }: PageProps) {
     }
 
     try {
-      const res = await fetch("/api/db", {
+      const res = await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "addProductReview",
           payload: {

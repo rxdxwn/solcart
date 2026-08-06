@@ -1,4 +1,5 @@
 import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails, Product } from "../types";
+import { authenticatedFetch } from "../lib/api-client";
 
 // Simulated Database Keys
 const STORAGE_KEYS = {
@@ -134,7 +135,7 @@ export class SupabaseService {
     if (typeof window === "undefined" || this.isSyncing) return;
     this.isSyncing = true;
     try {
-      const res = await fetch("/api/db");
+      const res = await authenticatedFetch("/api/db");
       if (res.ok) {
         const result = await res.json();
         if (result.success && result.data) {
@@ -206,9 +207,8 @@ export class SupabaseService {
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
 
     // Post to central server DB API
-    fetch("/api/db", {
+    authenticatedFetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "createOrder",
         payload: newOrder
@@ -239,9 +239,8 @@ export class SupabaseService {
       }
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
 
-      fetch("/api/db", {
+      authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "updateOrderStatus",
           payload: { orderId, status, details }
@@ -291,9 +290,8 @@ export class SupabaseService {
     localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(txs));
 
     // Post to central server DB API
-    fetch("/api/db", {
+    authenticatedFetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "createTransaction",
         payload: newTx
@@ -479,9 +477,8 @@ export class SupabaseService {
       const staff = this.getStaff();
       const member = staff.find(s => s.id === id);
       if (member) {
-        await fetch("/api/db", {
+        await authenticatedFetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "updateUser",
             payload: { email: member.email, updates: updatedFields }
@@ -497,7 +494,7 @@ export class SupabaseService {
   static async addStaff(newMember: any): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    const passwordHash = "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // SHA-256 of 'solcart123'
+    const passwordHash = "****118e"; // SHA-256 of 'solcart123'
     const newUser = {
       id: `staff-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       email: newMember.email.toLowerCase().trim(),
@@ -508,9 +505,8 @@ export class SupabaseService {
       createdAt: new Date().toISOString()
     };
     try {
-      await fetch("/api/db", {
+      await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "createUser", payload: newUser })
       });
       this.logActivity("Staff", `Added new staff member: ${newMember.name} as ${newMember.role}`, "security", actor);
@@ -523,9 +519,8 @@ export class SupabaseService {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
     try {
-      await fetch("/api/db", {
+      await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "deleteUser",
           payload: { id }
@@ -619,9 +614,8 @@ export class SupabaseService {
 
   static async addTicketComment(id: string, text: string, author: string): Promise<void> {
     try {
-      await fetch("/api/db", {
+      await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "addTicketComment",
           payload: { ticketId: id, comment: text }
@@ -667,9 +661,8 @@ export class SupabaseService {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
       
       // Post to central server DB API
-      fetch("/api/db", {
+      authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "updateSettings",
           payload: merged
@@ -732,9 +725,8 @@ export class SupabaseService {
 
   static async deleteUser(id: string): Promise<void> {
     try {
-      await fetch("/api/db", {
+      await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "deleteUser",
           payload: { id }
