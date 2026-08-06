@@ -1,5 +1,34 @@
 import { Product, RetailerConfig } from "../types";
 
+/**
+ * Get authentication headers for API requests
+ */
+function getAuthHeaders(): HeadersInit {
+  if (typeof window === "undefined") {
+    return { "Content-Type": "application/json" };
+  }
+
+  try {
+    const storedUser = localStorage.getItem("solcart_current_user");
+    const storedPassword = localStorage.getItem("solcart_user_password_hash");
+    
+    if (!storedUser || !storedPassword) {
+      return { "Content-Type": "application/json" };
+    }
+
+    const user = JSON.parse(storedUser);
+    const authHeader = Buffer.from(`${user.email}:${storedPassword}`).toString("base64");
+
+    return {
+      "Content-Type": "application/json",
+      "X-Admin-Auth": authHeader
+    };
+  } catch (e) {
+    console.error("Failed to generate auth headers:", e);
+    return { "Content-Type": "application/json" };
+  }
+}
+
 const DEFAULT_RETAILERS: RetailerConfig[] = [
   {
     id: "amazon",
@@ -239,7 +268,9 @@ export class RetailerService {
     if (typeof window === "undefined" || this.isSyncing) return;
     this.isSyncing = true;
     try {
-      const res = await fetch("/api/db");
+      const res = await fetch("/api/db", {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const result = await res.json();
         if (result.success && result.data) {
@@ -282,7 +313,7 @@ export class RetailerService {
       // Post to central server DB API
       fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateRetailerMarkup",
           payload: { retailerId, markupPercentage: newMarkup }
@@ -316,7 +347,7 @@ export class RetailerService {
 
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         action: "addProduct",
         payload: newProduct
@@ -330,7 +361,7 @@ export class RetailerService {
 
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         action: "deleteProduct",
         payload: { productId }
@@ -358,7 +389,7 @@ export class RetailerService {
     }
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ action: "resetToDefault", payload: {} })
     }).catch(() => {});
   }

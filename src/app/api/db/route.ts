@@ -1,8 +1,94 @@
 import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import crypto from "crypto";
 
-export async function GET() {
+/**
+ * Server-side authentication helper
+ * Validates the X-Admin-Auth header against stored admin credentials
+ */
+async function authenticateAdmin(request: Request): Promise<{ authenticated: boolean; user?: any; error?: string }> {
+  const authHeader = request.headers.get("X-Admin-Auth");
+  
+  if (!authHeader) {
+    return { authenticated: false, error: "Missing authentication header" };
+  }
+
   try {
+    // Parse the auth header (expected format: "email:passwordHash")
+    const decoded = Buffer.from(authHeader, "base64").toString("utf-8");
+    const [email, passwordHash] = decoded.split(":");
+
+    if (!email || !passwordHash) {
+      return { authenticated: false, error: "Invalid authentication format" };
+    }
+
+    // Fetch users and validate credentials
+    const users = await DbAdapter.getUsers();
+    const user = users.find((u: any) => u.email === email.toLowerCase().trim());
+
+    if (!user) {
+      return { authenticated: false, error: "Invalid credentials" };
+    }
+
+    // Verify password hash
+    const isDefaultStaffPassword = passwordHash === "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // 'solcart123'
+    const isValid = user.passwordHash === passwordHash || 
+                    ((!user.passwordHash || user.passwordHash === "") && isDefaultStaffPassword);
+
+    if (!isValid) {
+      return { authenticated: false, error: "Invalid credentials" };
+    }
+
+    if (!user.isVerified) {
+      return { authenticated: false, error: "Account not verified" };
+    }
+
+    // Check if user has admin role (not a customer)
+    if (user.role === "customer" || !user.role) {
+      return { authenticated: false, error: "Insufficient permissions" };
+    }
+
+    return { 
+      authenticated: true, 
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+    };
+  } catch (e: any) {
+    return { authenticated: false, error: "Authentication failed" };
+  }
+}
+
+/**
+ * Sanitize user objects by removing sensitive fields
+ */
+function sanitizeUsers(users: any[]): any[] {
+  return users.map(u => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role,
+    isVerified: u.isVerified,
+    createdAt: u.createdAt
+    // Explicitly exclude: passwordHash, verificationCode, resetCode
+  }));
+}
+
+export async function GET(request: Request) {
+  try {
+    // Authenticate the request
+    const authResult = await authenticateAdmin(request);
+    
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
     const settings = await DbAdapter.getSettings();
     const products = await DbAdapter.getProducts();
     const orders = await DbAdapter.getOrders();
@@ -13,12 +99,15 @@ export async function GET() {
 
     const safeSettings = settings || { marketplaceMarkup: 0 };
 
+    // Sanitize users to remove sensitive fields
+    const sanitizedUsers = sanitizeUsers(users);
+
     const data = {
       settings: safeSettings,
       products,
       orders,
       transactions,
-      users,
+      users: sanitizedUsers,
       tickets,
       activityLogs,
       retailers: [
@@ -78,10 +167,41 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    // Authenticate the request
+    const authResult = await authenticateAdmin(request);
+    
+    if (!authResult.authenticated) {
+      return NextResponse.json(
+        { success: false, error: authResult.error || "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { action, payload } = body;
 
     let resultData = null;
+
+    // Define actions that require elevated privileges
+    const privilegedActions = [
+      "updateSettings",
+      "createUser", 
+      "updateUser", 
+      "deleteUser"
+    ];
+
+    // Check if user has sufficient permissions for privileged actions
+    if (privilegedActions.includes(action)) {
+      const userRole = authResult.user?.role;
+      const allowedRoles = ["Super Admin", "Owner"];
+      
+      if (!allowedRoles.includes(userRole)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions for this action" }, 
+          { status: 403 }
+        );
+      }
+    }
 
     if (action === "updateRetailerMarkup") {
       const { markupPercentage } = payload;
@@ -124,6 +244,11 @@ export async function POST(request: Request) {
     } else if (action === "deleteUser") {
       const { id } = payload;
       resultData = await DbAdapter.deleteUser(id);
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Invalid action" }, 
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({

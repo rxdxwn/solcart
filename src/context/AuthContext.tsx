@@ -58,6 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await res.json();
       if (res.ok && data.success) {
         localStorage.setItem("solcart_current_user", JSON.stringify(data.user));
+        // Store password hash for subsequent authenticated API calls
+        const crypto = await import("crypto");
+        const passwordHash = crypto.createHash("sha256").update(password).digest("hex");
+        localStorage.setItem("solcart_user_password_hash", passwordHash);
         setUser(data.user);
         setLoading(false);
         return { success: true };
@@ -151,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setLoading(true);
     localStorage.removeItem("solcart_current_user");
+    localStorage.removeItem("solcart_user_password_hash");
     setUser(null);
     setLoading(false);
   };
@@ -158,11 +163,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const bypassLoginForTesting = async (email: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {
-      const res = await fetch("/api/db");
+      // For testing/development, use default password 'solcart123'
+      const defaultPasswordHash = "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e";
+      const authHeader = Buffer.from(`${email}:${defaultPasswordHash}`).toString("base64");
+      
+      const res = await fetch("/api/db", {
+        headers: {
+          "X-Admin-Auth": authHeader
+        }
+      });
       const data = await res.json();
       const targetUser = data?.success && data.data?.users?.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
       if (targetUser) {
         localStorage.setItem("solcart_current_user", JSON.stringify(targetUser));
+        localStorage.setItem("solcart_user_password_hash", defaultPasswordHash);
         setUser(targetUser);
         setLoading(false);
         return { success: true };
