@@ -1,5 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import { validateAuth, hasPermission } from "@/lib/auth";
+
+// Actions that don't require authentication (public actions)
+const PUBLIC_ACTIONS = [
+  "createSupportTicket",  // Contact form submissions
+  "createUser",           // Wallet-based user registration
+  "addProductReview",     // Product reviews (can be done by anyone)
+  "createOrder"           // Order creation (authenticated via wallet signature)
+];
 
 export async function GET() {
   try {
@@ -76,10 +85,41 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, payload } = body;
+
+    // Validate that an action is provided
+    if (!action) {
+      return NextResponse.json(
+        { success: false, error: "Action is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if this is a public action that doesn't require authentication
+    const isPublicAction = PUBLIC_ACTIONS.includes(action);
+
+    // Authenticate the request for non-public actions
+    let user = null;
+    if (!isPublicAction) {
+      user = await validateAuth(request);
+      if (!user) {
+        return NextResponse.json(
+          { success: false, error: "Authentication required" },
+          { status: 401 }
+        );
+      }
+
+      // Check if user has permission to perform this action
+      if (!hasPermission(user, action)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions to perform this action" },
+          { status: 403 }
+        );
+      }
+    }
 
     let resultData = null;
 
@@ -124,6 +164,11 @@ export async function POST(request: Request) {
     } else if (action === "deleteUser") {
       const { id } = payload;
       resultData = await DbAdapter.deleteUser(id);
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Unknown action" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({

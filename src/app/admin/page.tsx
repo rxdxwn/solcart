@@ -40,6 +40,7 @@ import { useAuth } from "../../context/AuthContext";
 import { RetailerService } from "../../services/retailers";
 import { SupabaseService } from "../../services/supabase";
 import { APP_VERSION } from "../../lib/version";
+import { authenticatedFetch } from "../../lib/api-client";
 
 import { Order, Transaction, Product, RetailerConfig, RefundRequest, ActivityLog } from "../../types";
 import { Connection, PublicKey, Transaction as SolanaTx, TransactionInstruction, SystemProgram } from "@solana/web3.js";
@@ -549,9 +550,8 @@ export default function AdminDashboard() {
     if (isNaN(stockCount)) return;
 
     try {
-      const res = await fetch("/api/db", {
+      const res = await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "updateProductStock",
           payload: { productId, stockCount }
@@ -576,9 +576,8 @@ export default function AdminDashboard() {
     if (!editingCustomerName.trim()) return;
 
     try {
-      const res = await fetch("/api/db", {
+      const res = await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "updateOrderCustomerName",
           payload: { orderId, customerName: editingCustomerName.trim() }
@@ -616,9 +615,8 @@ export default function AdminDashboard() {
 
     try {
       // 1. Deliver the code inside the db
-      const resVal = await fetch("/api/db", {
+      const resVal = await authenticatedFetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "deliverGiftCardCode",
           payload: { orderId, giftCardCode: giftCardCodeInput.trim() }
@@ -627,9 +625,8 @@ export default function AdminDashboard() {
 
       if (resVal.ok) {
         // 2. Mark order as delivered (which means completed gift card assignment)
-        await fetch("/api/db", {
+        await authenticatedFetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "updateOrderStatus",
             payload: { orderId, status: "delivered" }
