@@ -1,5 +1,32 @@
 import { Product, RetailerConfig } from "../types";
 
+/**
+ * Helper function to get authentication headers for API requests.
+ * Generates a Bearer token from the current user's email stored in localStorage.
+ */
+function getAuthHeaders(): HeadersInit {
+  if (typeof window === "undefined") return { "Content-Type": "application/json" };
+  
+  const stored = localStorage.getItem("solcart_current_user");
+  if (!stored) return { "Content-Type": "application/json" };
+  
+  try {
+    const user = JSON.parse(stored);
+    if (!user.email) return { "Content-Type": "application/json" };
+    
+    // Create a simple token with the user's email (base64 encoded JSON)
+    const tokenData = JSON.stringify({ email: user.email });
+    const token = Buffer.from(tokenData).toString("base64");
+    
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    };
+  } catch {
+    return { "Content-Type": "application/json" };
+  }
+}
+
 const DEFAULT_RETAILERS: RetailerConfig[] = [
   {
     id: "amazon",
@@ -282,7 +309,7 @@ export class RetailerService {
       // Post to central server DB API
       fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateRetailerMarkup",
           payload: { retailerId, markupPercentage: newMarkup }
@@ -316,7 +343,7 @@ export class RetailerService {
 
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         action: "addProduct",
         payload: newProduct
@@ -330,7 +357,7 @@ export class RetailerService {
 
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         action: "deleteProduct",
         payload: { productId }

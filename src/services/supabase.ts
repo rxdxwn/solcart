@@ -1,5 +1,32 @@
 import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails, Product } from "../types";
 
+/**
+ * Helper function to get authentication headers for API requests.
+ * Generates a Bearer token from the current user's email stored in localStorage.
+ */
+function getAuthHeaders(): HeadersInit {
+  if (typeof window === "undefined") return {};
+  
+  const stored = localStorage.getItem("solcart_current_user");
+  if (!stored) return {};
+  
+  try {
+    const user = JSON.parse(stored);
+    if (!user.email) return {};
+    
+    // Create a simple token with the user's email (base64 encoded JSON)
+    const tokenData = JSON.stringify({ email: user.email });
+    const token = Buffer.from(tokenData).toString("base64");
+    
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    };
+  } catch {
+    return { "Content-Type": "application/json" };
+  }
+}
+
 // Simulated Database Keys
 const STORAGE_KEYS = {
   ORDERS: "solcart_db_orders",
@@ -481,7 +508,7 @@ export class SupabaseService {
       if (member) {
         await fetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             action: "updateUser",
             payload: { email: member.email, updates: updatedFields }
@@ -497,7 +524,7 @@ export class SupabaseService {
   static async addStaff(newMember: any): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    const passwordHash = "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // SHA-256 of 'solcart123'
+    const passwordHash = "****118e"; // SHA-256 of 'solcart123'
     const newUser = {
       id: `staff-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       email: newMember.email.toLowerCase().trim(),
@@ -510,7 +537,7 @@ export class SupabaseService {
     try {
       await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ action: "createUser", payload: newUser })
       });
       this.logActivity("Staff", `Added new staff member: ${newMember.name} as ${newMember.role}`, "security", actor);
@@ -525,7 +552,7 @@ export class SupabaseService {
     try {
       await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "deleteUser",
           payload: { id }
