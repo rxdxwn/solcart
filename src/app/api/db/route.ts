@@ -1,6 +1,22 @@
 import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
 
+/**
+ * Sanitizes user objects by removing sensitive authentication fields.
+ * This prevents exposure of password hashes, verification codes, and reset codes.
+ */
+function sanitizeUsers(users: any[]): any[] {
+  return users.map(user => ({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt
+    // Explicitly exclude: passwordHash, verificationCode, resetCode
+  }));
+}
+
 export async function GET() {
   try {
     const settings = await DbAdapter.getSettings();
@@ -12,13 +28,16 @@ export async function GET() {
     const activityLogs = await DbAdapter.getActivityLogs();
 
     const safeSettings = settings || { marketplaceMarkup: 0 };
+    
+    // Sanitize user data to remove sensitive authentication fields
+    const safeUsers = sanitizeUsers(users);
 
     const data = {
       settings: safeSettings,
       products,
       orders,
       transactions,
-      users,
+      users: safeUsers,
       tickets,
       activityLogs,
       retailers: [
