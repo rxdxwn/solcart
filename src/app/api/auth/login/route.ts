@@ -23,11 +23,8 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = hashPassword(password);
-    const isDefaultStaffPassword = passwordHash === "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // 'solcart123'
-    const isValid = user.passwordHash === passwordHash || 
-                    ((!user.passwordHash || user.passwordHash === "") && isDefaultStaffPassword);
     
-    if (!isValid) {
+    if (user.passwordHash !== passwordHash) {
       return NextResponse.json({ success: false, error: "Invalid email or password" }, { status: 401 });
     }
 

@@ -497,7 +497,7 @@ export class SupabaseService {
   static async addStaff(newMember: any): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    const passwordHash = "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // SHA-256 of 'solcart123'
+    const passwordHash = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; // SHA-256 of 'admin' - must be changed on first login
     const newUser = {
       id: `staff-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       email: newMember.email.toLowerCase().trim(),
