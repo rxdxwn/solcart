@@ -1,5 +1,87 @@
 import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import crypto from "crypto";
+
+// Helper function to hash passwords (must match the one in login route)
+function hashPassword(password: string) {
+  return crypto.createHash("sha256").update(password).digest("hex");
+}
+
+// Authentication middleware: validates user credentials from request headers
+async function authenticateRequest(request: Request): Promise<{ authenticated: boolean; user?: any; error?: string }> {
+  try {
+    // Extract authentication credentials from headers
+    const authHeader = request.headers.get("x-auth-email");
+    const authPassword = request.headers.get("x-auth-password");
+
+    if (!authHeader || !authPassword) {
+      return { authenticated: false, error: "Missing authentication credentials" };
+    }
+
+    const emailLower = authHeader.toLowerCase().trim();
+    const users = await DbAdapter.getUsers();
+    const user = users.find((u: any) => u.email === emailLower);
+
+    if (!user) {
+      return { authenticated: false, error: "Invalid credentials" };
+    }
+
+    // Validate password
+    const passwordHash = hashPassword(authPassword);
+    const isDefaultStaffPassword = passwordHash === "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // 'solcart123'
+    const isValid = user.passwordHash === passwordHash || 
+                    ((!user.passwordHash || user.passwordHash === "") && isDefaultStaffPassword);
+
+    if (!isValid) {
+      return { authenticated: false, error: "Invalid credentials" };
+    }
+
+    if (!user.isVerified) {
+      return { authenticated: false, error: "Account not verified" };
+    }
+
+    return { authenticated: true, user };
+  } catch (e: any) {
+    return { authenticated: false, error: "Authentication failed" };
+  }
+}
+
+// Authorization check: determines if user has admin privileges
+function isAdminUser(user: any): boolean {
+  return user && user.role && user.role !== "customer";
+}
+
+// Define which actions require admin privileges
+const ADMIN_ONLY_ACTIONS = [
+  "updateRetailerMarkup",
+  "addProduct",
+  "deleteProduct",
+  "updateSettings",
+  "deliverGiftCardCode",
+  "updateProductStock",
+  "createUser",
+  "updateUser",
+  "deleteUser",
+  "updateOrderCustomerName"
+];
+
+// Define which actions are allowed for authenticated non-admin users
+const AUTHENTICATED_USER_ACTIONS = [
+  "createOrder",
+  "createTransaction",
+  "addProductReview",
+  "addTicketComment"
+];
+
+// Define which actions are publicly accessible (no authentication required)
+const PUBLIC_ACTIONS = [
+  "createSupportTicket"
+];
+
+// Define which actions require at least staff-level access (admin or staff)
+const STAFF_ACTIONS = [
+  "updateOrderStatus"
+];
 
 export async function GET() {
   try {
@@ -80,6 +162,49 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action, payload } = body;
+
+    // Check if action is publicly accessible
+    const isPublicAction = PUBLIC_ACTIONS.includes(action);
+
+    // Authenticate the request (skip for public actions)
+    let user = null;
+    if (!isPublicAction) {
+      const authResult = await authenticateRequest(request);
+      
+      if (!authResult.authenticated) {
+        return NextResponse.json(
+          { success: false, error: authResult.error || "Authentication required" },
+          { status: 401 }
+        );
+      }
+
+      user = authResult.user;
+    }
+
+    // Check authorization based on action type (only for authenticated actions)
+    if (!isPublicAction) {
+      if (ADMIN_ONLY_ACTIONS.includes(action)) {
+        if (!isAdminUser(user)) {
+          return NextResponse.json(
+            { success: false, error: "Admin privileges required for this action" },
+            { status: 403 }
+          );
+        }
+      } else if (STAFF_ACTIONS.includes(action)) {
+        if (!isAdminUser(user)) {
+          return NextResponse.json(
+            { success: false, error: "Staff privileges required for this action" },
+            { status: 403 }
+          );
+        }
+      } else if (!AUTHENTICATED_USER_ACTIONS.includes(action)) {
+        // Unknown action
+        return NextResponse.json(
+          { success: false, error: "Unknown or unauthorized action" },
+          { status: 400 }
+        );
+      }
+    }
 
     let resultData = null;
 

@@ -57,7 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        localStorage.setItem("solcart_current_user", JSON.stringify(data.user));
+        // Store user data with password for API authentication
+        const userWithAuth = { ...data.user, password };
+        localStorage.setItem("solcart_current_user", JSON.stringify(userWithAuth));
         setUser(data.user);
         setLoading(false);
         return { success: true };

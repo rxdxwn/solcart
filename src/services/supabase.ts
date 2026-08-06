@@ -1,4 +1,5 @@
 import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails, Product } from "../types";
+import { getAuthHeaders } from "../lib/auth-headers";
 
 // Simulated Database Keys
 const STORAGE_KEYS = {
@@ -208,7 +209,7 @@ export class SupabaseService {
     // Post to central server DB API
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         action: "createOrder",
         payload: newOrder
@@ -241,7 +242,7 @@ export class SupabaseService {
 
       fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateOrderStatus",
           payload: { orderId, status, details }
@@ -293,7 +294,7 @@ export class SupabaseService {
     // Post to central server DB API
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         action: "createTransaction",
         payload: newTx
@@ -481,7 +482,7 @@ export class SupabaseService {
       if (member) {
         await fetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             action: "updateUser",
             payload: { email: member.email, updates: updatedFields }
@@ -497,7 +498,7 @@ export class SupabaseService {
   static async addStaff(newMember: any): Promise<void> {
     const currentUser = this.getCurrentUser();
     const actor = currentUser ? currentUser.name : "System";
-    const passwordHash = "3a9cd1b4a74d80ab706ab8d419ca3795e34fe3f0b89126a38c0d4f2c1ecd118e"; // SHA-256 of 'solcart123'
+    const passwordHash = "****118e"; // SHA-256 of 'solcart123'
     const newUser = {
       id: `staff-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       email: newMember.email.toLowerCase().trim(),
@@ -510,7 +511,7 @@ export class SupabaseService {
     try {
       await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ action: "createUser", payload: newUser })
       });
       this.logActivity("Staff", `Added new staff member: ${newMember.name} as ${newMember.role}`, "security", actor);
@@ -525,7 +526,7 @@ export class SupabaseService {
     try {
       await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "deleteUser",
           payload: { id }
@@ -621,7 +622,7 @@ export class SupabaseService {
     try {
       await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "addTicketComment",
           payload: { ticketId: id, comment: text }
@@ -669,7 +670,7 @@ export class SupabaseService {
       // Post to central server DB API
       fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateSettings",
           payload: merged
@@ -734,7 +735,7 @@ export class SupabaseService {
     try {
       await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "deleteUser",
           payload: { id }

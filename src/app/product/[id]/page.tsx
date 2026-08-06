@@ -22,6 +22,7 @@ import { useCart } from "../../../context/CartContext";
 import { motion } from "framer-motion";
 import { Product } from "../../../types";
 import { GiftCardArtwork } from "../../../components/ui/GiftCardArtwork";
+import { getAuthHeaders } from "../../../lib/auth-headers";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -56,7 +57,7 @@ export default function ProductDetailPage({ params }: PageProps) {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "addProductReview",
           payload: {
