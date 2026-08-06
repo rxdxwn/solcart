@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
 
+/**
+ * Security Note: This endpoint handles database operations.
+ * User management operations (createUser, updateUser, deleteUser) have been
+ * removed from this public endpoint to prevent unauthorized account creation
+ * and privilege escalation attacks.
+ * 
+ * User creation should only occur through:
+ * - /api/auth/signup (for customer registration with email verification)
+ * - Internal server-side operations in authenticated contexts
+ */
+
 export async function GET() {
   try {
     const settings = await DbAdapter.getSettings();
@@ -83,6 +94,7 @@ export async function POST(request: Request) {
 
     let resultData = null;
 
+    // Handle allowed database operations
     if (action === "updateRetailerMarkup") {
       const { markupPercentage } = payload;
       resultData = await DbAdapter.updateSettings({ marketplaceMarkup: markupPercentage });
@@ -116,14 +128,22 @@ export async function POST(request: Request) {
     } else if (action === "addTicketComment") {
       const { ticketId, comment } = payload;
       resultData = await DbAdapter.addTicketComment(ticketId, comment);
-    } else if (action === "createUser") {
-      resultData = await DbAdapter.createUser(payload);
-    } else if (action === "updateUser") {
-      const { email, updates } = payload;
-      resultData = await DbAdapter.updateUser(email, updates);
-    } else if (action === "deleteUser") {
-      const { id } = payload;
-      resultData = await DbAdapter.deleteUser(id);
+    } else if (action === "createUser" || action === "updateUser" || action === "deleteUser") {
+      // SECURITY: Block direct user management operations via this endpoint
+      // User creation must go through /api/auth/signup with proper validation
+      // User updates/deletes require proper authentication and authorization
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "User management operations are not allowed through this endpoint. Use /api/auth/signup for registration." 
+        },
+        { status: 403 }
+      );
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Invalid or unsupported action" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
