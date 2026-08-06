@@ -99,6 +99,29 @@ const CUSTOMER_GROWTH_DATA = [
 export default function AdminDashboard() {
   const { user, login, logout, hasPermission, bypassLoginForTesting } = useAuth();
 
+  // Helper function to get authentication headers for API requests
+  const getAuthHeaders = (): HeadersInit => {
+    try {
+      const storedUser = localStorage.getItem("solcart_current_user");
+      const storedPassword = localStorage.getItem("solcart_user_password_hash");
+      
+      if (!storedUser || !storedPassword) {
+        return { "Content-Type": "application/json" };
+      }
+
+      const userObj = JSON.parse(storedUser);
+      const authHeader = Buffer.from(`${userObj.email}:${storedPassword}`).toString("base64");
+
+      return {
+        "Content-Type": "application/json",
+        "X-Admin-Auth": authHeader
+      };
+    } catch (e) {
+      console.error("Failed to generate auth headers:", e);
+      return { "Content-Type": "application/json" };
+    }
+  };
+
   // Dynamic Chart Data Helpers
   const getRevenueTrendData = () => {
     if (orders.length === 0) {
@@ -551,7 +574,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateProductStock",
           payload: { productId, stockCount }
@@ -578,7 +601,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateOrderCustomerName",
           payload: { orderId, customerName: editingCustomerName.trim() }
@@ -618,7 +641,7 @@ export default function AdminDashboard() {
       // 1. Deliver the code inside the db
       const resVal = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "deliverGiftCardCode",
           payload: { orderId, giftCardCode: giftCardCodeInput.trim() }
@@ -629,7 +652,7 @@ export default function AdminDashboard() {
         // 2. Mark order as delivered (which means completed gift card assignment)
         await fetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             action: "updateOrderStatus",
             payload: { orderId, status: "delivered" }
