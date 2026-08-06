@@ -1,8 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import { authenticateRequest, isAdmin } from "@/lib/auth-helpers";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Require authentication for GET endpoint to prevent user enumeration
+    const authenticatedUser = await authenticateRequest(request);
+    if (!authenticatedUser) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Only admins can access full database dump
+    if (!isAdmin(authenticatedUser)) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
     const settings = await DbAdapter.getSettings();
     const products = await DbAdapter.getProducts();
     const orders = await DbAdapter.getOrders();
@@ -76,12 +94,45 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Require authentication for all POST operations
+    const authenticatedUser = await authenticateRequest(request);
+    if (!authenticatedUser) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { action, payload } = body;
 
     let resultData = null;
+
+    // Define actions that require admin privileges
+    const adminOnlyActions = [
+      "updateRetailerMarkup",
+      "addProduct",
+      "deleteProduct",
+      "updateOrderStatus",
+      "updateSettings",
+      "deliverGiftCardCode",
+      "updateOrderCustomerName",
+      "updateProductStock",
+      "addTicketComment",
+      "createUser",
+      "updateUser",
+      "deleteUser"
+    ];
+
+    // Check if action requires admin privileges
+    if (adminOnlyActions.includes(action) && !isAdmin(authenticatedUser)) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions. Admin access required." },
+        { status: 403 }
+      );
+    }
 
     if (action === "updateRetailerMarkup") {
       const { markupPercentage } = payload;
@@ -123,7 +174,19 @@ export async function POST(request: Request) {
       resultData = await DbAdapter.updateUser(email, updates);
     } else if (action === "deleteUser") {
       const { id } = payload;
+      // Additional validation: Ensure the user ID is provided
+      if (!id) {
+        return NextResponse.json(
+          { success: false, error: "User ID is required" },
+          { status: 400 }
+        );
+      }
       resultData = await DbAdapter.deleteUser(id);
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Invalid action" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
