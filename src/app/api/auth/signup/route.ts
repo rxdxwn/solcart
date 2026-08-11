@@ -32,12 +32,14 @@ export async function POST(request: Request) {
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const passwordHash = hashPassword(password);
+    const codeTimestamp = new Date().toISOString();
 
     if (existingUser) {
       await DbAdapter.updateUser(emailLower, {
         name,
         passwordHash,
         verificationCode,
+        resetCode: codeTimestamp, // Store timestamp for expiry validation
         createdAt: new Date().toISOString()
       });
     } else {
@@ -50,6 +52,7 @@ export async function POST(request: Request) {
         role,
         isVerified: false,
         verificationCode,
+        resetCode: codeTimestamp, // Store timestamp for expiry validation
         createdAt: new Date().toISOString()
       };
       await DbAdapter.createUser(newUser);

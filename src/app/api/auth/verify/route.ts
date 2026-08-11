@@ -25,9 +25,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Invalid verification code" }, { status: 400 });
     }
 
+    // Check expiration (15 minutes = 900 seconds)
+    const resetCodeStr = user.resetCode;
+    if (!resetCodeStr) {
+      return NextResponse.json({ success: false, error: "No verification timestamp found. Please request a new code." }, { status: 400 });
+    }
+
+    const createdTime = new Date(resetCodeStr).getTime();
+    const now = Date.now();
+    const diffSeconds = (now - createdTime) / 1000;
+
+    if (diffSeconds > 900) {
+      return NextResponse.json({ success: false, error: "Verification code has expired (15 minute limit). Please request a new one." }, { status: 400 });
+    }
+
     await DbAdapter.updateUser(emailLower, {
       isVerified: true,
-      verificationCode: null
+      verificationCode: null,
+      resetCode: null
     });
 
     // Return the safe user object
