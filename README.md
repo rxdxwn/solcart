@@ -2,6 +2,39 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment Configuration
+
+Before running the application, you need to configure environment variables:
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env.local
+```
+
+2. Edit `.env.local` and configure the required variables:
+   - **SMTP Configuration** (Required for email functionality):
+     - `SMTP_USER`: Your SMTP email address
+     - `SMTP_PASS`: Your SMTP password (for Gmail, use an App Password)
+     - `SMTP_HOST`: SMTP server hostname (default: smtp.gmail.com)
+     - `SMTP_PORT`: SMTP server port (default: 587)
+     - `SMTP_FROM_NAME`: Display name for outgoing emails
+     - `SMTP_FROM_EMAIL`: Email address for outgoing emails
+
+   - **Supabase** (Optional - falls back to local JSON database):
+     - `NEXT_PUBLIC_SUPABASE_URL`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     - `SUPABASE_SERVICE_ROLE_KEY`
+
+   - **Helius API** (Optional - falls back to public Solana RPC):
+     - `NEXT_PUBLIC_HELIUS_API_KEY`
+
+**Note for Gmail users**: To use Gmail SMTP, you must:
+1. Enable 2-factor authentication on your Google account
+2. Generate an App Password at https://myaccount.google.com/apppasswords
+3. Use the App Password (not your regular password) in `SMTP_PASS`
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash
