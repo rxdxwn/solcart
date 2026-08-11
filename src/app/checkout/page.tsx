@@ -319,7 +319,7 @@ export default function CheckoutPage() {
       fetch("/api/email/receipt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: createdOrder })
+        body: JSON.stringify({ orderId: createdOrder.id })
       }).catch(err => console.warn("Failed to send order receipt email", err));
 
       // Log transaction record
