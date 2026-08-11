@@ -116,14 +116,15 @@ export async function POST(request: Request) {
     } else if (action === "addTicketComment") {
       const { ticketId, comment } = payload;
       resultData = await DbAdapter.addTicketComment(ticketId, comment);
-    } else if (action === "createUser") {
-      resultData = await DbAdapter.createUser(payload);
-    } else if (action === "updateUser") {
-      const { email, updates } = payload;
-      resultData = await DbAdapter.updateUser(email, updates);
-    } else if (action === "deleteUser") {
-      const { id } = payload;
-      resultData = await DbAdapter.deleteUser(id);
+    } else if (action === "createUser" || action === "updateUser" || action === "deleteUser") {
+      // Security: User management operations are not permitted through this endpoint
+      // to prevent unauthenticated account creation, privilege escalation, and account takeover.
+      // Use dedicated authenticated endpoints: /api/auth/signup for registration,
+      // /api/auth/verify for verification, and implement proper admin endpoints for user management.
+      return NextResponse.json({ 
+        success: false, 
+        error: "User management operations are not permitted through this endpoint" 
+      }, { status: 403 });
     }
 
     return NextResponse.json({

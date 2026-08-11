@@ -239,27 +239,10 @@ export const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       await refreshBalance(address, targetNet);
       
-      // Track wallet address in user database as customer
-      try {
-        await fetch("/api/db", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "createUser",
-            payload: {
-              id: address,
-              email: `${address.substring(0, 8)}@solcart-user.io`, // temporary placeholder email
-              name: `Wallet ${address.substring(0, 6)}`,
-              passwordHash: "",
-              role: "customer",
-              isVerified: false,
-              createdAt: new Date().toISOString()
-            }
-          })
-        });
-      } catch (e) {
-        console.warn("Failed to register connected wallet in database", e);
-      }
+      // Note: Wallet-based user tracking has been disabled for security reasons.
+      // If you need to track wallet connections, implement a dedicated authenticated endpoint
+      // or use analytics/logging instead of creating user records.
+      // See SECURITY_FIX_README.md for more information.
 
       setLoading(false);
       return { success: true };
