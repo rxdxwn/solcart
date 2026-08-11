@@ -7,7 +7,7 @@ export async function GET() {
     const products = await DbAdapter.getProducts();
     const orders = await DbAdapter.getOrders();
     const transactions = await DbAdapter.getTransactions();
-    const users = await DbAdapter.getUsers();
+    const users = await DbAdapter.getUsersSafe();
     const tickets = await DbAdapter.getTickets();
     const activityLogs = await DbAdapter.getActivityLogs();
 

@@ -659,6 +659,39 @@ export class DbAdapter {
     return readLocalDb().users;
   }
 
+  static async getUsersSafe(): Promise<any[]> {
+    if (isSupabaseConfigured()) {
+      if (!supabaseAdmin) throw new Error("Supabase admin client not initialized");
+      const { data, error } = await supabaseAdmin
+        .from("users")
+        .select("id, email, name, role, is_verified, created_at");
+
+      if (error) {
+        console.error("Supabase getUsersSafe failed:", error);
+        throw new Error(`Supabase query error: ${error.message}`);
+      }
+      if (data) {
+        return data.map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          role: u.role,
+          isVerified: u.is_verified,
+          createdAt: u.created_at
+        }));
+      }
+    }
+    const users = readLocalDb().users;
+    return users.map((u: any) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role,
+      isVerified: u.isVerified,
+      createdAt: u.createdAt
+    }));
+  }
+
   static async createUser(user: any): Promise<any> {
     if (isSupabaseConfigured()) {
       if (!supabaseAdmin) throw new Error("Supabase admin client not initialized");
