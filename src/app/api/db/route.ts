@@ -95,6 +95,47 @@ export async function GET() {
   }
 }
 
+/**
+ * Sanitizes order creation payload to prevent unauthorized manipulation of server-controlled fields.
+ * This prevents attackers from injecting arbitrary order status, gift card codes, or other sensitive data.
+ */
+function sanitizeOrderPayload(payload: any): any {
+  // Validate required fields
+  if (!payload.id || !payload.walletAddress || !payload.txHash) {
+    throw new Error("Missing required order fields: id, walletAddress, or txHash");
+  }
+
+  if (!payload.items || !Array.isArray(payload.items) || payload.items.length === 0) {
+    throw new Error("Order must contain at least one item");
+  }
+
+  if (!payload.customerDetails || !payload.shippingAddress) {
+    throw new Error("Missing required customerDetails or shippingAddress");
+  }
+
+  // Create sanitized order with only client-provided fields
+  // Server-controlled fields (status, giftCardCode) are explicitly set to safe defaults
+  const sanitizedOrder = {
+    id: payload.id,
+    walletAddress: payload.walletAddress,
+    customerDetails: payload.customerDetails,
+    shippingAddress: payload.shippingAddress,
+    items: payload.items,
+    retailerId: payload.retailerId,
+    retailPriceUSD: payload.retailPriceUSD,
+    paidSOL: payload.paidSOL,
+    receivedUSDC: payload.receivedUSDC || 0,
+    txHash: payload.txHash,
+    swapTxHash: payload.swapTxHash || null,
+    // Security: Force server-controlled fields to safe defaults
+    status: 'pending', // Always start as pending, regardless of client input
+    giftCardCode: null, // Never accept client-provided gift card codes
+    timestamp: new Date().toISOString() // Server-generated timestamp
+  };
+
+  return sanitizedOrder;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -110,7 +151,11 @@ export async function POST(request: Request) {
     } else if (action === "deleteProduct") {
       resultData = await DbAdapter.deleteProduct(payload.productId);
     } else if (action === "createOrder") {
-      resultData = await DbAdapter.createOrder(payload);
+      // Security: Sanitize order payload to prevent manipulation of server-controlled fields
+      // such as status, giftCardCode, and timestamp. This prevents attackers from creating
+      // fraudulent orders with arbitrary fulfillment states.
+      const sanitizedPayload = sanitizeOrderPayload(payload);
+      resultData = await DbAdapter.createOrder(sanitizedPayload);
     } else if (action === "updateOrderStatus") {
       const { orderId, status, details } = payload;
       resultData = await DbAdapter.updateOrderStatus(orderId, status, details);
