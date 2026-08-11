@@ -1,12 +1,26 @@
 import nodemailer from "nodemailer";
 
+// Load SMTP credentials from environment variables
+const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || "587", 10);
+const SMTP_SECURE = process.env.SMTP_SECURE === "true"; // true for 465, false for 587 (STARTTLS)
+const SMTP_USER = process.env.SMTP_USER || "";
+const SMTP_PASS = process.env.SMTP_PASS || "";
+const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || "SOLCart Delivery";
+const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || SMTP_USER;
+
+// Validate that required SMTP credentials are configured
+if (!SMTP_USER || !SMTP_PASS) {
+  console.warn("WARNING: SMTP credentials not configured. Email functionality will be disabled. Set SMTP_USER and SMTP_PASS environment variables.");
+}
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // true for 465, false for other ports (587 uses STARTTLS)
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_SECURE,
   auth: {
-    user: "andriostest@gmail.com",
-    pass: "mobc cdmp yhhm deqr"
+    user: SMTP_USER,
+    pass: SMTP_PASS
   }
 });
 
@@ -14,9 +28,15 @@ const transporter = nodemailer.createTransport({
  * Send an email using Gmail SMTP
  */
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> {
+  // Check if SMTP is configured
+  if (!SMTP_USER || !SMTP_PASS) {
+    console.error("Cannot send email: SMTP credentials not configured");
+    return false;
+  }
+
   try {
     const info = await transporter.sendMail({
-      from: '"SOLCart Delivery" <andriostest@gmail.com>',
+      from: `"${SMTP_FROM_NAME}" <${SMTP_FROM_EMAIL}>`,
       to,
       subject,
       html
