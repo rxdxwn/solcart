@@ -1,4 +1,5 @@
 import { Product, RetailerConfig } from "../types";
+import { getAuthHeaders } from "../lib/api-client";
 
 const DEFAULT_RETAILERS: RetailerConfig[] = [
   {
@@ -239,7 +240,8 @@ export class RetailerService {
     if (typeof window === "undefined" || this.isSyncing) return;
     this.isSyncing = true;
     try {
-      const res = await fetch("/api/db");
+      const headers = getAuthHeaders();
+      const res = await fetch("/api/db", { headers });
       if (res.ok) {
         const result = await res.json();
         if (result.success && result.data) {
@@ -280,9 +282,10 @@ export class RetailerService {
       localStorage.setItem("solcart_products", JSON.stringify(updatedProducts));
 
       // Post to central server DB API
+      const headers = { "Content-Type": "application/json", ...getAuthHeaders() };
       fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           action: "updateRetailerMarkup",
           payload: { retailerId, markupPercentage: newMarkup }
@@ -314,9 +317,10 @@ export class RetailerService {
     products.push(newProduct);
     localStorage.setItem("solcart_products", JSON.stringify(products));
 
+    const headers = { "Content-Type": "application/json", ...getAuthHeaders() };
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         action: "addProduct",
         payload: newProduct
@@ -328,9 +332,10 @@ export class RetailerService {
     const products = this.getStoredProducts().filter(p => p.id !== productId);
     localStorage.setItem("solcart_products", JSON.stringify(products));
 
+    const headers = { "Content-Type": "application/json", ...getAuthHeaders() };
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         action: "deleteProduct",
         payload: { productId }
@@ -356,9 +361,10 @@ export class RetailerService {
       localStorage.removeItem("solcart_retailers");
       localStorage.removeItem("solcart_products");
     }
+    const headers = { "Content-Type": "application/json", ...getAuthHeaders() };
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ action: "resetToDefault", payload: {} })
     }).catch(() => {});
   }

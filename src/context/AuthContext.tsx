@@ -58,6 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await res.json();
       if (res.ok && data.success) {
         localStorage.setItem("solcart_current_user", JSON.stringify(data.user));
+        // Store the session token
+        if (data.token) {
+          localStorage.setItem("solcart_session_token", data.token);
+        }
         setUser(data.user);
         setLoading(false);
         return { success: true };
@@ -151,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setLoading(true);
     localStorage.removeItem("solcart_current_user");
+    localStorage.removeItem("solcart_session_token");
     setUser(null);
     setLoading(false);
   };

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { DbAdapter } from "@/lib/db";
+import { createSession } from "@/lib/auth";
 
 function hashPassword(password: string) {
   return crypto.createHash("sha256").update(password).digest("hex");
@@ -39,7 +40,10 @@ export async function POST(request: Request) {
       }, { status: 403 });
     }
 
-    // Return safe user object
+    // Create session token
+    const sessionToken = createSession(user.id, user.email, user.role);
+
+    // Return safe user object with session token
     const safeUser = {
       id: user.id,
       email: user.email,
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
       createdAt: user.createdAt
     };
 
-    return NextResponse.json({ success: true, user: safeUser });
+    return NextResponse.json({ success: true, user: safeUser, token: sessionToken });
   } catch (e: any) {
     console.error("Login API error:", e);
     return NextResponse.json({ success: false, error: e.message || e }, { status: 500 });

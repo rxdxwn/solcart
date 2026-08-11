@@ -1,8 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import { authenticateRequest, isStaffRole } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Authenticate the request
+    const user = authenticateRequest(request);
+    
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+    
+    // Only staff members can access this endpoint
+    if (!isStaffRole(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
     const settings = await DbAdapter.getSettings();
     const products = await DbAdapter.getProducts();
     const orders = await DbAdapter.getOrders();
@@ -76,26 +95,71 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Authenticate the request
+    const user = authenticateRequest(request);
+    
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { action, payload } = body;
 
     let resultData = null;
 
     if (action === "updateRetailerMarkup") {
+      // Only staff can update retailer markup
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { markupPercentage } = payload;
       resultData = await DbAdapter.updateSettings({ marketplaceMarkup: markupPercentage });
     } else if (action === "addProduct") {
+      // Only staff can add products
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       resultData = await DbAdapter.addProduct(payload);
     } else if (action === "deleteProduct") {
+      // Only staff can delete products
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       resultData = await DbAdapter.deleteProduct(payload.productId);
     } else if (action === "createOrder") {
       resultData = await DbAdapter.createOrder(payload);
     } else if (action === "updateOrderStatus") {
+      // Only staff can update order status
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { orderId, status, details } = payload;
       resultData = await DbAdapter.updateOrderStatus(orderId, status, details);
     } else if (action === "updateSettings") {
+      // Only staff can update settings
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       resultData = await DbAdapter.updateSettings(payload);
     } else if (action === "createTransaction") {
       resultData = await DbAdapter.createTransaction(payload);
@@ -105,23 +169,72 @@ export async function POST(request: Request) {
     } else if (action === "createSupportTicket") {
       resultData = await DbAdapter.createTicket(payload);
     } else if (action === "deliverGiftCardCode") {
+      // CRITICAL: Only staff can deliver gift card codes
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { orderId, giftCardCode } = payload;
       resultData = await DbAdapter.deliverGiftCardCode(orderId, giftCardCode);
     } else if (action === "updateOrderCustomerName") {
+      // Only staff can update customer names
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { orderId, customerName } = payload;
       resultData = await DbAdapter.updateOrderCustomerName(orderId, customerName);
     } else if (action === "updateProductStock") {
+      // Only staff can update product stock
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { productId, stockCount } = payload;
       resultData = await DbAdapter.updateProductStock(productId, stockCount);
     } else if (action === "addTicketComment") {
+      // Only staff can add ticket comments
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { ticketId, comment } = payload;
       resultData = await DbAdapter.addTicketComment(ticketId, comment);
     } else if (action === "createUser") {
+      // Only staff can create users
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       resultData = await DbAdapter.createUser(payload);
     } else if (action === "updateUser") {
+      // Only staff can update users
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { email, updates } = payload;
       resultData = await DbAdapter.updateUser(email, updates);
     } else if (action === "deleteUser") {
+      // Only staff can delete users
+      if (!isStaffRole(user.role)) {
+        return NextResponse.json(
+          { success: false, error: "Insufficient permissions" },
+          { status: 403 }
+        );
+      }
       const { id } = payload;
       resultData = await DbAdapter.deleteUser(id);
     }
