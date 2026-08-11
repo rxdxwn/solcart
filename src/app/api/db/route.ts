@@ -1,8 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import { authenticateRequest, requireAdmin } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Authenticate the request
+    const auth = await authenticateRequest(request);
+    
+    // Only authenticated admin users can access full database information
+    if (!requireAdmin(auth)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Admin access required" },
+        { status: 403 }
+      );
+    }
+
     const settings = await DbAdapter.getSettings();
     const products = await DbAdapter.getProducts();
     const orders = await DbAdapter.getOrders();
@@ -76,10 +88,38 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, payload } = body;
+
+    // Define which actions require admin authentication
+    const adminOnlyActions = [
+      "updateRetailerMarkup",
+      "addProduct",
+      "deleteProduct",
+      "updateOrderStatus",
+      "updateSettings",
+      "deliverGiftCardCode",
+      "updateOrderCustomerName",
+      "updateProductStock",
+      "addTicketComment",
+      "createUser",
+      "updateUser",
+      "deleteUser"
+    ];
+
+    // Authenticate the request for admin-only actions
+    if (adminOnlyActions.includes(action)) {
+      const auth = await authenticateRequest(request);
+      
+      if (!requireAdmin(auth)) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized: Admin access required for this action" },
+          { status: 403 }
+        );
+      }
+    }
 
     let resultData = null;
 

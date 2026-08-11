@@ -233,13 +233,37 @@ export class RetailerService {
   }
 
   /**
+   * Helper to get authorization headers for authenticated API requests
+   */
+  private static getAuthHeaders(): HeadersInit {
+    if (typeof window === "undefined") return { "Content-Type": "application/json" };
+    const stored = localStorage.getItem("solcart_current_user");
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        if (user && user.email) {
+          return {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${user.email}`
+          };
+        }
+      } catch {
+        // Fall through to default headers
+      }
+    }
+    return { "Content-Type": "application/json" };
+  }
+
+  /**
    * Syncs browser local storage with server DB API endpoint
    */
   static async syncWithServer(): Promise<void> {
     if (typeof window === "undefined" || this.isSyncing) return;
     this.isSyncing = true;
     try {
-      const res = await fetch("/api/db");
+      const res = await fetch("/api/db", {
+        headers: this.getAuthHeaders()
+      });
       if (res.ok) {
         const result = await res.json();
         if (result.success && result.data) {
@@ -282,7 +306,7 @@ export class RetailerService {
       // Post to central server DB API
       fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify({
           action: "updateRetailerMarkup",
           payload: { retailerId, markupPercentage: newMarkup }
@@ -316,7 +340,7 @@ export class RetailerService {
 
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify({
         action: "addProduct",
         payload: newProduct
@@ -330,7 +354,7 @@ export class RetailerService {
 
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify({
         action: "deleteProduct",
         payload: { productId }
@@ -358,7 +382,7 @@ export class RetailerService {
     }
     fetch("/api/db", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify({ action: "resetToDefault", payload: {} })
     }).catch(() => {});
   }

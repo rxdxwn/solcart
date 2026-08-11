@@ -99,6 +99,19 @@ const CUSTOMER_GROWTH_DATA = [
 export default function AdminDashboard() {
   const { user, login, logout, hasPermission, bypassLoginForTesting } = useAuth();
 
+  // Helper to get authorization headers for authenticated API requests
+  const getAuthHeaders = () => {
+    if (user && user.email) {
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${user.email}`
+      };
+    }
+    return {
+      "Content-Type": "application/json"
+    };
+  };
+
   // Dynamic Chart Data Helpers
   const getRevenueTrendData = () => {
     if (orders.length === 0) {
@@ -551,7 +564,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateProductStock",
           payload: { productId, stockCount }
@@ -578,7 +591,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "updateOrderCustomerName",
           payload: { orderId, customerName: editingCustomerName.trim() }
@@ -618,7 +631,7 @@ export default function AdminDashboard() {
       // 1. Deliver the code inside the db
       const resVal = await fetch("/api/db", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: "deliverGiftCardCode",
           payload: { orderId, giftCardCode: giftCardCodeInput.trim() }
@@ -629,7 +642,7 @@ export default function AdminDashboard() {
         // 2. Mark order as delivered (which means completed gift card assignment)
         await fetch("/api/db", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             action: "updateOrderStatus",
             payload: { orderId, status: "delivered" }
