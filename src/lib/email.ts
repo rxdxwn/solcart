@@ -1,12 +1,23 @@
 import nodemailer from "nodemailer";
 
+// Load SMTP credentials from environment variables
+const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || "587", 10);
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+
+// Validate that required SMTP credentials are configured
+if (!SMTP_USER || !SMTP_PASS) {
+  console.error("SMTP credentials not configured. Please set SMTP_USER and SMTP_PASS environment variables.");
+}
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
+  host: SMTP_HOST,
+  port: SMTP_PORT,
   secure: false, // true for 465, false for other ports (587 uses STARTTLS)
   auth: {
-    user: "andriostest@gmail.com",
-    pass: "mobc cdmp yhhm deqr"
+    user: SMTP_USER,
+    pass: SMTP_PASS
   }
 });
 
@@ -15,8 +26,14 @@ const transporter = nodemailer.createTransport({
  */
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> {
   try {
+    // Ensure SMTP credentials are configured before attempting to send
+    if (!SMTP_USER || !SMTP_PASS) {
+      console.error("Cannot send email: SMTP credentials not configured");
+      return false;
+    }
+
     const info = await transporter.sendMail({
-      from: '"SOLCart Delivery" <andriostest@gmail.com>',
+      from: `"SOLCart Delivery" <${SMTP_USER}>`,
       to,
       subject,
       html
