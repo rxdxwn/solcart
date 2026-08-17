@@ -1,0 +1,587 @@
+{
+  "retailers": [
+    {
+      "id": "amazon",
+      "name": "Amazon",
+      "logo": "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=100&auto=format&fit=crop&q=60",
+      "markupPercentage": 0,
+      "isActive": true,
+      "description": "Sourced globally. Delivering electronics, books, home products, and daily essentials."
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "logo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=100&auto=format&fit=crop&q=60",
+      "markupPercentage": 0,
+      "isActive": true,
+      "description": "Premium computers, smartphones, tablets, and accessories with top-tier technology."
+    },
+    {
+      "id": "nike",
+      "name": "Nike",
+      "logo": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&auto=format&fit=crop&q=60",
+      "markupPercentage": 0,
+      "isActive": true,
+      "description": "Athletic footwear, activewear, sports equipment, and street-style fashion."
+    },
+    {
+      "id": "walmart",
+      "name": "Walmart",
+      "logo": "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=100&auto=format&fit=crop&q=60",
+      "markupPercentage": 0,
+      "isActive": true,
+      "description": "Everyday low prices on groceries, home appliances, household goods, and toys."
+    },
+    {
+      "id": "target",
+      "name": "Target",
+      "logo": "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=100&auto=format&fit=crop&q=60",
+      "markupPercentage": 0,
+      "isActive": true,
+      "description": "Trendy home decor, fashionable apparel, beauty essentials, and kitchen supplies."
+    }
+  ],
+  "products": [
+    {
+      "id": "p-amazon",
+      "name": "Amazon Gift Card",
+      "description": "Shop millions of products globally. Amazon gift card codes are region-locked to selected countries.",
+      "brand": "Amazon",
+      "image": "/images/amazon-card.jpg",
+      "category": "Retail",
+      "rating": 0,
+      "reviewsCount": 0,
+      "retailPrice": 50,
+      "marketplacePrice": 50,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Redemption": "Online Store",
+        "Expiration": "None"
+      },
+      "retailerId": "amazon",
+      "stockCount": 500,
+      "isFeatured": true,
+      "reviews": [],
+      "pricePoints": [
+        10,
+        25,
+        50,
+        100,
+        200,
+        500
+      ],
+      "currency": "USD",
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-apple",
+      "name": "Apple App Store & iTunes Gift Card",
+      "description": "Redeem on Apple Store, iTunes, Apple Books, or iCloud subscriptions. Perfect gift for any Apple user.",
+      "brand": "Apple",
+      "image": "/images/apple-card.jpg",
+      "category": "Entertainment",
+      "rating": 0,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "marketplacePrice": 100,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Redemption": "App Store / iTunes",
+        "Expiration": "None"
+      },
+      "retailerId": "apple",
+      "stockCount": 200,
+      "isFeatured": true,
+      "reviews": [],
+      "pricePoints": [
+        15,
+        25,
+        50,
+        100,
+        200
+      ],
+      "currency": "USD",
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-steam",
+      "name": "Steam Wallet Code",
+      "description": "Add funds directly to your Steam Account. Instant access to purchase games, expansions, and community items.",
+      "brand": "Steam",
+      "image": "/images/steam-card.jpg",
+      "category": "Gaming",
+      "rating": 0,
+      "reviewsCount": 0,
+      "retailPrice": 50,
+      "marketplacePrice": 50,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Redemption": "Steam Client",
+        "Expiration": "None"
+      },
+      "retailerId": "steam",
+      "stockCount": 800,
+      "isFeatured": true,
+      "reviews": [],
+      "pricePoints": [
+        10,
+        20,
+        50,
+        100
+      ],
+      "currency": "USD",
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-noon",
+      "name": "Noon Gift Card",
+      "description": "Shop millions of items on Noon.com in UAE, Saudi Arabia, and Egypt.",
+      "brand": "Noon",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Noon.com_logo.svg",
+      "category": "Retail",
+      "rating": 0,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "marketplacePrice": 100,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Redemption": "Online Store",
+        "Expiration": "None"
+      },
+      "retailerId": "noon",
+      "stockCount": 150,
+      "isFeatured": true,
+      "reviews": [],
+      "pricePoints": [
+        50,
+        100,
+        250,
+        500
+      ],
+      "currency": "USD",
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-nike",
+      "name": "Nike Gift Card",
+      "description": "Shop the latest Nike footwear, apparel, and equipment online or in-store.",
+      "brand": "Nike",
+      "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60",
+      "category": "Apparel",
+      "rating": 0,
+      "reviewsCount": 0,
+      "retailPrice": 50,
+      "marketplacePrice": 50,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital/Physical",
+        "Redemption": "Nike Stores / Web",
+        "Expiration": "None"
+      },
+      "retailerId": "nike",
+      "stockCount": 100,
+      "isFeatured": true,
+      "reviews": [],
+      "pricePoints": [
+        25,
+        50,
+        100,
+        200
+      ],
+      "currency": "USD",
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-499kd3lpx",
+      "name": "Beats",
+      "description": "https",
+      "brand": "Dr Dre",
+      "image": "https://render.com",
+      "category": "Electronics",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "estimatedDelivery": "3-5 business days",
+      "specs": {
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "pricePoints": [
+        25,
+        50
+      ],
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ],
+      "currency": "GBP",
+      "marketplacePrice": 100,
+      "reviews": []
+    }
+  ],
+  "orders": [
+    {
+      "walletAddress": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "customerDetails": {
+        "name": "solcart",
+        "email": "loserstowinnersofficial@gmail.com",
+        "phone": "N/A"
+      },
+      "shippingAddress": {
+        "id": "addr-digital",
+        "name": "solcart",
+        "streetAddress": "Digital Delivery",
+        "city": "N/A",
+        "state": "N/A",
+        "postalCode": "N/A",
+        "country": "United States",
+        "isDefault": true
+      },
+      "items": [
+        {
+          "productId": "p-amazon",
+          "productName": "Amazon Gift Card",
+          "brand": "Amazon",
+          "retailerId": "amazon",
+          "quantity": 1,
+          "retailPriceUSD": 10,
+          "marketplacePriceUSD": 10,
+          "image": "/images/amazon-card.jpg",
+          "selectedRegion": "United States",
+          "selectedCurrency": "USD"
+        }
+      ],
+      "retailerId": "amazon",
+      "retailPriceUSD": 10,
+      "paidSOL": 0.1318,
+      "receivedUSDC": 10,
+      "txHash": "5YX3pcV4ibjCRVA9zBit9ms3qtyHHQ1ihceTAUb1fQaAonS9KHGQojv5Jq5d3KFkY8dJx1XQm7wfKHhQXU9z936L",
+      "swapTxHash": "mock_jupiter_swap_c34imqnvgua",
+      "status": "pending",
+      "id": "ord-589417",
+      "timestamp": "2026-08-17T21:15:46.746Z"
+    },
+    {
+      "walletAddress": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "customerDetails": {
+        "name": "loserstowinners",
+        "email": "loserstowinnersofficial@gmail.com",
+        "phone": "N/A"
+      },
+      "shippingAddress": {
+        "id": "addr-digital",
+        "name": "loserstowinners",
+        "streetAddress": "Digital Delivery",
+        "city": "N/A",
+        "state": "N/A",
+        "postalCode": "N/A",
+        "country": "United States",
+        "isDefault": true
+      },
+      "items": [
+        {
+          "productId": "p-amazon",
+          "productName": "Amazon Gift Card",
+          "brand": "Amazon",
+          "retailerId": "amazon",
+          "quantity": 1,
+          "retailPriceUSD": 10,
+          "marketplacePriceUSD": 10,
+          "image": "/images/amazon-card.jpg",
+          "selectedRegion": "United States",
+          "selectedCurrency": "USD"
+        }
+      ],
+      "retailerId": "amazon",
+      "retailPriceUSD": 10,
+      "paidSOL": 0.1317,
+      "receivedUSDC": 10,
+      "txHash": "h7SkTtVWEpHpcH1vTYKqxu9fwrAU7vKP8QzkXvAZM1z5JoxWDtnsXTQgWCWBVrYkrc5BCq7u9LmeMAfNvWyMEb4",
+      "swapTxHash": "mock_jupiter_swap_fa075vgbs3",
+      "giftCardCode": "AMAZON-UN-10-7R783PEJ",
+      "status": "delivered",
+      "id": "ord-747862",
+      "timestamp": "2026-08-17T20:58:06.906Z"
+    }
+  ],
+  "transactions": [
+    {
+      "orderId": "ord-589417",
+      "walletAddress": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "type": "payment",
+      "amount": 0.1318,
+      "token": "SOL",
+      "status": "success",
+      "txHash": "5YX3pcV4ibjCRVA9zBit9ms3qtyHHQ1ihceTAUb1fQaAonS9KHGQojv5Jq5d3KFkY8dJx1XQm7wfKHhQXU9z936L",
+      "id": "tx-a35f0nnik",
+      "timestamp": "2026-08-17T21:15:46.757Z"
+    },
+    {
+      "orderId": "ord-589417",
+      "walletAddress": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "type": "swap",
+      "amount": 10,
+      "token": "USDC",
+      "status": "success",
+      "txHash": "mock_jupiter_swap_c34imqnvgua",
+      "id": "tx-xa5uyt08r",
+      "timestamp": "2026-08-17T21:15:46.757Z"
+    },
+    {
+      "orderId": "ord-747862",
+      "walletAddress": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "type": "swap",
+      "amount": 10,
+      "token": "USDC",
+      "status": "success",
+      "txHash": "mock_jupiter_swap_fa075vgbs3",
+      "id": "tx-az657elxx",
+      "timestamp": "2026-08-17T20:58:06.917Z"
+    },
+    {
+      "orderId": "ord-747862",
+      "walletAddress": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "type": "payment",
+      "amount": 0.1317,
+      "token": "SOL",
+      "status": "success",
+      "txHash": "h7SkTtVWEpHpcH1vTYKqxu9fwrAU7vKP8QzkXvAZM1z5JoxWDtnsXTQgWCWBVrYkrc5BCq7u9LmeMAfNvWyMEb4",
+      "id": "tx-drxqhoymo",
+      "timestamp": "2026-08-17T20:58:06.917Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "usr-1784936770112-441",
+      "email": "rxdhwann@gmail.com",
+      "name": "Mohammed Ridhwan",
+      "passwordHash": "e1c1c14d10acaece79894914c2a97e29cf061e8021e4890f8e631f9926cd289a",
+      "role": "customer",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2026-07-24T23:46:10.112Z",
+      "resetCode": null
+    },
+    {
+      "id": "staff-1",
+      "email": "owner@solcart.shop",
+      "name": "Sarah Owner",
+      "passwordHash": "",
+      "role": "Owner",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-10T12:00:00Z"
+    },
+    {
+      "id": "staff-2",
+      "email": "superadmin@solcart.shop",
+      "name": "Alex SuperAdmin",
+      "passwordHash": "",
+      "role": "Super Admin",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-11T12:00:00Z"
+    },
+    {
+      "id": "staff-3",
+      "email": "finance@solcart.shop",
+      "name": "Fred Finance",
+      "passwordHash": "",
+      "role": "Finance Manager",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-12T12:00:00Z"
+    },
+    {
+      "id": "staff-4",
+      "email": "ops@solcart.shop",
+      "name": "Olivia Operations",
+      "passwordHash": "",
+      "role": "Operations Manager",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-13T12:00:00Z"
+    },
+    {
+      "id": "staff-5",
+      "email": "support@solcart.shop",
+      "name": "Steve Support",
+      "passwordHash": "",
+      "role": "Customer Support",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-14T12:00:00Z"
+    },
+    {
+      "id": "staff-6",
+      "email": "fulfillment@solcart.shop",
+      "name": "Frank Fulfillment",
+      "passwordHash": "",
+      "role": "Fulfillment Manager",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-15T12:00:00Z"
+    },
+    {
+      "id": "staff-7",
+      "email": "analyst@solcart.shop",
+      "name": "Ana Analyst",
+      "passwordHash": "",
+      "role": "Read-Only Analyst",
+      "isVerified": true,
+      "verificationCode": null,
+      "createdAt": "2025-01-16T12:00:00Z"
+    },
+    {
+      "id": "GpTU73xt6bWcPisc9Lt8mUZBva92oF8DUoM2bUmo8yWA",
+      "email": "rxdhwann@gmail.com",
+      "name": "Wallet GpTU73",
+      "passwordHash": "",
+      "role": "customer",
+      "isVerified": false,
+      "createdAt": "2026-07-29T22:34:51.281Z",
+      "verificationCode": "302860",
+      "resetCode": "2026-07-29T22:35:44.047Z"
+    },
+    {
+      "id": "DTfTH9fsjdBLtskdmW41g44ZNihiRA3itfiTeEQo9J7i",
+      "email": "DTfTH9fs@solcart-user.shop",
+      "name": "Wallet DTfTH9",
+      "passwordHash": "",
+      "role": "customer",
+      "isVerified": false,
+      "createdAt": "2026-07-31T19:52:19.420Z"
+    },
+    {
+      "id": "GdBgWNHzArpuY7RXSpLHCMqDQLsb9ExQfb2D4xMc1a9Q",
+      "email": "GdBgWNHz@solcart-user.shop",
+      "name": "Wallet GdBgWN",
+      "passwordHash": "",
+      "role": "customer",
+      "isVerified": false,
+      "createdAt": "2026-08-17T20:49:05.391Z"
+    },
+    {
+      "id": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
+      "email": "8fmMF2H5@solcart-user.shop",
+      "name": "loserstowinnersofficial@gmail.com",
+      "passwordHash": "",
+      "role": "customer",
+      "isVerified": true,
+      "createdAt": "2026-08-17T21:10:26.461Z",
+      "verificationCode": null,
+      "resetCode": null
+    }
+  ],
+  "tickets": [],
+  "settings": {
+    "marketplaceMarkup": 0,
+    "supportedCryptos": [
+      "SOL",
+      "USDC"
+    ],
+    "defaultSolWallet": "So11111111111111111111111111111111111111112",
+    "rpcProvider": "Helius Mainnet Beta",
+    "emailAlerts": false,
+    "maintenanceMode": false,
+    "taxRate": 0,
+    "shippingFeeUSD": 0,
+    "freeShippingThresholdUSD": 0,
+    "featureFlags": {
+      "autoSwap": true,
+      "mockFulfillment": true,
+      "analyticsDashboard": true
+    }
+  },
+  "version": "1.01 / Beta",
+  "sentEmails": [
+    {
+      "id": "email-1787000246119-443",
+      "to": "loserstowinnersofficial@gmail.com",
+      "subject": "Verify your SOLCart account",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <h2 style=\"color: #6366f1; text-align: center;\">Welcome to SOLCart!</h2>\n      <p>Thank you for signing up. Please verify your email address by using the verification code below:</p>\n      <div style=\"text-align: center; margin: 30px 0;\">\n        <span style=\"font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e1b4b; background-color: #f3f4f6; padding: 10px 20px; border-radius: 6px; border: 1px dashed #6366f1;\">\n          175260\n        </span>\n      </div>\n      <p style=\"color: #6b7280; font-size: 14px;\">This code will expire in 15 minutes. If you did not request this, please ignore this email.</p>\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-08-17T20:57:26.119Z"
+    },
+    {
+      "id": "email-1787000290389-793",
+      "to": "loserstowinnersofficial@gmail.com",
+      "subject": "SOLCart Order Receipt #ord-747862",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <div style=\"text-align: center; margin-bottom: 20px;\">\n        <h2 style=\"color: #6366f1; margin: 0;\">SOLCart Invoice</h2>\n        <p style=\"color: #6b7280; font-size: 14px; margin: 5px 0 0 0;\">Order #ord-747862</p>\n      </div>\n      <p>Dear loserstowinners,</p>\n      <p>Thank you for your purchase! We have successfully received your payment. Here is your receipt:</p>\n      \n      <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n        <thead>\n          <tr style=\"background-color: #f9fafb;\">\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: left;\">Item</th>\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: center;\">Qty</th>\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: right;\">Price</th>\n          </tr>\n        </thead>\n        <tbody>\n          \n    <tr>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea;\">Amazon Gift Card</td>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea; text-align: center;\">1</td>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea; text-align: right;\">$10.00</td>\n    </tr>\n  \n          <tr>\n            <td colspan=\"2\" style=\"padding: 10px; text-align: right; font-weight: bold;\">Total Paid:</td>\n            <td style=\"padding: 10px; text-align: right; font-weight: bold; color: #10b981;\">\n              0.1317 SOL\n            </td>\n          </tr>\n        </tbody>\n      </table>\n\n      <div style=\"background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 15px; margin: 20px 0;\">\n        <h4 style=\"margin: 0 0 5px 0; color: #b45309;\">Digital Delivery</h4>\n        <p style=\"margin: 0; font-size: 14px; color: #78350f;\">\n          Our administration is preparing your digital gift card codes. They will be uploaded directly to your Customer Dashboard as soon as they are processed.\n        </p>\n      </div>\n\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-08-17T20:58:10.389Z"
+    },
+    {
+      "id": "email-1787000292226-196",
+      "to": "loserstowinnersofficial@gmail.com",
+      "subject": "Your Gift Card Code for Order #ord-747862 is Ready!",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <h2 style=\"color: #10b981; text-align: center;\">Your Gift Card Code is Ready!</h2>\n      <p>Good news! The administrator has uploaded the gift card code for your order <strong>#ord-747862</strong>.</p>\n      \n      <div style=\"text-align: center; margin: 30px 0; background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 6px; padding: 20px;\">\n        <p style=\"margin: 0 0 10px 0; color: #065f46; font-size: 14px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;\">Gift Card Code</p>\n        <span style=\"font-family: monospace; font-size: 24px; font-weight: bold; color: #065f46; background-color: #ffffff; padding: 8px 16px; border: 1px solid #a7f3d0; border-radius: 4px;\">\n          AMAZON-UN-10-7R783PEJ\n        </span>\n      </div>\n\n      <p>You can also view this code at any time by logging into your Customer Dashboard on our website.</p>\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-08-17T20:58:12.226Z"
+    },
+    {
+      "id": "email-1787001079088-968",
+      "to": "loserstowinnersofficial@gmail.com",
+      "subject": "Verify your SOLCart account",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <h2 style=\"color: #6366f1; text-align: center;\">Welcome to SOLCart!</h2>\n      <p>Thank you for signing up. Please verify your email address by using the verification code below:</p>\n      <div style=\"text-align: center; margin: 30px 0;\">\n        <span style=\"font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e1b4b; background-color: #f3f4f6; padding: 10px 20px; border-radius: 6px; border: 1px dashed #6366f1;\">\n          592866\n        </span>\n      </div>\n      <p style=\"color: #6b7280; font-size: 14px;\">This code will expire in 15 minutes. If you did not request this, please ignore this email.</p>\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-08-17T21:11:19.088Z"
+    },
+    {
+      "id": "email-1787001353165-718",
+      "to": "loserstowinnersofficial@gmail.com",
+      "subject": "SOLCart Order Receipt #ord-589417",
+      "html": "\n    <div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;\">\n      <div style=\"text-align: center; margin-bottom: 20px;\">\n        <h2 style=\"color: #6366f1; margin: 0;\">SOLCart Invoice</h2>\n        <p style=\"color: #6b7280; font-size: 14px; margin: 5px 0 0 0;\">Order #ord-589417</p>\n      </div>\n      <p>Dear solcart,</p>\n      <p>Thank you for your purchase! We have successfully received your payment. Here is your receipt:</p>\n      \n      <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n        <thead>\n          <tr style=\"background-color: #f9fafb;\">\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: left;\">Item</th>\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: center;\">Qty</th>\n            <th style=\"padding: 10px; border-bottom: 2px solid #eaeaea; text-align: right;\">Price</th>\n          </tr>\n        </thead>\n        <tbody>\n          \n    <tr>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea;\">Amazon Gift Card</td>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea; text-align: center;\">1</td>\n      <td style=\"padding: 10px; border-bottom: 1px solid #eaeaea; text-align: right;\">$10.00</td>\n    </tr>\n  \n          <tr>\n            <td colspan=\"2\" style=\"padding: 10px; text-align: right; font-weight: bold;\">Total Paid:</td>\n            <td style=\"padding: 10px; text-align: right; font-weight: bold; color: #10b981;\">\n              0.1318 SOL\n            </td>\n          </tr>\n        </tbody>\n      </table>\n\n      <div style=\"background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 15px; margin: 20px 0;\">\n        <h4 style=\"margin: 0 0 5px 0; color: #b45309;\">Digital Delivery</h4>\n        <p style=\"margin: 0; font-size: 14px; color: #78350f;\">\n          Our administration is preparing your digital gift card codes. They will be uploaded directly to your Customer Dashboard as soon as they are processed.\n        </p>\n      </div>\n\n      <hr style=\"border: none; border-top: 1px solid #eaeaea; margin: 20px 0;\" />\n      <p style=\"text-align: center; color: #9ca3af; font-size: 12px;\">SOLCart - Digital Gift Card Payment Gateway</p>\n    </div>\n  ",
+      "timestamp": "2026-08-17T21:15:53.165Z"
+    }
+  ],
+  "giftCardPool": [
+    {
+      "id": "gc-1",
+      "brand": "Amazon",
+      "region": "United States",
+      "price": 50,
+      "code": "ajdsa",
+      "isUsed": false,
+      "createdAt": "2026-08-17T21:26:04.810Z"
+    },
+    {
+      "id": "gc-2",
+      "brand": "Nike",
+      "region": "United States",
+      "price": 50,
+      "code": "asdadsa",
+      "isUsed": false,
+      "createdAt": "2026-08-17T21:26:14.252Z"
+    }
+  ]
+}
