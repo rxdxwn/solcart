@@ -11,6 +11,7 @@ export async function GET() {
     const tickets = await DbAdapter.getTickets();
     const activityLogs = await DbAdapter.getActivityLogs();
     const giftCardPool = await DbAdapter.getGiftCardPool();
+    const launches = await DbAdapter.getLaunches();
 
     const safeSettings = settings || { marketplaceMarkup: 0 };
 
@@ -23,6 +24,7 @@ export async function GET() {
       tickets,
       activityLogs,
       giftCardPool,
+      launches,
       retailers: [
         {
           id: "amazon",
@@ -139,6 +141,8 @@ export async function POST(request: Request) {
       resultData = await DbAdapter.deleteUser(id);
     } else if (action === "saveGiftCardPool") {
       resultData = await DbAdapter.saveGiftCardPool(payload);
+    } else if (action === "saveLaunches") {
+      resultData = await DbAdapter.saveLaunches(payload);
     }
 
     return NextResponse.json({

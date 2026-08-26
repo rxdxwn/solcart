@@ -41,6 +41,7 @@ import { RetailerService } from "../../services/retailers";
 import { SupabaseService } from "../../services/supabase";
 import { allocateGiftCardCode } from "../../data/inventory";
 import { APP_VERSION } from "../../lib/version";
+import { LAUNCH_SCHEDULE } from "../../data/launches";
 
 import { Order, Transaction, Product, RetailerConfig, RefundRequest, ActivityLog } from "../../types";
 import { Connection, PublicKey, Transaction as SolanaTx, TransactionInstruction, SystemProgram } from "@solana/web3.js";
@@ -236,6 +237,7 @@ export default function AdminDashboard() {
   const [newCodePrice, setNewCodePrice] = useState("50");
   const [newCodesTextArea, setNewCodesTextArea] = useState("");
   const [poolSearchQuery, setPoolSearchQuery] = useState("");
+  const [launches, setLaunches] = useState<any[]>([]);
 
   // Admin Login States
   const [adminEmail, setAdminEmail] = useState("");
@@ -292,6 +294,7 @@ export default function AdminDashboard() {
     setSettings(SupabaseService.getSettings());
     setLogs(SupabaseService.getActivityLogs());
     setGiftCardPool(SupabaseService.getGiftCardPool());
+    setLaunches(SupabaseService.getLaunches());
     setDataLoading(false);
   };
 
@@ -483,27 +486,29 @@ export default function AdminDashboard() {
     refreshAllData();
   };
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasPermission("products", "edit")) return;
-    if (newProdName && newProdBrand && newProdRetailPrice) {
-      const basePrice = parseFloat(newProdRetailPrice);
+    if (newProdName && newProdBrand) {
       const pricePoints = newProdPricePoints
         .split(",")
         .map(s => parseFloat(s.trim()))
         .filter(n => !isNaN(n) && n > 0);
+      const basePrice = pricePoints[0] || 50.00;
       if (pricePoints.length === 0) pricePoints.push(basePrice);
+      
       const regions = newProdRegions
         .split(",")
         .map(s => s.trim())
         .filter(s => s.length > 0);
+      
       // Retailer is no longer selected per product; products fall under the catalog default retailer.
       const defaultRetailerId = retailers[0]?.id || "amazon";
       const specs = { "Retailer Sourced": defaultRetailerId };
 
       if (editingProductId) {
         // Edit existing product
-        RetailerService.updateProduct(editingProductId, {
+        await RetailerService.updateProduct(editingProductId, {
           name: newProdName,
           description: newProdDesc || "No description provided",
           brand: newProdBrand,
@@ -519,7 +524,7 @@ export default function AdminDashboard() {
         });
       } else {
         // Add new product
-        RetailerService.addProduct({
+        await RetailerService.addProduct({
           id: `p-${Math.random().toString(36).substr(2, 9)}`,
           name: newProdName,
           description: newProdDesc || "No description provided",
@@ -553,7 +558,7 @@ export default function AdminDashboard() {
       setNewProdCategory("Electronics");
       setEditingProductId(null);
       setShowProductForm(false);
-      refreshAllData();
+      await refreshAllData();
     }
   };
 
@@ -886,7 +891,7 @@ export default function AdminDashboard() {
             <button
                type="submit"
                disabled={loginLoading}
-               className="w-full py-3 px-4 rounded-xl bg-white hover:bg-white/90 text-black font-semibold shadow-md font-extrabold text-xs text-white hover:scale-[1.01] shadow-lg shadow-brand-purple/10 flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+               className="w-full py-3 px-4 rounded-xl bg-white hover:bg-white/90 text-black font-semibold shadow-md font-extrabold text-xs hover:scale-[1.01] shadow-lg shadow-brand-purple/10 flex items-center justify-center gap-2 transition-all disabled:opacity-40"
             >
               {loginLoading ? "Authenticating..." : "Sign In to Operations"}
             </button>
@@ -942,7 +947,7 @@ export default function AdminDashboard() {
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                   activeTab === item.id 
-                    ? 'bg-white text-black text-white shadow-lg shadow-brand-purple/20' 
+                    ? 'bg-white text-black shadow-lg shadow-brand-purple/20' 
                     : 'text-brand-text-muted hover:text-white hover:bg-[#080808]'
                 } ${!hasAccess ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
@@ -1323,7 +1328,7 @@ export default function AdminDashboard() {
                             onClick={() => setOrderStatusFilter(status)}
                             className={`px-3 py-1.5 rounded-lg border font-bold capitalize transition-all ${
                               orderStatusFilter === status 
-                                ? 'bg-white text-black border-white/10 text-white shadow-md' 
+                                ? 'bg-white text-black border-white/10 shadow-md' 
                                 : 'bg-[#080808]/40 border-white/5 text-brand-text-muted hover:text-white'
                             }`}
                           >
@@ -1427,7 +1432,7 @@ export default function AdminDashboard() {
                                   <div className="flex gap-1.5">
                                     <button
                                       onClick={() => handleUpdateCustomerName(selectedOrder.id)}
-                                      className="px-2 py-0.5 rounded bg-white text-black text-[10px] font-bold text-white hover:bg-white text-black/90"
+                                      className="px-2 py-0.5 rounded bg-white text-black text-[10px] font-bold hover:bg-white/90"
                                     >
                                       Save
                                     </button>
@@ -1506,14 +1511,14 @@ export default function AdminDashboard() {
                                     />
                                     <button
                                       onClick={() => handleAutoAssignGiftCardCode(selectedOrder.id)}
-                                      className="px-4 bg-white text-black/80 hover:bg-white text-black text-brand-dark rounded-lg text-xs font-bold transition-colors"
+                                      className="px-4 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold transition-colors"
                                       title="Auto-allocate a code for this order's product/region/price"
                                     >
                                       Auto-Assign
                                     </button>
                                     <button
                                       onClick={() => handleDeliverGiftCardCode(selectedOrder.id)}
-                                      className="px-4 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold text-white transition-colors"
+                                      className="px-4 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold transition-colors"
                                     >
                                       Deliver Code
                                     </button>
@@ -1583,7 +1588,7 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             onClick={() => setSelectedOrder(null)}
-                            className="px-6 py-2 bg-white hover:bg-white/90 text-black text-xs font-bold rounded-lg text-white"
+                            className="px-6 py-2 bg-white hover:bg-white/90 text-black text-xs font-bold rounded-lg"
                           >
                             Close
                           </button>
@@ -1947,7 +1952,7 @@ export default function AdminDashboard() {
                           setEditingProductId(null);
                           setShowProductForm(true);
                         }}
-                        className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold text-white flex items-center gap-1.5"
+                                                className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold flex items-center gap-1.5"
                       >
                         <Plus className="h-4 w-4" />
                         Add Product
@@ -1985,27 +1990,17 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-brand-text-muted font-bold">Base Retail Cost (USD)</label>
-                          <input
-                            type="number"
-                            required
-                            placeholder="100.00"
-                            value={newProdRetailPrice}
-                            onChange={(e) => setNewProdRetailPrice(e.target.value)}
-                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
-                          />
-                        </div>
-                        <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Selling Currency</label>
                           <select
                             value={newProdCurrency}
                             onChange={(e) => setNewProdCurrency(e.target.value)}
                             className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white cursor-pointer"
                           >
-                            <option value="USD">USD</option>
-                            <option value="GBP">GBP</option>
-                            <option value="SGD">SGD</option>
-                            <option value="CAD">CAD</option>
+                            {(launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).map((item) => (
+                              <option key={item.code} value={item.currency}>
+                                {item.country} ({item.currency})
+                              </option>
+                            ))}
                           </select>
                         </div>
                         <div className="space-y-1">
@@ -2081,7 +2076,7 @@ export default function AdminDashboard() {
                       <div className="flex gap-4">
                         <button
                           type="submit"
-                          className="flex-1 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold text-white"
+                          className="flex-1 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold"
                         >
                           {editingProductId ? "Save Changes" : "Confirm & Add"}
                         </button>
@@ -2118,7 +2113,7 @@ export default function AdminDashboard() {
                             <td className="p-3.5 text-brand-text-muted">{prod.category}</td>
                             <td className="p-3.5 font-bold text-white">${prod.retailPrice.toFixed(2)}</td>
                             <td className="p-3.5 font-bold">
-                              <span className={`px-2 py-0.5 rounded text-[10px] ${prod.stockCount > 10 ? 'text-[#92c1e3] bg-white text-black/5' : 'text-amber-400 bg-amber-500/5'}`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] border ${prod.stockCount > 10 ? 'text-[#92c1e3] bg-[#92c1e3]/10 border-[#92c1e3]/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20'}`}>
                                 {prod.stockCount} in stock
                               </span>
                             </td>
@@ -2184,15 +2179,15 @@ export default function AdminDashboard() {
                           ) : (
                             products.map(prod => {
                               const stock = prod.stockCount;
-                              let statusText = "In Stock";
-                              let statusClass = "text-[#92c1e3] bg-white text-black/5";
-                              if (stock === 0) {
-                                statusText = "Out of Stock";
-                                statusClass = "text-red-400 bg-red-500/5";
-                              } else if (stock <= 10) {
-                                statusText = "Low Stock";
-                                statusClass = "text-amber-400 bg-amber-500/5";
-                              }
+                               let statusText = "In Stock";
+                               let statusClass = "text-[#92c1e3] bg-[#92c1e3]/10 border border-[#92c1e3]/20";
+                               if (stock === 0) {
+                                 statusText = "Out of Stock";
+                                 statusClass = "text-red-400 bg-red-500/10 border border-red-500/20";
+                               } else if (stock <= 10) {
+                                 statusText = "Low Stock";
+                                 statusClass = "text-amber-400 bg-amber-500/10 border border-amber-500/20";
+                               }
 
                               return (
                                 <tr key={prod.id} className="hover:bg-[#080808]/25">
@@ -2360,7 +2355,7 @@ export default function AdminDashboard() {
                             alert(`Successfully added ${newEntries.length} new gift card codes to the inventory!`);
                             refreshAllData();
                           }}
-                          className="w-full py-2 bg-white hover:bg-white/90 text-black rounded-lg font-bold text-brand-dark transition-colors"
+                          className="w-full py-2 bg-white hover:bg-white/90 text-black rounded-lg font-bold transition-colors"
                         >
                           Add Codes to Inventory
                         </button>
@@ -2466,7 +2461,7 @@ export default function AdminDashboard() {
                     {hasPermission("staff", "edit") && (
                       <button
                         onClick={() => setShowStaffForm(!showStaffForm)}
-                        className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold text-white flex items-center gap-1.5"
+                        className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold flex items-center gap-1.5"
                       >
                         <Plus className="h-4 w-4" />
                         Invite Employee
@@ -2520,7 +2515,7 @@ export default function AdminDashboard() {
                       <div className="flex gap-4">
                         <button
                           type="submit"
-                          className="flex-1 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold text-white"
+                          className="flex-1 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold"
                         >
                           Send Invite
                         </button>
@@ -2678,7 +2673,7 @@ export default function AdminDashboard() {
                             />
                             <button
                               type="submit"
-                              className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold text-white"
+                              className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold"
                             >
                               Post
                             </button>
@@ -2689,7 +2684,7 @@ export default function AdminDashboard() {
                           {selectedTicket.status !== "resolved" ? (
                             <button
                               onClick={() => handleResolveTicket(selectedTicket.id)}
-                              className="px-4 py-2 bg-white text-black hover:bg-white text-black/95 text-xs font-bold rounded-lg text-white"
+                              className="px-4 py-2 bg-white hover:bg-white/90 text-black text-xs font-bold rounded-lg"
                             >
                               Mark Resolved
                             </button>
@@ -2726,15 +2721,14 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
-                    
-                    <div className="p-5 rounded-2xl border border-white/5 bg-[#080808]/15 flex justify-between items-center gap-4">
+                          <div className="p-5 rounded-2xl border border-white/5 bg-[#080808]/15 flex justify-between items-center gap-4">
                       <div>
                         <h3 className="font-extrabold text-sm text-white">Full Revenue Report</h3>
                         <p className="text-[11px] text-brand-text-muted mt-1">Detailed list of all client purchases, wallet inputs, and Swapped USDC totals.</p>
                       </div>
                       <button
                         onClick={exportRevenueReport}
-                        className="p-3 bg-white hover:bg-white/90 text-black rounded-xl text-white transition-all shrink-0 flex items-center gap-1.5 text-xs font-bold"
+                        className="p-3 bg-white hover:bg-white/90 text-black rounded-xl transition-all shrink-0 flex items-center gap-1.5 text-xs font-bold"
                       >
                         <Download className="h-4 w-4" />
                         Export CSV
@@ -2748,13 +2742,12 @@ export default function AdminDashboard() {
                       </div>
                       <button
                         onClick={exportAuditLogs}
-                        className="p-3 bg-white hover:bg-white/90 text-black rounded-xl text-white transition-all shrink-0 flex items-center gap-1.5 text-xs font-bold"
+                        className="p-3 bg-white hover:bg-white/90 text-black rounded-xl transition-all shrink-0 flex items-center gap-1.5 text-xs font-bold"
                       >
                         <Download className="h-4 w-4" />
                         Export CSV
                       </button>
                     </div>
-
                   </div>
                 </div>
               )}
@@ -3037,6 +3030,43 @@ export default function AdminDashboard() {
                         }}
                         className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white font-mono"
                       />
+                    </div>
+
+                    {/* Launch Schedule & Country Toggles */}
+                    <div className="pt-6 border-t border-white/5 space-y-4">
+                      <div>
+                        <p className="font-bold text-white font-sans text-xs uppercase tracking-wider">Launch Schedule & Target Countries</p>
+                        <p className="text-[10px] text-brand-text-muted mt-1">Activate target countries and their local selling currencies. Active countries can be selected during checkouts and have custom products listed in their native currencies.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {(launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).map((item) => (
+                          <div key={item.code} className="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-[#020202]/30">
+                            <div>
+                              <p className="font-bold text-white text-xs">{item.country} ({item.currency})</p>
+                              <p className="text-[9px] text-brand-text-muted mt-0.5">Rate: 1 {item.currency} = ${item.rateToUsd} USD • Launch: {item.launchDate}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${item.status === 'active' ? 'bg-brand-green/10 text-brand-green border-brand-green/20' : 'bg-white/5 text-brand-text-muted border-white/5'}`}>
+                                {item.status}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!hasPermission("settings", "edit")) return;
+                                  const list = launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE;
+                                  const updated = list.map(l => l.code === item.code ? { ...l, status: l.status === 'active' ? 'upcoming' : 'active' } : l);
+                                  SupabaseService.saveLaunches(updated);
+                                  setLaunches(updated);
+                                  refreshAllData();
+                                }}
+                                className="px-3 py-1 bg-white hover:bg-white/90 text-black text-[10px] font-bold rounded transition-all"
+                              >
+                                Toggle
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                   </div>

@@ -322,7 +322,7 @@ export class RetailerService {
     return this.getProducts().find(p => p.id === id);
   }
 
-  static addProduct(product: Omit<Product, "marketplacePrice">): void {
+  static async addProduct(product: Omit<Product, "marketplacePrice">): Promise<void> {
     const products = this.getStoredProducts();
     const retailers = this.getStoredRetailers();
     const retailer = retailers.find(r => r.id === product.retailerId) || { markupPercentage: 10 };
@@ -337,14 +337,18 @@ export class RetailerService {
     this.markProductsDirty();
     localStorage.setItem("solcart_products", JSON.stringify(products));
 
-    fetch("/api/db", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "addProduct",
-        payload: newProduct
-      })
-    }).then(() => this.clearProductsDirty()).catch(() => {});
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "addProduct",
+          payload: newProduct
+        })
+      });
+    } finally {
+      this.clearProductsDirty();
+    }
   }
 
   static deleteProduct(productId: string): void {
@@ -362,7 +366,7 @@ export class RetailerService {
     }).then(() => this.clearProductsDirty()).catch(() => {});
   }
 
-  static updateProduct(productId: string, updatedFields: Partial<Omit<Product, "marketplacePrice">>): void {
+  static async updateProduct(productId: string, updatedFields: Partial<Omit<Product, "marketplacePrice">>): Promise<void> {
     const products = this.getStoredProducts();
     const index = products.findIndex(p => p.id === productId);
     if (index !== -1) {
@@ -374,15 +378,18 @@ export class RetailerService {
       this.markProductsDirty();
       localStorage.setItem("solcart_products", JSON.stringify(products));
 
-      // Post to central server DB API
-      fetch("/api/db", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "updateProduct",
-          payload: { productId, updates: updatedFields }
-        })
-      }).then(() => this.clearProductsDirty()).catch((e) => console.warn("Failed to sync updated product to server", e));
+      try {
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "updateProduct",
+            payload: { productId, updates: updatedFields }
+          })
+        });
+      } finally {
+        this.clearProductsDirty();
+      }
     }
   }
 

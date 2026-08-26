@@ -250,6 +250,38 @@
       "currency": "GBP",
       "marketplacePrice": 100,
       "reviews": []
+    },
+    {
+      "id": "p-s1td0wqk4",
+      "name": "vvvvvv",
+      "description": "ggjghftgfygybgyhbgbb",
+      "brand": "ggggg",
+      "image": "https://recharge-prd.asset.akeneo.cloud/product_assets/media/recharge_com_apple_product_card.png",
+      "category": "Gaming",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 25,
+      "estimatedDelivery": "3-5 business days",
+      "specs": {
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "pricePoints": [
+        25,
+        50,
+        100
+      ],
+      "regions": [
+        "United States",
+        "United Kingdom",
+        "Singapore",
+        "Canada"
+      ],
+      "currency": "USD",
+      "marketplacePrice": 25,
+      "reviews": []
     }
   ],
   "orders": [
@@ -582,6 +614,128 @@
       "code": "asdadsa",
       "isUsed": false,
       "createdAt": "2026-08-17T21:26:14.252Z"
+    }
+  ],
+  "launches": [
+    {
+      "country": "United States",
+      "code": "US",
+      "currency": "USD",
+      "symbol": "$",
+      "rateToUsd": 1,
+      "launchDate": "Active Now",
+      "status": "active",
+      "weekOffset": 0
+    },
+    {
+      "country": "United Kingdom",
+      "code": "GB",
+      "currency": "GBP",
+      "symbol": "£",
+      "rateToUsd": 1.28,
+      "launchDate": "Active Now",
+      "status": "active",
+      "weekOffset": 0
+    },
+    {
+      "country": "Singapore",
+      "code": "SG",
+      "currency": "SGD",
+      "symbol": "S$",
+      "rateToUsd": 0.74,
+      "launchDate": "Active Now",
+      "status": "active",
+      "weekOffset": 0
+    },
+    {
+      "country": "Canada",
+      "code": "CA",
+      "currency": "CAD",
+      "symbol": "C$",
+      "rateToUsd": 0.73,
+      "launchDate": "Active Now",
+      "status": "active",
+      "weekOffset": 0
+    },
+    {
+      "country": "Germany & Eurozone",
+      "code": "DE",
+      "currency": "EUR",
+      "symbol": "€",
+      "rateToUsd": 1.09,
+      "launchDate": "August 20, 2026",
+      "status": "active",
+      "weekOffset": 1
+    },
+    {
+      "country": "Japan",
+      "code": "JP",
+      "currency": "JPY",
+      "symbol": "¥",
+      "rateToUsd": 0.0065,
+      "launchDate": "August 27, 2026",
+      "status": "active",
+      "weekOffset": 2
+    },
+    {
+      "country": "Australia",
+      "code": "AU",
+      "currency": "AUD",
+      "symbol": "A$",
+      "rateToUsd": 0.65,
+      "launchDate": "September 3, 2026",
+      "status": "upcoming",
+      "weekOffset": 3
+    },
+    {
+      "country": "United Arab Emirates",
+      "code": "AE",
+      "currency": "AED",
+      "symbol": "د.إ",
+      "rateToUsd": 0.272,
+      "launchDate": "September 10, 2026",
+      "status": "upcoming",
+      "weekOffset": 4
+    },
+    {
+      "country": "India",
+      "code": "IN",
+      "currency": "INR",
+      "symbol": "₹",
+      "rateToUsd": 0.012,
+      "launchDate": "September 17, 2026",
+      "status": "upcoming",
+      "weekOffset": 5
+    },
+    {
+      "country": "Brazil",
+      "code": "BR",
+      "currency": "BRL",
+      "symbol": "R$",
+      "rateToUsd": 0.18,
+      "launchDate": "September 24, 2026",
+      "status": "upcoming",
+      "weekOffset": 6
+    },
+    {
+      "country": "Switzerland",
+      "code": "CH",
+      "currency": "CHF",
+      "symbol": "CHF",
+      "rateToUsd": 1.13,
+      "launchDate": "October 1, 2026",
+      "status": "upcoming",
+      "weekOffset": 7
+    },
+    {
+      "country": "South Korea",
+      "code": "KR",
+      "currency": "KRW",
+      "symbol": "₩",
+      "rateToUsd": 0.00073,
+      "launchDate": "October 8, 2026",
+      "status": "upcoming",
+      "weekOffset": 8
     }
   ]
 }

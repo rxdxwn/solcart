@@ -1077,4 +1077,23 @@ export class DbAdapter {
     writeLocalDb(store);
     return true;
   }
+
+  static async getLaunches(): Promise<any[]> {
+    if (isSupabaseConfigured()) {
+      return [];
+    }
+    const store = readLocalDb();
+    return store.launches || [];
+  }
+
+  static async saveLaunches(launches: any[]): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      return true;
+    }
+    const store = readLocalDb();
+    store.launches = launches;
+    writeLocalDb(store);
+    return true;
+  }
 }
+

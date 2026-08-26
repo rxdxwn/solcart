@@ -98,8 +98,9 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
     aspectRatio === "square" ? "aspect-square" : 
     "aspect-[1.586/1]"; // Standard credit card/gift card ratio
 
-  // If not configured and imageUrl exists, render custom image directly
-  if (!isConfigured && imageUrl) {
+  // Render custom image directly if imageUrl is a custom URL (external or custom upload)
+  const isCustomImage = imageUrl && (imageUrl.startsWith("http") || !imageUrl.startsWith("/images/"));
+  if (imageUrl && (isCustomImage || !isConfigured)) {
     return (
       <div className={`relative w-full ${aspectClass} rounded-xl border border-white/10 overflow-hidden shadow-2xl group ${className}`}>
         <img

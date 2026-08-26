@@ -16,12 +16,26 @@ import {
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { LAUNCH_SCHEDULE, LaunchCountry } from "../../data/launches";
+import { SupabaseService } from "../../services/supabase";
 
 export default function LaunchSchedulePage() {
   const { solPrice } = useCart();
-  const [selectedCountry, setSelectedCountry] = useState<LaunchCountry>(LAUNCH_SCHEDULE[0]);
+  const [launchesList, setLaunchesList] = useState<LaunchCountry[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<LaunchCountry | null>(null);
   const [calcValue, setCalcValue] = useState<string>("100");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    // Load launches dynamically
+    const dbLaunches = SupabaseService.getLaunches();
+    if (dbLaunches && dbLaunches.length > 0) {
+      setLaunchesList(dbLaunches);
+      setSelectedCountry(dbLaunches[0]);
+    } else {
+      setLaunchesList(LAUNCH_SCHEDULE);
+      setSelectedCountry(LAUNCH_SCHEDULE[0]);
+    }
+  }, []);
 
   // Calculate SOL conversion based on input value
   const calculateSol = (valueStr: string, country: LaunchCountry) => {
@@ -40,7 +54,7 @@ export default function LaunchSchedulePage() {
   };
 
   // Filter countries by search query
-  const filteredSchedule = LAUNCH_SCHEDULE.filter(item => 
+  const filteredSchedule = launchesList.filter(item => 
     item.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.currency.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -99,14 +113,14 @@ export default function LaunchSchedulePage() {
                   </label>
                   <div className="relative">
                     <select
-                      value={selectedCountry.code}
+                      value={selectedCountry?.code || ""}
                       onChange={(e) => {
-                        const found = LAUNCH_SCHEDULE.find(c => c.code === e.target.value);
+                        const found = launchesList.find(c => c.code === e.target.value);
                         if (found) setSelectedCountry(found);
                       }}
                       className="w-full h-12 bg-black border border-[#222222] rounded-xl px-4 text-sm font-bold text-white focus:outline-none focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000]/25 cursor-pointer appearance-none"
                     >
-                      {LAUNCH_SCHEDULE.map((item) => (
+                      {launchesList.map((item) => (
                         <option key={item.code} value={item.code}>
                           {item.country} ({item.currency}) {item.status === "active" ? "— Active" : "— Coming Soon"}
                         </option>
@@ -121,7 +135,7 @@ export default function LaunchSchedulePage() {
                 {/* Local Currency Amount */}
                 <div className="flex flex-col gap-2">
                   <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">
-                    Gift Card Amount ({selectedCountry.currency})
+                    Gift Card Amount ({selectedCountry?.currency || ""})
                   </label>
                   <div className="relative">
                     <input
@@ -134,7 +148,7 @@ export default function LaunchSchedulePage() {
                       placeholder="e.g. 100"
                     />
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-[#FF0000] select-none">
-                      {selectedCountry.symbol}
+                      {selectedCountry?.symbol || "$"}
                     </span>
                   </div>
                 </div>
@@ -148,11 +162,11 @@ export default function LaunchSchedulePage() {
                 </span>
                 
                 <div className="text-3xl sm:text-4xl font-black text-[#FF0000] mt-3 tracking-tighter">
-                  {calculateSol(calcValue, selectedCountry)} <span className="text-white text-lg font-bold">SOL</span>
+                  {selectedCountry ? calculateSol(calcValue, selectedCountry) : "0.0000"} <span className="text-white text-lg font-bold">SOL</span>
                 </div>
                 
                 <span className="text-[9px] text-zinc-500 mt-2 font-mono">
-                  Based on local rate of {selectedCountry.symbol}1.00 = {selectedCountry.rateToUsd} USD
+                  Based on local rate of {selectedCountry?.symbol || "$"}1.00 = {selectedCountry?.rateToUsd || 1.0} USD
                 </span>
               </div>
 
@@ -165,19 +179,19 @@ export default function LaunchSchedulePage() {
                 <div className="flex justify-between items-center">
                   <span>Country Status:</span>
                   <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                    selectedCountry.status === "active" 
+                    selectedCountry?.status === "active" 
                       ? "bg-[#FF0000]/10 text-[#FF0000] border border-[#FF0000]/25"
                       : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                   }`}>
-                    {selectedCountry.status === "active" ? "Active Now" : "Upcoming Weekly Launch"}
+                    {selectedCountry?.status === "active" ? "Active Now" : "Upcoming Weekly Launch"}
                   </span>
                 </div>
-                {selectedCountry.status === "upcoming" && (
+                {selectedCountry?.status === "upcoming" && (
                   <div className="flex justify-between items-center">
                     <span>Target Launch Date:</span>
                     <span className="font-bold text-white flex items-center gap-1">
                       <Clock className="h-3 w-3 text-[#FF0000]" />
-                      {selectedCountry.launchDate}
+                      {selectedCountry?.launchDate}
                     </span>
                   </div>
                 )}
@@ -217,11 +231,11 @@ export default function LaunchSchedulePage() {
               <div className="flex gap-2.5 text-[10px] font-black uppercase tracking-wider text-zinc-400">
                 <span className="flex items-center gap-1 text-white">
                   <span className="h-2 w-2 rounded-full bg-[#FF0000]"></span>
-                  4 Active
+                  {launchesList.filter(l => l.status === "active").length} Active
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-zinc-700"></span>
-                  {LAUNCH_SCHEDULE.length - 4} Upcoming
+                  {launchesList.filter(l => l.status === "upcoming").length} Upcoming
                 </span>
               </div>
             </div>
@@ -229,7 +243,7 @@ export default function LaunchSchedulePage() {
             {/* Launch Timeline list */}
             <div className="space-y-4">
               {filteredSchedule.map((item, idx) => {
-                const isSelected = selectedCountry.code === item.code;
+                const isSelected = selectedCountry?.code === item.code;
                 
                 return (
                   <motion.div
