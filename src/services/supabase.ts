@@ -4,7 +4,7 @@ import { Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, Custom
 const STORAGE_KEYS = {
   ORDERS: "solcart_db_orders",
   TRANSACTIONS: "solcart_db_transactions",
-  PRODUCTS: "solcart_db_products",
+  PRODUCTS: "solcart_products",
   ADDRESSES: "solcart_db_addresses",
   REFUNDS: "solcart_db_refunds",
   ACTIVITY_LOGS: "solcart_db_activity_logs",

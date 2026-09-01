@@ -3,6 +3,7 @@ import path from "path";
 import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 import { Product, Order, Transaction, ShippingAddress, RefundRequest, ActivityLog, CustomerDetails } from "@/types";
 import { sendEmail, SOLCART_SUPPORT_EMAIL } from "./email";
+import { APP_VERSION } from "./version";
 
 // =========================================================================
 // LOCAL FILE DATABASE FALLBACK
@@ -70,7 +71,7 @@ const INITIAL_STORE = {
     freeShippingThresholdUSD: 0,
     featureFlags: { autoSwap: true, mockFulfillment: true, analyticsDashboard: true }
   },
-  version: "1.01.0"
+  version: APP_VERSION
 };
 
 function readLocalDb(): any {
@@ -240,7 +241,10 @@ export class DbAdapter {
           specs: p.specs,
           reviews: p.reviews || [],
           estimatedDelivery: p.estimated_delivery,
-          retailerId: p.retailer_id
+          retailerId: p.retailer_id,
+          pricePoints: p.price_points || p.pricePoints || (p.retail_price ? [parseFloat(p.retail_price)] : [50]),
+          regions: p.regions && p.regions.length > 0 ? p.regions : ["United States", "United Kingdom", "Singapore", "Canada"],
+          currency: p.currency || "USD"
         }));
       }
     }
@@ -252,7 +256,10 @@ export class DbAdapter {
       rating: 5.0,
       reviewsCount: 0,
       reviews: [] as any[],
-      marketplacePrice: payload.marketplacePrice || payload.retailPrice
+      marketplacePrice: payload.marketplacePrice || payload.retailPrice,
+      pricePoints: payload.pricePoints && payload.pricePoints.length > 0 ? payload.pricePoints : [payload.retailPrice || 50],
+      regions: payload.regions && payload.regions.length > 0 ? payload.regions : ["United States", "United Kingdom", "Singapore", "Canada"],
+      currency: payload.currency || "USD"
     };
     const newProd = { ...payload, ...defaultProduct } as Product;
 
@@ -275,6 +282,9 @@ export class DbAdapter {
         reviews: newProd.reviews,
         estimated_delivery: newProd.estimatedDelivery,
         retailer_id: newProd.retailerId,
+        price_points: newProd.pricePoints,
+        regions: newProd.regions,
+        currency: newProd.currency,
         created_at: new Date().toISOString()
       };
 

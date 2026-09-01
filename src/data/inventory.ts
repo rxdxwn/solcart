@@ -1,18 +1,31 @@
 import { SupabaseService } from "../services/supabase";
+import { RetailerService } from "../services/retailers";
 
 export const GC_INVENTORY = {}; // Reference object to prevent import issues
+
+function resolveBrandKeywords(productId: string): string[] {
+  const keywords: string[] = [];
+  const rawIdKey = productId.replace("p-", "").split("-")[0].toLowerCase();
+  if (rawIdKey) keywords.push(rawIdKey);
+  
+  const prod = RetailerService.getProductById(productId);
+  if (prod?.brand) {
+    keywords.push(prod.brand.toLowerCase());
+  }
+  return keywords;
+}
 
 /**
  * Allocates a fresh, unused gift card code from the dynamic inventory pool and marks it as used.
  */
 export function allocateGiftCardCode(productId: string, region: string, price: number): string | null {
-  const brandKey = productId.replace("p-", "").split("-")[0].toLowerCase();
+  const brandKeywords = resolveBrandKeywords(productId);
   const pool = SupabaseService.getGiftCardPool();
   const match = pool.find(c => 
     !c.isUsed && 
-    c.brand.toLowerCase() === brandKey && 
+    brandKeywords.includes(c.brand.toLowerCase()) && 
     c.region === region && 
-    c.price === price
+    Number(c.price) === Number(price)
   );
   if (match) {
     match.isUsed = true;
@@ -27,12 +40,13 @@ export function allocateGiftCardCode(productId: string, region: string, price: n
  * Checks how many unused pre-saved codes remain in the dynamic pool.
  */
 export function getRemainingCodeCount(productId: string, region: string, price: number): number {
-  const brandKey = productId.replace("p-", "").split("-")[0].toLowerCase();
+  const brandKeywords = resolveBrandKeywords(productId);
   const pool = SupabaseService.getGiftCardPool();
   return pool.filter(c => 
     !c.isUsed && 
-    c.brand.toLowerCase() === brandKey && 
+    brandKeywords.includes(c.brand.toLowerCase()) && 
     c.region === region && 
-    c.price === price
+    Number(c.price) === Number(price)
   ).length;
 }
+

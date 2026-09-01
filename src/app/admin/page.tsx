@@ -494,8 +494,10 @@ export default function AdminDashboard() {
         .split(",")
         .map(s => parseFloat(s.trim()))
         .filter(n => !isNaN(n) && n > 0);
-      const basePrice = pricePoints[0] || 50.00;
+      const customRetail = parseFloat(newProdRetailPrice);
+      const basePrice = !isNaN(customRetail) && customRetail > 0 ? customRetail : (pricePoints[0] || 50.00);
       if (pricePoints.length === 0) pricePoints.push(basePrice);
+      if (!pricePoints.includes(basePrice)) pricePoints.unshift(basePrice);
       
       const regions = newProdRegions.length > 0 ? newProdRegions : ["United States"];
       
@@ -531,7 +533,7 @@ export default function AdminDashboard() {
           rating: 4.5,
           reviewsCount: 1,
           retailPrice: basePrice,
-          estimatedDelivery: "3-5 business days",
+          estimatedDelivery: "Instant Digital Delivery",
           specs,
           retailerId: defaultRetailerId,
           stockCount: parseInt(newProdStock) || 50,
@@ -1999,6 +2001,17 @@ export default function AdminDashboard() {
                               </option>
                             ))}
                           </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-brand-text-muted font-bold">Base Retail Price</label>
+                          <input
+                            type="number"
+                            step="any"
+                            placeholder="e.g. 50"
+                            value={newProdRetailPrice}
+                            onChange={(e) => setNewProdRetailPrice(e.target.value)}
+                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
+                          />
                         </div>
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Available Price Points (comma-separated)</label>

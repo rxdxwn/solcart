@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, ShieldCheck, Zap } from "lucide-react";
 import { Logo } from "../ui/Logo";
+import { APP_VERSION } from "../../lib/version";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -80,8 +81,12 @@ export default function Footer() {
           <p className="text-[11px] font-medium text-black/70">
             &copy; {currentYear} SOLCart. All rights reserved. Sourced gift cards are trademarks of their respective brand issuers.
           </p>
+          <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-black/10 text-black border border-black/15">
+            {APP_VERSION}
+          </span>
         </div>
       </div>
     </footer>
   );
 }
+

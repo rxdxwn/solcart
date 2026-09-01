@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
+import { APP_VERSION } from "@/lib/version";
 
 export async function GET() {
   try {
@@ -75,12 +76,12 @@ export async function GET() {
           description: "Shop millions of items on Noon.com in the UAE, Saudi Arabia, and Egypt."
         }
       ],
-      version: "1.01.0"
+      version: APP_VERSION
     };
 
     return NextResponse.json({
       success: true,
-      version: "1.01.0",
+      version: APP_VERSION,
       data
     });
   } catch (e: any) {
