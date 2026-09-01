@@ -221,7 +221,7 @@ export default function AdminDashboard() {
   const [newProdRetailPrice, setNewProdRetailPrice] = useState("");
   const [newProdPricePoints, setNewProdPricePoints] = useState("");
   const [newProdCurrency, setNewProdCurrency] = useState("USD");
-  const [newProdRegions, setNewProdRegions] = useState("United States, United Kingdom, Singapore, Canada");
+  const [newProdRegions, setNewProdRegions] = useState<string[]>(["United States", "United Kingdom", "Singapore", "Canada"]);
   const [newProdStock, setNewProdStock] = useState("50");
   const [newProdImage, setNewProdImage] = useState("");
   const [newProdDesc, setNewProdDesc] = useState("");
@@ -497,10 +497,7 @@ export default function AdminDashboard() {
       const basePrice = pricePoints[0] || 50.00;
       if (pricePoints.length === 0) pricePoints.push(basePrice);
       
-      const regions = newProdRegions
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
+      const regions = newProdRegions.length > 0 ? newProdRegions : ["United States"];
       
       // Retailer is no longer selected per product; products fall under the catalog default retailer.
       const defaultRetailerId = retailers[0]?.id || "amazon";
@@ -551,7 +548,7 @@ export default function AdminDashboard() {
       setNewProdRetailPrice("");
       setNewProdPricePoints("");
       setNewProdCurrency("USD");
-      setNewProdRegions("United States, United Kingdom, Singapore, Canada");
+      setNewProdRegions(["United States", "United Kingdom", "Singapore", "Canada"]);
       setNewProdImage("");
       setNewProdDesc("");
       setNewProdStock("50");
@@ -571,7 +568,7 @@ export default function AdminDashboard() {
     setNewProdRetailPrice(product.retailPrice.toString());
     setNewProdPricePoints((product.pricePoints && product.pricePoints.length > 0 ? product.pricePoints : [product.retailPrice]).join(", "));
     setNewProdCurrency(product.currency || "USD");
-    setNewProdRegions((product.regions && product.regions.length > 0 ? product.regions : ["United States"]).join(", "));
+    setNewProdRegions(product.regions && product.regions.length > 0 ? product.regions : ["United States"]);
     setNewProdStock(product.stockCount.toString());
     setNewProdImage(product.image);
     setNewProdDesc(product.description);
@@ -1945,7 +1942,7 @@ export default function AdminDashboard() {
                           setNewProdRetailPrice("");
                           setNewProdPricePoints("");
                           setNewProdCurrency("USD");
-                          setNewProdRegions("United States, United Kingdom, Singapore, Canada");
+                          setNewProdRegions(["United States", "United Kingdom", "Singapore", "Canada"]);
                           setNewProdStock("50");
                           setNewProdImage("");
                           setNewProdDesc("");
@@ -2013,15 +2010,27 @@ export default function AdminDashboard() {
                             className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
                           />
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-brand-text-muted font-bold">Available Regions (comma-separated)</label>
-                          <input
-                            type="text"
-                            placeholder="United States, United Kingdom, Singapore, Canada"
-                            value={newProdRegions}
-                            onChange={(e) => setNewProdRegions(e.target.value)}
-                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
-                          />
+                        <div className="space-y-2">
+                          <label className="text-brand-text-muted font-bold block">Available Regions</label>
+                          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
+                            {(launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).map(country => (
+                              <label key={country.code} className="flex items-center gap-2 cursor-pointer p-2 rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={newProdRegions.includes(country.country)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setNewProdRegions(prev => [...prev, country.country]);
+                                    } else {
+                                      setNewProdRegions(prev => prev.filter(r => r !== country.country));
+                                    }
+                                  }}
+                                  className="rounded border-white/20 bg-[#020202] text-brand-purple focus:ring-brand-purple/50 w-4 h-4"
+                                />
+                                <span className="text-xs text-white truncate">{country.country}</span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Stock Count</label>
@@ -3051,12 +3060,12 @@ export default function AdminDashboard() {
                               </span>
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                   if (!hasPermission("settings", "edit")) return;
                                   const list = launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE;
                                   const updated = list.map(l => l.code === item.code ? { ...l, status: l.status === 'active' ? 'upcoming' : 'active' } : l);
-                                  SupabaseService.saveLaunches(updated);
                                   setLaunches(updated);
+                                  await SupabaseService.saveLaunches(updated);
                                   refreshAllData();
                                 }}
                                 className="px-3 py-1 bg-white hover:bg-white/90 text-black text-[10px] font-bold rounded transition-all"

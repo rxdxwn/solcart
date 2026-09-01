@@ -245,12 +245,19 @@ export default function ProductDetailPage({ params }: PageProps) {
             
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">USD Price</span>
-                <span className="text-3xl font-black text-white">${effectivePrice.toFixed(2)}</span>
-                {nativeCurrency !== "USD" && (
-                  <span className="block text-[10px] text-brand-text-muted mt-1">
-                    {nativeSymbol}{(nativeCurrency === "AED" ? " " : "")}{nativePrice.toFixed(2)} {nativeCurrency}
-                  </span>
+                {nativeCurrency !== "USD" ? (
+                  <>
+                    <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">{nativeCurrency} Price</span>
+                    <span className="text-3xl font-black text-white">{nativeSymbol}{(nativeCurrency === "AED" ? " " : "")}{nativePrice.toFixed(2)}</span>
+                    <span className="block text-[10px] text-brand-text-muted mt-1">
+                      USD ${effectivePrice.toFixed(2)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">USD Price</span>
+                    <span className="text-3xl font-black text-white">${effectivePrice.toFixed(2)}</span>
+                  </>
                 )}
               </div>
               <div className="text-right bg-brand-green/5 border border-brand-green/20 rounded-xl px-4 py-2.5 shadow-inner">

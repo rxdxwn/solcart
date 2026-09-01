@@ -529,11 +529,11 @@
     {
       "id": "8fmMF2H5adYyF7zh5PpvVrPYrWAkXpLq1kXRqziHhVJR",
       "email": "8fmMF2H5@solcart-user.shop",
-      "name": "loserstowinnersofficial@gmail.com",
+      "name": "Wallet 8fmMF2",
       "passwordHash": "",
       "role": "customer",
-      "isVerified": true,
-      "createdAt": "2026-08-17T21:10:26.461Z",
+      "isVerified": false,
+      "createdAt": "2026-09-01T18:49:13.826Z",
       "verificationCode": null,
       "resetCode": null
     }
@@ -684,7 +684,7 @@
       "symbol": "A$",
       "rateToUsd": 0.65,
       "launchDate": "September 3, 2026",
-      "status": "upcoming",
+      "status": "active",
       "weekOffset": 3
     },
     {
@@ -694,7 +694,7 @@
       "symbol": "د.إ",
       "rateToUsd": 0.272,
       "launchDate": "September 10, 2026",
-      "status": "upcoming",
+      "status": "active",
       "weekOffset": 4
     },
     {
@@ -704,7 +704,7 @@
       "symbol": "₹",
       "rateToUsd": 0.012,
       "launchDate": "September 17, 2026",
-      "status": "upcoming",
+      "status": "active",
       "weekOffset": 5
     },
     {
@@ -714,7 +714,7 @@
       "symbol": "R$",
       "rateToUsd": 0.18,
       "launchDate": "September 24, 2026",
-      "status": "upcoming",
+      "status": "active",
       "weekOffset": 6
     },
     {
@@ -724,7 +724,7 @@
       "symbol": "CHF",
       "rateToUsd": 1.13,
       "launchDate": "October 1, 2026",
-      "status": "upcoming",
+      "status": "active",
       "weekOffset": 7
     },
     {
@@ -734,7 +734,7 @@
       "symbol": "₩",
       "rateToUsd": 0.00073,
       "launchDate": "October 8, 2026",
-      "status": "upcoming",
+      "status": "active",
       "weekOffset": 8
     }
   ]

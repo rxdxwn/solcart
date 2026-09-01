@@ -893,17 +893,21 @@ export class SupabaseService {
     }
   }
 
-  static saveLaunches(launches: any[]): void {
+  static async saveLaunches(launches: any[]): Promise<void> {
     if (typeof window === "undefined") return;
     localStorage.setItem("solcart_db_launches", JSON.stringify(launches));
     
-    fetch("/api/db", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "saveLaunches",
-        payload: launches
-      })
-    }).catch(() => {});
+    try {
+      await fetch("/api/db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveLaunches",
+          payload: launches
+        })
+      });
+    } catch (e) {
+      console.error("Failed to save launches:", e);
+    }
   }
 }
