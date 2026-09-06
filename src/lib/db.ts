@@ -243,7 +243,8 @@ export class DbAdapter {
           estimatedDelivery: p.estimated_delivery,
           retailerId: p.retailer_id,
           pricePoints: p.price_points || p.pricePoints || (p.retail_price ? [parseFloat(p.retail_price)] : [50]),
-          regions: p.regions && p.regions.length > 0 ? p.regions : ["United States", "United Kingdom", "Singapore", "Canada"],
+          regions: p.regions && p.regions.length > 0 ? p.regions : [p.region || "United States"],
+          region: p.region || (p.regions && p.regions.length > 0 ? p.regions[0] : "United States"),
           currency: p.currency || "USD"
         }));
       }
@@ -258,7 +259,8 @@ export class DbAdapter {
       reviews: [] as any[],
       marketplacePrice: payload.marketplacePrice || payload.retailPrice,
       pricePoints: payload.pricePoints && payload.pricePoints.length > 0 ? payload.pricePoints : [payload.retailPrice || 50],
-      regions: payload.regions && payload.regions.length > 0 ? payload.regions : ["United States", "United Kingdom", "Singapore", "Canada"],
+      regions: payload.regions && payload.regions.length > 0 ? payload.regions : [payload.region || "United States"],
+      region: payload.region || (payload.regions && payload.regions.length > 0 ? payload.regions[0] : "United States"),
       currency: payload.currency || "USD"
     };
     const newProd = { ...payload, ...defaultProduct } as Product;

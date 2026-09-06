@@ -218,10 +218,9 @@ export default function AdminDashboard() {
   const [newProdName, setNewProdName] = useState("");
   const [newProdBrand, setNewProdBrand] = useState("");
   const [newProdCategory, setNewProdCategory] = useState("Electronics");
-  const [newProdRetailPrice, setNewProdRetailPrice] = useState("");
-  const [newProdPricePoints, setNewProdPricePoints] = useState("");
+  const [newProdPrice, setNewProdPrice] = useState("");
   const [newProdCurrency, setNewProdCurrency] = useState("USD");
-  const [newProdRegions, setNewProdRegions] = useState<string[]>(["United States", "United Kingdom", "Singapore", "Canada"]);
+  const [newProdRegion, setNewProdRegion] = useState("United States");
   const [newProdStock, setNewProdStock] = useState("50");
   const [newProdImage, setNewProdImage] = useState("");
   const [newProdDesc, setNewProdDesc] = useState("");
@@ -490,20 +489,19 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!hasPermission("products", "edit")) return;
     if (newProdName && newProdBrand) {
-      const pricePoints = newProdPricePoints
-        .split(",")
-        .map(s => parseFloat(s.trim()))
-        .filter(n => !isNaN(n) && n > 0);
-      const customRetail = parseFloat(newProdRetailPrice);
-      const basePrice = !isNaN(customRetail) && customRetail > 0 ? customRetail : (pricePoints[0] || 50.00);
-      if (pricePoints.length === 0) pricePoints.push(basePrice);
-      if (!pricePoints.includes(basePrice)) pricePoints.unshift(basePrice);
-      
-      const regions = newProdRegions.length > 0 ? newProdRegions : ["United States"];
+      const parsedPrice = parseFloat(newProdPrice);
+      const basePrice = !isNaN(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50.00;
+      const region = newProdRegion || "United States";
+      const regions = [region];
+      const pricePoints = [basePrice];
       
       // Retailer is no longer selected per product; products fall under the catalog default retailer.
       const defaultRetailerId = retailers[0]?.id || "amazon";
-      const specs = { "Retailer Sourced": defaultRetailerId };
+      const specs = { 
+        "Format": "Digital Code",
+        "Region": region,
+        "Retailer Sourced": defaultRetailerId 
+      };
 
       if (editingProductId) {
         // Edit existing product
@@ -518,6 +516,7 @@ export default function AdminDashboard() {
           retailerId: defaultRetailerId,
           stockCount: parseInt(newProdStock) || 50,
           pricePoints,
+          region,
           regions,
           currency: newProdCurrency,
         });
@@ -530,7 +529,7 @@ export default function AdminDashboard() {
           brand: newProdBrand,
           image: newProdImage || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop",
           category: newProdCategory,
-          rating: 4.5,
+          rating: 4.8,
           reviewsCount: 1,
           retailPrice: basePrice,
           estimatedDelivery: "Instant Digital Delivery",
@@ -539,6 +538,7 @@ export default function AdminDashboard() {
           stockCount: parseInt(newProdStock) || 50,
           isFeatured: false,
           pricePoints,
+          region,
           regions,
           currency: newProdCurrency,
         });
@@ -547,10 +547,9 @@ export default function AdminDashboard() {
       // Clear Form
       setNewProdName("");
       setNewProdBrand("");
-      setNewProdRetailPrice("");
-      setNewProdPricePoints("");
+      setNewProdPrice("");
       setNewProdCurrency("USD");
-      setNewProdRegions(["United States", "United Kingdom", "Singapore", "Canada"]);
+      setNewProdRegion("United States");
       setNewProdImage("");
       setNewProdDesc("");
       setNewProdStock("50");
@@ -567,10 +566,9 @@ export default function AdminDashboard() {
     setNewProdName(product.name);
     setNewProdBrand(product.brand);
     setNewProdCategory(product.category);
-    setNewProdRetailPrice(product.retailPrice.toString());
-    setNewProdPricePoints((product.pricePoints && product.pricePoints.length > 0 ? product.pricePoints : [product.retailPrice]).join(", "));
+    setNewProdPrice(product.retailPrice.toString());
     setNewProdCurrency(product.currency || "USD");
-    setNewProdRegions(product.regions && product.regions.length > 0 ? product.regions : ["United States"]);
+    setNewProdRegion(product.region || (product.regions && product.regions.length > 0 ? product.regions[0] : "United States"));
     setNewProdStock(product.stockCount.toString());
     setNewProdImage(product.image);
     setNewProdDesc(product.description);
@@ -1941,17 +1939,16 @@ export default function AdminDashboard() {
                           setNewProdName("");
                           setNewProdBrand("");
                           setNewProdCategory("Electronics");
-                          setNewProdRetailPrice("");
-                          setNewProdPricePoints("");
+                          setNewProdPrice("");
                           setNewProdCurrency("USD");
-                          setNewProdRegions(["United States", "United Kingdom", "Singapore", "Canada"]);
+                          setNewProdRegion("United States");
                           setNewProdStock("50");
                           setNewProdImage("");
                           setNewProdDesc("");
                           setEditingProductId(null);
                           setShowProductForm(true);
                         }}
-                                                className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold flex items-center gap-1.5"
+                        className="px-4 py-2 bg-white hover:bg-white/90 text-black rounded-lg text-xs font-bold flex items-center gap-1.5"
                       >
                         <Plus className="h-4 w-4" />
                         Add Product
@@ -1971,7 +1968,7 @@ export default function AdminDashboard() {
                           <input
                             type="text"
                             required
-                            placeholder="e.g. Beats Wireless Headphones"
+                            placeholder="e.g. Amazon $50 Gift Card"
                             value={newProdName}
                             onChange={(e) => setNewProdName(e.target.value)}
                             className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
@@ -1982,11 +1979,32 @@ export default function AdminDashboard() {
                           <input
                             type="text"
                             required
-                            placeholder="e.g. Beats"
+                            placeholder="e.g. Amazon"
                             value={newProdBrand}
                             onChange={(e) => setNewProdBrand(e.target.value)}
                             className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
                           />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-brand-text-muted font-bold">Available Region / Country</label>
+                          <select
+                            value={newProdRegion}
+                            onChange={(e) => {
+                              const selRegion = e.target.value;
+                              setNewProdRegion(selRegion);
+                              const matched = (launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).find(l => l.country === selRegion);
+                              if (matched) {
+                                setNewProdCurrency(matched.currency);
+                              }
+                            }}
+                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white cursor-pointer"
+                          >
+                            {(launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).map((item) => (
+                              <option key={item.code} value={item.country}>
+                                {item.country} ({item.currency})
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Selling Currency</label>
@@ -1997,53 +2015,22 @@ export default function AdminDashboard() {
                           >
                             {(launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).map((item) => (
                               <option key={item.code} value={item.currency}>
-                                {item.country} ({item.currency})
+                                {item.currency} - {item.country}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-brand-text-muted font-bold">Base Retail Price</label>
+                          <label className="text-brand-text-muted font-bold">Card Face Value / Price</label>
                           <input
                             type="number"
                             step="any"
+                            required
                             placeholder="e.g. 50"
-                            value={newProdRetailPrice}
-                            onChange={(e) => setNewProdRetailPrice(e.target.value)}
-                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
+                            value={newProdPrice}
+                            onChange={(e) => setNewProdPrice(e.target.value)}
+                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white font-bold"
                           />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-brand-text-muted font-bold">Available Price Points (comma-separated)</label>
-                          <input
-                            type="text"
-                            placeholder="25, 50, 100, 200"
-                            value={newProdPricePoints}
-                            onChange={(e) => setNewProdPricePoints(e.target.value)}
-                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-brand-text-muted font-bold block">Available Regions</label>
-                          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
-                            {(launches && launches.length > 0 ? launches : LAUNCH_SCHEDULE).map(country => (
-                              <label key={country.code} className="flex items-center gap-2 cursor-pointer p-2 rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                                <input
-                                  type="checkbox"
-                                  checked={newProdRegions.includes(country.country)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setNewProdRegions(prev => [...prev, country.country]);
-                                    } else {
-                                      setNewProdRegions(prev => prev.filter(r => r !== country.country));
-                                    }
-                                  }}
-                                  className="rounded border-white/20 bg-[#020202] text-brand-purple focus:ring-brand-purple/50 w-4 h-4"
-                                />
-                                <span className="text-xs text-white truncate">{country.country}</span>
-                              </label>
-                            ))}
-                          </div>
                         </div>
                         <div className="space-y-1">
                           <label className="text-brand-text-muted font-bold">Stock Count</label>
@@ -2056,7 +2043,7 @@ export default function AdminDashboard() {
                             className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
                           />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 col-span-2 sm:col-span-1">
                           <label className="text-brand-text-muted font-bold">Category</label>
                           <select
                             value={newProdCategory}
@@ -2071,24 +2058,24 @@ export default function AdminDashboard() {
                             <option value="Entertainment">Entertainment</option>
                           </select>
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-brand-text-muted font-bold">Image URL</label>
-                        <input
-                          type="url"
-                          required
-                          placeholder="https://images.unsplash.com/photo-..."
-                          value={newProdImage}
-                          onChange={(e) => setNewProdImage(e.target.value)}
-                          className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
-                        />
+                        <div className="space-y-1 col-span-2 sm:col-span-1">
+                          <label className="text-brand-text-muted font-bold">Image URL</label>
+                          <input
+                            type="url"
+                            required
+                            placeholder="https://images.unsplash.com/photo-..."
+                            value={newProdImage}
+                            onChange={(e) => setNewProdImage(e.target.value)}
+                            className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1">
                         <label className="text-brand-text-muted font-bold">Description</label>
                         <textarea
                           required
                           rows={3}
-                          placeholder="Provide details about the gift card, region locking, and terms..."
+                          placeholder="Provide details about the gift card, redemption, and terms..."
                           value={newProdDesc}
                           onChange={(e) => setNewProdDesc(e.target.value)}
                           className="w-full px-3 py-2 bg-[#020202] border border-white/5 rounded-lg text-white resize-none"
@@ -2123,17 +2110,25 @@ export default function AdminDashboard() {
                         <tr>
                           <th className="p-3.5">Product Name</th>
                           <th className="p-3.5">Category</th>
-                          <th className="p-3.5">Cost Price</th>
+                          <th className="p-3.5">Region</th>
+                          <th className="p-3.5">Card Value</th>
                           <th className="p-3.5">Stock Status</th>
                           <th className="p-3.5 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {products.slice(0, 15).map(prod => (
+                        {products.slice(0, 20).map(prod => (
                           <tr key={prod.id} className="hover:bg-[#080808]/25">
                             <td className="p-3.5 font-bold text-white">{prod.name}</td>
                             <td className="p-3.5 text-brand-text-muted">{prod.category}</td>
-                            <td className="p-3.5 font-bold text-white">${prod.retailPrice.toFixed(2)}</td>
+                            <td className="p-3.5">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/5 border border-white/10 text-white">
+                                {prod.region || (prod.regions && prod.regions[0]) || "United States"}
+                              </span>
+                            </td>
+                            <td className="p-3.5 font-bold text-[#92c1e3]">
+                              {prod.currency === "GBP" ? "£" : prod.currency === "EUR" ? "€" : prod.currency === "SGD" ? "S$" : prod.currency === "AED" ? "AED " : "$"}{prod.retailPrice.toFixed(2)} <span className="text-[9px] text-brand-text-muted font-normal">({prod.currency || "USD"})</span>
+                            </td>
                             <td className="p-3.5 font-bold">
                               <span className={`px-2 py-0.5 rounded text-[10px] border ${prod.stockCount > 10 ? 'text-[#92c1e3] bg-[#92c1e3]/10 border-[#92c1e3]/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20'}`}>
                                 {prod.stockCount} in stock
@@ -2144,7 +2139,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-center justify-end gap-2">
                                   <button
                                     onClick={() => handleEditProduct(prod)}
-                                    className="p-1.5 text-[#e2c190] hover:text-[#92c1e3] hover:bg-white/5 border border-white/5 text-[#e2c190] rounded-lg transition-all"
+                                    className="p-1.5 text-[#e2c190] hover:text-[#92c1e3] hover:bg-white/5 border border-white/5 rounded-lg transition-all"
                                     title="Edit Product"
                                   >
                                     <Edit2 className="h-4 w-4" />

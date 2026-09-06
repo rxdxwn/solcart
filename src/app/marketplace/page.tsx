@@ -14,14 +14,50 @@ import {
   Tag, 
   RefreshCw,
   SlidersHorizontal,
+  Globe,
   X
 } from "lucide-react";
 import { RetailerService } from "../../services/retailers";
 import { getRegionInfo } from "../../services/forex";
 import { useCart } from "../../context/CartContext";
 import { Product, RetailerConfig } from "../../types";
+import { LAUNCH_SCHEDULE } from "../../data/launches";
 import { motion } from "framer-motion";
 import { GiftCardArtwork } from "../../components/ui/GiftCardArtwork";
+
+function getCountryFlag(regionName?: string): string {
+  if (!regionName) return "🌐";
+  if (regionName.includes("United States") || regionName === "US") return "🇺🇸";
+  if (regionName.includes("United Kingdom") || regionName === "UK" || regionName === "GB") return "🇬🇧";
+  if (regionName.includes("Singapore") || regionName === "SG") return "🇸🇬";
+  if (regionName.includes("Canada") || regionName === "CA") return "🇨🇦";
+  if (regionName.includes("Germany") || regionName.includes("Eurozone") || regionName === "DE") return "🇩🇪";
+  if (regionName.includes("Japan") || regionName === "JP") return "🇯🇵";
+  if (regionName.includes("Australia") || regionName === "AU") return "🇦🇺";
+  if (regionName.includes("Emirates") || regionName.includes("UAE") || regionName === "AE") return "🇦🇪";
+  if (regionName.includes("India") || regionName === "IN") return "🇮🇳";
+  if (regionName.includes("Brazil") || regionName === "BR") return "🇧🇷";
+  if (regionName.includes("Switzerland") || regionName === "CH") return "🇨🇭";
+  if (regionName.includes("Korea") || regionName === "KR") return "🇰🇷";
+  return "🌐";
+}
+
+function getCurrencySymbol(curr?: string): string {
+  switch (curr) {
+    case "GBP": return "£";
+    case "EUR": return "€";
+    case "SGD": return "S$";
+    case "CAD": return "C$";
+    case "AED": return "AED ";
+    case "AUD": return "A$";
+    case "JPY": return "¥";
+    case "INR": return "₹";
+    case "BRL": return "R$";
+    case "CHF": return "CHF ";
+    case "KRW": return "₩";
+    default: return "$";
+  }
+}
 
 function MarketplaceContent() {
   const router = useRouter();
@@ -74,11 +110,29 @@ function MarketplaceContent() {
     } else {
       setSelectedCategories([]);
     }
+
+    const regionParam = searchParams.get("region");
+    if (regionParam) {
+      setSelectedRegion(regionParam);
+    }
   }, [searchParams]);
 
   // Extract unique categories & brands for filter options
   const categories = Array.from(new Set(allProducts.map(p => p.category)));
   const brands = Array.from(new Set(allProducts.map(p => p.brand)));
+
+  // Collect all available regions from both schedule and active catalog
+  const catalogRegions = Array.from(new Set(
+    allProducts.map(p => p.region || (p.regions && p.regions[0]) || "United States")
+  ));
+  const availableRegions = Array.from(new Set([
+    "United States",
+    "United Kingdom",
+    "Singapore",
+    "Canada",
+    ...LAUNCH_SCHEDULE.map(l => l.country),
+    ...catalogRegions
+  ])).filter(Boolean);
 
   // Filter and Sort Handler
   useEffect(() => {
@@ -90,7 +144,8 @@ function MarketplaceContent() {
       filtered = filtered.filter(
         p => p.name.toLowerCase().includes(term) || 
              p.brand.toLowerCase().includes(term) ||
-             p.description.toLowerCase().includes(term)
+             p.description.toLowerCase().includes(term) ||
+             (p.region && p.region.toLowerCase().includes(term))
       );
     }
 
@@ -129,9 +184,10 @@ function MarketplaceContent() {
 
     // 6b. Region availability filter
     if (selectedRegion !== "all") {
-      filtered = filtered.filter(p =>
-        !p.regions || p.regions.length === 0 || p.regions.includes(selectedRegion)
-      );
+      filtered = filtered.filter(p => {
+        const prodRegion = p.region || (p.regions && p.regions[0]);
+        return prodRegion === selectedRegion || (p.regions && p.regions.includes(selectedRegion));
+      });
     }
 
     // 7. Sorting logic
@@ -185,7 +241,7 @@ function MarketplaceContent() {
     <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-10">
       
       {/* Header Banner Section */}
-      <div className="rounded-3xl border border-brand-border/40 bg-gradient-to-r from-brand-card/40 via-indigo-950/10 to-brand-dark p-8 sm:p-10 relative overflow-hidden mb-10 shadow-2xl">
+      <div className="rounded-3xl border border-brand-border/40 bg-gradient-to-r from-brand-card/40 via-indigo-950/10 to-brand-dark p-8 sm:p-10 relative overflow-hidden mb-8 shadow-2xl">
         {/* Background glows */}
         <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-brand-purple/5 rounded-full blur-[100px] pointer-events-none"></div>
         
@@ -201,9 +257,14 @@ function MarketplaceContent() {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Marketplace</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+              Marketplace
+              <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-brand-purple/20 text-brand-purple border border-brand-purple/40">
+                Direct Global Gift Cards
+              </span>
+            </h1>
             <p className="text-xs text-brand-text-muted mt-2 leading-relaxed max-w-md">
-              Digital gift cards from top global brands. Sourced officially and delivered instantly.
+              Buy individual digital gift cards locked to your chosen country and face value. Instant Solana & USDC checkout.
             </p>
           </div>
           
@@ -222,11 +283,66 @@ function MarketplaceContent() {
         </div>
       </div>
 
+      {/* Quick Region Pills Navigation Bar */}
+      <div className="mb-8 p-3 rounded-2xl bg-brand-card/20 border border-brand-border/40 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-3 mb-2 px-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-white">
+            <Globe className="h-4 w-4 text-brand-purple" />
+            <span>Filter By Country / Region:</span>
+          </div>
+          {selectedRegion !== "all" && (
+            <button
+              onClick={() => setSelectedRegion("all")}
+              className="text-[10px] text-brand-purple hover:text-brand-green transition-colors font-semibold"
+            >
+              Reset to All Regions
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          <button
+            onClick={() => setSelectedRegion("all")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              selectedRegion === "all"
+                ? "bg-brand-purple text-white shadow-lg shadow-brand-purple/20 border border-brand-purple"
+                : "bg-brand-dark/60 text-brand-text-muted hover:text-white border border-brand-border/60 hover:border-brand-purple/40"
+            }`}
+          >
+            <span>🌐</span>
+            <span>All Regions ({allProducts.length})</span>
+          </button>
+          {availableRegions.map(reg => {
+            const count = allProducts.filter(p => (p.region || p.regions?.[0]) === reg || p.regions?.includes(reg)).length;
+            const isSelected = selectedRegion === reg;
+            return (
+              <button
+                key={reg}
+                onClick={() => setSelectedRegion(reg)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? "bg-brand-purple text-white shadow-lg shadow-brand-purple/20 border border-brand-purple"
+                    : "bg-brand-dark/60 text-brand-text-muted hover:text-white border border-brand-border/60 hover:border-brand-purple/40"
+                }`}
+              >
+                <span>{getCountryFlag(reg)}</span>
+                <span>{reg}</span>
+                {count > 0 && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-white/5 text-brand-text-muted'}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Main search input for mobile */}
       <div className="flex sm:hidden w-full relative mb-6">
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search products, brands, countries..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full h-11 rounded-lg border border-brand-border bg-brand-card/60 pl-10 pr-4 text-xs text-white"
@@ -253,6 +369,38 @@ function MarketplaceContent() {
             )}
           </div>
 
+          {/* Region Filters */}
+          <div className="mb-6">
+            <h3 className="text-xs font-bold text-white mb-3 flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5 text-brand-purple" />
+              Country / Region
+            </h3>
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <label className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="regionFilterRadio"
+                  checked={selectedRegion === "all"}
+                  onChange={() => setSelectedRegion("all")}
+                  className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
+                />
+                <span>🌐 All Regions</span>
+              </label>
+              {availableRegions.map(reg => (
+                <label key={reg} className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
+                  <input
+                    type="radio"
+                    name="regionFilterRadio"
+                    checked={selectedRegion === reg}
+                    onChange={() => setSelectedRegion(reg)}
+                    className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
+                  />
+                  <span className="truncate">{getCountryFlag(reg)} {reg}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           {/* Brands */}
           <div className="mb-6">
             <h3 className="text-xs font-bold text-white mb-3">Brands</h3>
@@ -273,7 +421,7 @@ function MarketplaceContent() {
 
           {/* Price Filters */}
           <div className="mb-6">
-            <h3 className="text-xs font-bold text-white mb-3">Price (USD)</h3>
+            <h3 className="text-xs font-bold text-white mb-3">Price Range</h3>
             <div className="space-y-2.5">
               {[
                 { value: "all", label: "All Prices" },
@@ -296,31 +444,6 @@ function MarketplaceContent() {
             </div>
           </div>
 
-          {/* Region Filters */}
-          <div className="mb-6">
-            <h3 className="text-xs font-bold text-white mb-3">Region</h3>
-            <div className="space-y-2.5">
-              {[
-                { value: "all", label: "All Regions" },
-                { value: "United States", label: "United States" },
-                { value: "United Kingdom", label: "United Kingdom" },
-                { value: "Singapore", label: "Singapore" },
-                { value: "Canada", label: "Canada" }
-              ].map(opt => (
-                <label key={opt.value} className="flex items-center gap-2.5 text-xs text-brand-text-muted hover:text-white cursor-pointer select-none">
-                  <input
-                    type="radio"
-                    name="regionFilterRadio"
-                    checked={selectedRegion === opt.value}
-                    onChange={() => setSelectedRegion(opt.value)}
-                    className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
-                  />
-                  <span>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
         </aside>
 
         {/* 2. Products List Area */}
@@ -329,7 +452,7 @@ function MarketplaceContent() {
           {/* Sorting & Filter buttons */}
           <div className="flex items-center justify-between mb-6 gap-4 bg-brand-card/20 border border-brand-border/40 rounded-xl px-4 py-3">
             <span className="text-xs text-brand-text-muted">
-              Showing <span className="text-white font-bold">{products.length}</span> products
+              Showing <span className="text-white font-bold">{products.length}</span> {selectedRegion !== "all" ? `${selectedRegion} ` : ""}products
             </span>
 
             <div className="flex items-center gap-3">
@@ -362,19 +485,23 @@ function MarketplaceContent() {
           {products.length === 0 ? (
             <div className="w-full text-center py-20 border border-dashed border-brand-border/40 rounded-3xl bg-brand-card/10">
               <Tag className="h-10 w-10 text-brand-text-muted mx-auto mb-4" />
-              <p className="text-sm font-bold text-white">No products found</p>
-              <p className="text-xs text-brand-text-muted mt-1.5">Try adjusting your filters or search terms.</p>
+              <p className="text-sm font-bold text-white">No gift cards found</p>
+              <p className="text-xs text-brand-text-muted mt-1.5">Try choosing a different country or clearing filters.</p>
               <button
                 onClick={clearAllFilters}
-                className="mt-6 px-5 py-2.5 bg-brand-purple text-xs font-semibold rounded-full text-white"
+                className="mt-6 px-5 py-2.5 bg-brand-purple text-xs font-semibold rounded-full text-white cursor-pointer"
               >
-                Reset Filters
+                Reset All Filters
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {products.map((product) => {
+                const prodRegion = product.region || product.regions?.[0] || "United States";
+                const currency = product.currency || "USD";
+                const symbol = getCurrencySymbol(currency);
                 const solPriceEquivalent = parseFloat((product.retailPrice / solPrice).toFixed(4));
+                
                 return (
                   <motion.div 
                     key={product.id}
@@ -400,14 +527,25 @@ function MarketplaceContent() {
                           <span className="h-1.5 w-1.5 rounded-full bg-brand-green animate-pulse"></span>
                           {getRetailerName(product.retailerId)}
                         </span>
+
+                        {/* Region badge */}
+                        <span className="absolute top-3 right-3 px-2.5 py-1 text-[9px] font-extrabold rounded-md bg-brand-card/90 backdrop-blur-sm border border-brand-border/80 text-white flex items-center gap-1 shadow-md z-10">
+                          <span>{getCountryFlag(prodRegion)}</span>
+                          <span>{prodRegion}</span>
+                        </span>
                       </div>
 
                       {/* Description Details */}
                       <div className="p-5 flex flex-col flex-1 justify-between">
                         <div>
-                          <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest">
-                            {product.brand}
-                          </span>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest">
+                              {product.brand}
+                            </span>
+                            <span className="text-[9px] text-brand-text-muted font-bold">
+                              {currency}
+                            </span>
+                          </div>
                           
                           <h4 className="text-xs font-bold text-white group-hover:text-brand-purple transition-colors line-clamp-1 mt-1 leading-snug">
                             {product.name}
@@ -428,7 +566,7 @@ function MarketplaceContent() {
                             )}
                             <span className="px-2 py-0.5 rounded text-[8px] bg-brand-green/10 text-brand-green border border-brand-green/20 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
                               <span className="h-1 w-1 rounded-full bg-brand-green animate-pulse"></span>
-                              Instant
+                              Instant Digital
                             </span>
                           </div>
 
@@ -442,12 +580,14 @@ function MarketplaceContent() {
                         {/* Pricing block */}
                         <div className="mt-4 pt-3.5 border-t border-brand-border/20 flex items-center justify-between">
                           <div>
-                            <span className="text-[9px] text-brand-text-muted uppercase tracking-wider block font-semibold">USD Price</span>
-                            <span className="text-sm font-extrabold text-white">${product.retailPrice.toFixed(2)}</span>
+                            <span className="text-[9px] text-brand-text-muted uppercase tracking-wider block font-semibold">Face Value</span>
+                            <span className="text-sm font-extrabold text-white">
+                              {symbol}{product.retailPrice.toFixed(2)} <span className="text-[10px] text-brand-text-muted font-normal">{currency}</span>
+                            </span>
                           </div>
 
                           <div className="text-right">
-                            <span className="text-[9px] text-brand-purple uppercase tracking-wider block font-bold">SOL Amount</span>
+                            <span className="text-[9px] text-brand-purple uppercase tracking-wider block font-bold">SOL Price</span>
                             <span className="text-xs font-black text-brand-green">{solPriceEquivalent.toFixed(4)} SOL</span>
                           </div>
                         </div>
@@ -461,9 +601,9 @@ function MarketplaceContent() {
                           e.preventDefault();
                           e.stopPropagation();
                           addToCart(product, 1, {
-                            region: product.regions?.[0] || "United States",
-                            price: product.pricePoints?.[0] ?? product.retailPrice,
-                            currency: getRegionInfo(product.regions?.[0] || "United States")?.currency || "USD"
+                            region: prodRegion,
+                            price: product.retailPrice,
+                            currency: currency
                           });
                         }}
                         className="flex-1 py-2.5 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-[11px] font-bold text-white flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
@@ -503,6 +643,38 @@ function MarketplaceContent() {
               >
                 <X className="h-5 w-5" />
               </button>
+            </div>
+
+            {/* Region Filters (Mobile) */}
+            <div className="mb-6">
+              <h3 className="text-xs font-bold text-white mb-3 flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5 text-brand-purple" />
+                Country / Region
+              </h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                <label className="flex items-center gap-2.5 text-xs text-brand-text-muted">
+                  <input
+                    type="radio"
+                    name="regionFilterRadioMobile"
+                    checked={selectedRegion === "all"}
+                    onChange={() => setSelectedRegion("all")}
+                    className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
+                  />
+                  <span>🌐 All Regions</span>
+                </label>
+                {availableRegions.map(reg => (
+                  <label key={reg} className="flex items-center gap-2.5 text-xs text-brand-text-muted">
+                    <input
+                      type="radio"
+                      name="regionFilterRadioMobile"
+                      checked={selectedRegion === reg}
+                      onChange={() => setSelectedRegion(reg)}
+                      className="h-4 w-4 border-brand-border bg-brand-dark text-brand-purple focus:ring-brand-purple"
+                    />
+                    <span className="truncate">{getCountryFlag(reg)} {reg}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Brands */}
@@ -550,7 +722,7 @@ function MarketplaceContent() {
 
             <button
               onClick={() => setShowMobileFilters(false)}
-              className="mt-auto w-full py-3 bg-brand-purple text-xs font-bold text-white rounded-lg"
+              className="mt-auto w-full py-3 bg-brand-purple text-xs font-bold text-white rounded-lg cursor-pointer"
             >
               Apply Filters
             </button>

@@ -21,6 +21,7 @@ export interface Product {
     date: string;
   }[];
   regions?: string[];
+  region?: string;
   pricePoints?: number[];
   currency?: string;
 }

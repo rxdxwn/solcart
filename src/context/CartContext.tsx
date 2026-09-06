@@ -107,9 +107,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const addToCart = (product: Product, quantity: number = 1, options?: AddToCartOptions) => {
-    const selectedRegion = options?.region || product.regions?.[0] || "United States";
+    const selectedRegion = options?.region || product.region || product.regions?.[0] || "United States";
     const selectedPrice = options?.price ?? product.retailPrice;
-    const selectedCurrency = options?.currency || getRegionInfo(selectedRegion)?.currency || product.currency || "USD";
+    const selectedCurrency = options?.currency || product.currency || getRegionInfo(selectedRegion)?.currency || "USD";
     const itemKey = `${product.id}::${selectedRegion}::${selectedPrice}`;
 
     const items = [...cartItems];

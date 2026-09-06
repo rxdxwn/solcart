@@ -24,6 +24,40 @@ import { Product } from "../../../types";
 import { GiftCardArtwork } from "../../../components/ui/GiftCardArtwork";
 import { getRegionInfo, isRegionSupported, ForexService } from "../../../services/forex";
 
+function getCountryFlag(regionName?: string): string {
+  if (!regionName) return "🌐";
+  if (regionName.includes("United States") || regionName === "US") return "🇺🇸";
+  if (regionName.includes("United Kingdom") || regionName === "UK" || regionName === "GB") return "🇬🇧";
+  if (regionName.includes("Singapore") || regionName === "SG") return "🇸🇬";
+  if (regionName.includes("Canada") || regionName === "CA") return "🇨🇦";
+  if (regionName.includes("Germany") || regionName.includes("Eurozone") || regionName === "DE") return "🇩🇪";
+  if (regionName.includes("Japan") || regionName === "JP") return "🇯🇵";
+  if (regionName.includes("Australia") || regionName === "AU") return "🇦🇺";
+  if (regionName.includes("Emirates") || regionName.includes("UAE") || regionName === "AE") return "🇦🇪";
+  if (regionName.includes("India") || regionName === "IN") return "🇮🇳";
+  if (regionName.includes("Brazil") || regionName === "BR") return "🇧🇷";
+  if (regionName.includes("Switzerland") || regionName === "CH") return "🇨🇭";
+  if (regionName.includes("Korea") || regionName === "KR") return "🇰🇷";
+  return "🌐";
+}
+
+function getCurrencySymbol(curr?: string): string {
+  switch (curr) {
+    case "GBP": return "£";
+    case "EUR": return "€";
+    case "SGD": return "S$";
+    case "CAD": return "C$";
+    case "AED": return "AED ";
+    case "AUD": return "A$";
+    case "JPY": return "¥";
+    case "INR": return "₹";
+    case "BRL": return "R$";
+    case "CHF": return "CHF ";
+    case "KRW": return "₩";
+    default: return "$";
+  }
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -118,14 +152,13 @@ export default function ProductDetailPage({ params }: PageProps) {
     );
   }
 
-  const effectivePrice = selectedPrice ?? product.retailPrice;
+  const prodRegion = product.region || product.regions?.[0] || "United States";
+  const effectivePrice = product.retailPrice;
   const solPriceEquivalent = parseFloat((effectivePrice / solPrice).toFixed(4));
   const retailers = RetailerService.getRetailers();
   const retailer = retailers.find(r => r.id === product.retailerId);
-  const regionInfo = getRegionInfo(selectedRegion);
-  const nativeCurrency = regionInfo?.currency || product.currency || "USD";
-  const nativePrice = ForexService.convertFromUSD(effectivePrice, nativeCurrency);
-  const nativeSymbol = ForexService.getCurrencySymbol(nativeCurrency);
+  const currency = product.currency || "USD";
+  const symbol = getCurrencySymbol(currency);
 
   // Retrieve related products in same category, fallback to same retailer
   const relatedProducts = (() => {
@@ -145,17 +178,17 @@ export default function ProductDetailPage({ params }: PageProps) {
 
   const handleAddToCart = () => {
     addToCart(product, quantity, {
-      region: selectedRegion,
+      region: prodRegion,
       price: effectivePrice,
-      currency: nativeCurrency
+      currency: currency
     });
   };
 
   const handleBuyNow = () => {
     addToCart(product, quantity, {
-      region: selectedRegion,
+      region: prodRegion,
       price: effectivePrice,
-      currency: nativeCurrency
+      currency: currency
     });
     router.push("/checkout");
   };
@@ -188,6 +221,12 @@ export default function ProductDetailPage({ params }: PageProps) {
               <span className="h-2 w-2 rounded-full bg-brand-purple animate-pulse"></span>
               {retailer?.name || product.brand}
             </span>
+
+            {/* Region badge */}
+            <span className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-brand-card/90 border border-brand-border/80 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg shadow-brand-dark/50 z-10">
+              <span>{getCountryFlag(prodRegion)}</span>
+              <span>{prodRegion}</span>
+            </span>
           </div>
 
           {/* Secure Purchase assurances */}
@@ -198,20 +237,28 @@ export default function ProductDetailPage({ params }: PageProps) {
             </div>
             <div className="rounded-xl border border-brand-border/30 bg-brand-card/20 p-3 text-center flex flex-col items-center justify-center">
               <Sparkles className="h-4 w-4 text-brand-green mb-1" />
-              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Best Price</span>
+              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Official Code</span>
             </div>
             <div className="rounded-xl border border-brand-border/30 bg-brand-card/20 p-3 text-center flex flex-col items-center justify-center">
               <ShieldCheck className="h-4 w-4 text-indigo-400 mb-1" />
-              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Secure Checkout</span>
+              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Solana Escrow</span>
             </div>
           </div>
         </div>
 
         {/* Purchase Info Panel */}
         <div className="flex flex-col">
-          <span className="text-xs font-black text-brand-purple uppercase tracking-wider">
-            {product.brand}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-black text-brand-purple uppercase tracking-wider">
+              {product.brand}
+            </span>
+            <span className="text-[10px] text-brand-text-muted">•</span>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-white flex items-center gap-1">
+              <span>{getCountryFlag(prodRegion)}</span>
+              <span>{prodRegion} Only</span>
+            </span>
+          </div>
+
           <h1 className="text-xl sm:text-3xl font-extrabold text-white mt-2 leading-tight">
             {product.name}
           </h1>
@@ -230,35 +277,26 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
               <span className="text-xs text-brand-text-muted">•</span>
               <span className="text-xs text-brand-text-muted">
-                {product.reviewsCount.toLocaleString()} reviews
+                {product.reviewsCount.toLocaleString()} verified buyers
               </span>
             </div>
           )}
 
-          <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed mt-6">
+          <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed mt-4">
             {product.description}
           </p>
 
           {/* Pricing Block */}
-          <div className="mt-8 p-6 rounded-2xl border border-brand-border/60 bg-gradient-to-tr from-brand-card/50 to-indigo-950/20 shadow-xl relative overflow-hidden">
+          <div className="mt-6 p-6 rounded-2xl border border-brand-border/60 bg-gradient-to-tr from-brand-card/50 to-indigo-950/20 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-16 h-16 bg-brand-purple/5 rounded-full blur-xl pointer-events-none"></div>
             
             <div className="flex items-center justify-between">
               <div>
-                {nativeCurrency !== "USD" ? (
-                  <>
-                    <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">{nativeCurrency} Price</span>
-                    <span className="text-3xl font-black text-white">{nativeSymbol}{(nativeCurrency === "AED" ? " " : "")}{nativePrice.toFixed(2)}</span>
-                    <span className="block text-[10px] text-brand-text-muted mt-1">
-                      USD ${effectivePrice.toFixed(2)}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">USD Price</span>
-                    <span className="text-3xl font-black text-white">${effectivePrice.toFixed(2)}</span>
-                  </>
-                )}
+                <span className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-semibold">Face Value / Price</span>
+                <span className="text-3xl font-black text-white">{symbol}{effectivePrice.toFixed(2)}</span>
+                <span className="block text-[10px] text-brand-text-muted mt-0.5">
+                  Currency: <strong className="text-white">{currency}</strong> ({prodRegion})
+                </span>
               </div>
               <div className="text-right bg-brand-green/5 border border-brand-green/20 rounded-xl px-4 py-2.5 shadow-inner">
                 <span className="text-[9px] text-brand-purple uppercase tracking-wider block font-bold">SOL Amount</span>
@@ -267,73 +305,33 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Region & Price Point Selection (before adding to cart) */}
-            <div className="mt-5 pt-4 border-t border-brand-border/20 space-y-4">
-              <div>
-                <label className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-bold mb-2">
-                  Select Region
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(product.regions && product.regions.length > 0 ? product.regions : ["United States"]).map(region => {
-                    const supported = isRegionSupported(region);
-                    const active = selectedRegion === region;
-                    return (
-                      <button
-                        key={region}
-                        type="button"
-                        disabled={!supported}
-                        onClick={() => setSelectedRegion(region)}
-                        className={`px-3 py-2 rounded-lg border text-xs font-bold transition-all text-left ${
-                          active
-                            ? "bg-brand-purple/20 border-brand-purple/50 text-white"
-                            : supported
-                              ? "border-brand-border/60 text-brand-text-muted hover:text-white hover:border-brand-purple/40"
-                              : "border-brand-border/30 text-brand-text-muted/40 opacity-60 cursor-not-allowed"
-                        }`}
-                      >
-                        <span className="block">{region}</span>
-                        {!supported && <span className="block text-[9px] text-brand-text-muted/60 font-semibold mt-0.5">Available soon</span>}
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* Card Specifications & Region Guarantee Block */}
+            <div className="mt-5 pt-4 border-t border-brand-border/20 grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] text-brand-text-muted block uppercase font-bold">Region Lock</span>
+                <span className="text-white font-bold flex items-center gap-1.5 mt-1">
+                  <span>{getCountryFlag(prodRegion)}</span>
+                  <span className="truncate">{prodRegion}</span>
+                </span>
               </div>
-
-              <div>
-                <label className="text-[10px] text-brand-text-muted uppercase tracking-wider block font-bold mb-2">
-                  Select Amount
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {(product.pricePoints && product.pricePoints.length > 0 ? product.pricePoints : [effectivePrice]).map(p => {
-                    const active = selectedPrice === p;
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setSelectedPrice(p)}
-                        className={`px-3 py-2 rounded-lg border text-xs font-bold transition-all ${
-                          active
-                            ? "bg-brand-purple/20 border-brand-purple/50 text-white"
-                            : "border-brand-border/60 text-brand-text-muted hover:text-white hover:border-brand-purple/40"
-                        }`}
-                      >
-                        ${p}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] text-brand-text-muted block uppercase font-bold">Delivery Format</span>
+                <span className="text-brand-green font-bold flex items-center gap-1.5 mt-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green animate-pulse"></span>
+                  <span>Instant Digital Code</span>
+                </span>
               </div>
             </div>
 
             {/* Inventory Status */}
-            <div className="mt-5 pt-4 border-t border-brand-border/20 flex items-center justify-between text-xs text-brand-text-muted">
+            <div className="mt-4 pt-4 border-t border-brand-border/20 flex items-center justify-between text-xs text-brand-text-muted">
               <div className="flex items-center gap-1.5">
                 <span className={`h-2.5 w-2.5 rounded-full ${product.stockCount > 10 ? 'bg-brand-green' : 'bg-amber-500'} animate-pulse`}></span>
-                <span>{product.stockCount > 0 ? `In Stock (${product.stockCount} left)` : "Out of Stock"}</span>
+                <span>{product.stockCount > 0 ? `In Stock (${product.stockCount} available)` : "Out of Stock"}</span>
               </div>
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5 text-brand-purple" />
-                Delivery: Instant Email
+                Delivery: Instant On-Chain Release
               </span>
             </div>
           </div>
@@ -361,7 +359,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             {/* Buy Buttons */}
             <button
               onClick={handleAddToCart}
-              className="w-full sm:flex-1 h-12 rounded-xl bg-brand-card border border-brand-border hover:bg-brand-border text-sm font-bold text-white flex items-center justify-center gap-2 transition-all"
+              className="w-full sm:flex-1 h-12 rounded-xl bg-brand-card border border-brand-border hover:bg-brand-border text-sm font-bold text-white flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <ShoppingCart className="h-5 w-5 text-brand-purple" />
               Add to Cart
@@ -369,9 +367,9 @@ export default function ProductDetailPage({ params }: PageProps) {
 
             <button
               onClick={handleBuyNow}
-              className="w-full sm:flex-1 h-12 rounded-xl bg-brand-purple hover:bg-brand-purple/90 text-sm font-black text-white shadow-lg shadow-brand-purple/10 hover:shadow-brand-purple/20 transition-all"
+              className="w-full sm:flex-1 h-12 rounded-xl bg-brand-purple hover:bg-brand-purple/90 text-sm font-black text-white shadow-lg shadow-brand-purple/10 hover:shadow-brand-purple/20 transition-all cursor-pointer"
             >
-              Buy Now
+              Buy Now with SOL
             </button>
           </div>
 
