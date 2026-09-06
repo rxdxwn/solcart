@@ -148,9 +148,6 @@ export class SupabaseService {
             if (result.data.transactions) {
               localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(result.data.transactions));
             }
-            if (result.data.products) {
-              localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(result.data.products));
-            }
             if (result.data.settings) {
               localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(result.data.settings));
             }

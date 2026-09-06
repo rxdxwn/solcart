@@ -253,17 +253,29 @@ export class DbAdapter {
   }
 
   static async addProduct(payload: Omit<Product, "rating" | "reviewsCount" | "reviews" | "marketplacePrice"> & { marketplacePrice?: number }): Promise<Product> {
+    const region = payload.region || (payload.regions && payload.regions.length > 0 ? payload.regions[0] : "United States");
+    const currency = payload.currency || "USD";
+    const basePrice = payload.retailPrice || 50;
     const defaultProduct = {
       rating: 5.0,
       reviewsCount: 0,
       reviews: [] as any[],
-      marketplacePrice: payload.marketplacePrice || payload.retailPrice,
-      pricePoints: payload.pricePoints && payload.pricePoints.length > 0 ? payload.pricePoints : [payload.retailPrice || 50],
-      regions: payload.regions && payload.regions.length > 0 ? payload.regions : [payload.region || "United States"],
-      region: payload.region || (payload.regions && payload.regions.length > 0 ? payload.regions[0] : "United States"),
-      currency: payload.currency || "USD"
+      marketplacePrice: payload.marketplacePrice || basePrice,
+      pricePoints: payload.pricePoints && payload.pricePoints.length > 0 ? payload.pricePoints : [basePrice],
+      regions: payload.regions && payload.regions.length > 0 ? payload.regions : [region],
+      region: region,
+      currency: currency,
+      description: payload.description || "Digital gift card",
+      stockCount: payload.stockCount !== undefined ? payload.stockCount : 50,
+      isFeatured: payload.isFeatured !== undefined ? payload.isFeatured : false
     };
-    const newProd = { ...payload, ...defaultProduct } as Product;
+    const newProd = { ...defaultProduct, ...payload } as Product;
+    newProd.region = payload.region || region;
+    newProd.currency = payload.currency || currency;
+    newProd.retailPrice = basePrice;
+    newProd.marketplacePrice = payload.marketplacePrice || basePrice;
+    newProd.pricePoints = payload.pricePoints && payload.pricePoints.length > 0 ? payload.pricePoints : [basePrice];
+    newProd.regions = payload.regions && payload.regions.length > 0 ? payload.regions : [newProd.region];
 
     if (isSupabaseConfigured()) {
       if (!supabaseAdmin) throw new Error("Supabase admin client not initialized");
@@ -301,7 +313,7 @@ export class DbAdapter {
       return newProd;
     }
     const store = readLocalDb();
-    store.products.push(newProd);
+    store.products = [newProd, ...(store.products || []).filter((p: any) => p.id !== newProd.id)];
     writeLocalDb(store);
     return newProd;
   }
@@ -369,6 +381,7 @@ export class DbAdapter {
       if (updates.estimatedDelivery !== undefined) dbPayload.estimated_delivery = updates.estimatedDelivery;
       if (updates.retailerId !== undefined) dbPayload.retailer_id = updates.retailerId;
       if (updates.regions !== undefined) dbPayload.regions = updates.regions;
+      if (updates.region !== undefined) dbPayload.region = updates.region;
       if (updates.pricePoints !== undefined) dbPayload.price_points = updates.pricePoints;
       if (updates.currency !== undefined) dbPayload.currency = updates.currency;
 

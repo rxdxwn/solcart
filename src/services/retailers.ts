@@ -271,10 +271,21 @@ export class RetailerService {
           if (result.data.retailers) {
             localStorage.setItem("solcart_retailers", JSON.stringify(result.data.retailers));
           }
-          // Do not clobber local product edits with stale server data
-          // (avoids the "edited product reverts to old values" bug).
-          if (!this.hasPendingProductWrites() && result.data.products) {
-            localStorage.setItem("solcart_products", JSON.stringify(result.data.products));
+          if (result.data.products && Array.isArray(result.data.products)) {
+            const currentLocal = this.getStoredProducts();
+            const serverProducts: Product[] = result.data.products;
+            const serverIdSet = new Set(serverProducts.map(sp => sp.id));
+            const localOnly = currentLocal.filter(p => !serverIdSet.has(p.id));
+            
+            if (this.hasPendingProductWrites()) {
+              const localMap = new Map(currentLocal.map(p => [p.id, p]));
+              const mergedServer = serverProducts.map(sp => localMap.get(sp.id) || sp);
+              const finalProducts = [...localOnly, ...mergedServer];
+              localStorage.setItem("solcart_products", JSON.stringify(finalProducts));
+            } else {
+              const finalProducts = [...localOnly, ...serverProducts];
+              localStorage.setItem("solcart_products", JSON.stringify(finalProducts));
+            }
           }
           window.dispatchEvent(new Event("solcart-db-synced"));
         }
@@ -310,6 +321,7 @@ export class RetailerService {
       });
       localStorage.setItem("solcart_products", JSON.stringify(updatedProducts));
       this.markProductsDirty();
+      window.dispatchEvent(new Event("solcart-db-synced"));
 
       // Post to central server DB API
       fetch("/api/db", {
@@ -334,18 +346,17 @@ export class RetailerService {
 
   static async addProduct(product: Omit<Product, "marketplacePrice">): Promise<void> {
     const products = this.getStoredProducts();
-    const retailers = this.getStoredRetailers();
-    const retailer = retailers.find(r => r.id === product.retailerId) || { markupPercentage: 10 };
-    
     const marketplacePrice = product.retailPrice;
     const newProduct: Product = {
       ...product,
       marketplacePrice
     };
     
-    products.push(newProduct);
+    // Put at top of list so newest added products are instantly visible
+    const updatedProducts = [newProduct, ...products.filter(p => p.id !== newProduct.id)];
     this.markProductsDirty();
-    localStorage.setItem("solcart_products", JSON.stringify(products));
+    localStorage.setItem("solcart_products", JSON.stringify(updatedProducts));
+    window.dispatchEvent(new Event("solcart-db-synced"));
 
     try {
       await fetch("/api/db", {
@@ -365,6 +376,7 @@ export class RetailerService {
     const products = this.getStoredProducts().filter(p => p.id !== productId);
     this.markProductsDirty();
     localStorage.setItem("solcart_products", JSON.stringify(products));
+    window.dispatchEvent(new Event("solcart-db-synced"));
 
     fetch("/api/db", {
       method: "POST",
@@ -382,11 +394,14 @@ export class RetailerService {
     if (index !== -1) {
       const existing = products[index];
       const merged = { ...existing, ...updatedFields };
-      merged.marketplacePrice = merged.retailPrice;
+      if (merged.retailPrice !== undefined) {
+        merged.marketplacePrice = merged.retailPrice;
+      }
       
       products[index] = merged as Product;
       this.markProductsDirty();
       localStorage.setItem("solcart_products", JSON.stringify(products));
+      window.dispatchEvent(new Event("solcart-db-synced"));
 
       try {
         await fetch("/api/db", {

@@ -43,20 +43,21 @@
   ],
   "products": [
     {
-      "id": "p-amazon",
-      "name": "Amazon Gift Card",
-      "description": "Shop millions of products globally. Amazon gift card codes are region-locked to selected countries.",
+      "id": "p-amazon-50-us",
+      "name": "Amazon $50 Gift Card",
+      "description": "Shop millions of products on Amazon. Valid for United States Amazon accounts.",
       "brand": "Amazon",
       "image": "/images/amazon-card.jpg",
       "category": "Retail",
-      "rating": 0,
-      "reviewsCount": 0,
+      "rating": 4.9,
+      "reviewsCount": 142,
       "retailPrice": 50,
       "marketplacePrice": 50,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
-        "Redemption": "Online Store",
+        "Redemption": "Amazon.com",
+        "Region": "United States (US)",
         "Expiration": "None"
       },
       "retailerId": "amazon",
@@ -64,36 +65,30 @@
       "isFeatured": true,
       "reviews": [],
       "pricePoints": [
-        10,
-        25,
-        50,
-        100,
-        200,
-        500
+        50
       ],
       "currency": "USD",
+      "region": "United States",
       "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
+        "United States"
       ]
     },
     {
-      "id": "p-apple",
-      "name": "Apple App Store & iTunes Gift Card",
-      "description": "Redeem on Apple Store, iTunes, Apple Books, or iCloud subscriptions. Perfect gift for any Apple user.",
+      "id": "p-apple-100-us",
+      "name": "Apple $100 App Store & iTunes Card",
+      "description": "Redeem for apps, games, music, movies, and iCloud subscriptions on US Apple accounts.",
       "brand": "Apple",
       "image": "/images/apple-card.jpg",
       "category": "Entertainment",
-      "rating": 0,
-      "reviewsCount": 0,
+      "rating": 4.8,
+      "reviewsCount": 98,
       "retailPrice": 100,
       "marketplacePrice": 100,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
         "Redemption": "App Store / iTunes",
+        "Region": "United States (US)",
         "Expiration": "None"
       },
       "retailerId": "apple",
@@ -101,35 +96,30 @@
       "isFeatured": true,
       "reviews": [],
       "pricePoints": [
-        15,
-        25,
-        50,
-        100,
-        200
+        100
       ],
       "currency": "USD",
+      "region": "United States",
       "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
+        "United States"
       ]
     },
     {
-      "id": "p-steam",
-      "name": "Steam Wallet Code",
-      "description": "Add funds directly to your Steam Account. Instant access to purchase games, expansions, and community items.",
+      "id": "p-steam-50-us",
+      "name": "Steam $50 Wallet Card",
+      "description": "Add $50 directly to your Steam Account. Instant access to games and DLCs.",
       "brand": "Steam",
       "image": "/images/steam-card.jpg",
       "category": "Gaming",
-      "rating": 0,
-      "reviewsCount": 0,
+      "rating": 4.9,
+      "reviewsCount": 230,
       "retailPrice": 50,
       "marketplacePrice": 50,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
         "Redemption": "Steam Client",
+        "Region": "United States (US)",
         "Expiration": "None"
       },
       "retailerId": "steam",
@@ -137,69 +127,61 @@
       "isFeatured": true,
       "reviews": [],
       "pricePoints": [
-        10,
-        20,
-        50,
-        100
+        50
       ],
       "currency": "USD",
+      "region": "United States",
       "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
+        "United States"
       ]
     },
     {
-      "id": "p-noon",
-      "name": "Noon Gift Card",
-      "description": "Shop millions of items on Noon.com in UAE, Saudi Arabia, and Egypt.",
-      "brand": "Noon",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Noon.com_logo.svg",
+      "id": "p-amazon-25-uk",
+      "name": "Amazon £25 Gift Card",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK accounts.",
+      "brand": "Amazon",
+      "image": "/images/amazon-card.jpg",
       "category": "Retail",
-      "rating": 0,
-      "reviewsCount": 0,
-      "retailPrice": 100,
-      "marketplacePrice": 100,
+      "rating": 4.9,
+      "reviewsCount": 85,
+      "retailPrice": 25,
+      "marketplacePrice": 25,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
-        "Redemption": "Online Store",
+        "Redemption": "Amazon.co.uk",
+        "Region": "United Kingdom (GB)",
         "Expiration": "None"
       },
-      "retailerId": "noon",
-      "stockCount": 150,
+      "retailerId": "amazon",
+      "stockCount": 300,
       "isFeatured": true,
       "reviews": [],
       "pricePoints": [
-        50,
-        100,
-        250,
-        500
+        25
       ],
-      "currency": "USD",
+      "currency": "GBP",
+      "region": "United Kingdom",
       "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
+        "United Kingdom"
       ]
     },
     {
-      "id": "p-nike",
-      "name": "Nike Gift Card",
+      "id": "p-nike-50-us",
+      "name": "Nike $50 Gift Card",
       "description": "Shop the latest Nike footwear, apparel, and equipment online or in-store.",
       "brand": "Nike",
       "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60",
       "category": "Apparel",
-      "rating": 0,
-      "reviewsCount": 0,
+      "rating": 4.7,
+      "reviewsCount": 64,
       "retailPrice": 50,
       "marketplacePrice": 50,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
-        "Format": "Digital/Physical",
-        "Redemption": "Nike Stores / Web",
+        "Format": "Digital Code",
+        "Redemption": "Nike US Stores & Online",
+        "Region": "United States (US)",
         "Expiration": "None"
       },
       "retailerId": "nike",
@@ -207,81 +189,13 @@
       "isFeatured": true,
       "reviews": [],
       "pricePoints": [
-        25,
-        50,
-        100,
-        200
-      ],
-      "currency": "USD",
-      "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
-      ]
-    },
-    {
-      "id": "p-499kd3lpx",
-      "name": "Beats",
-      "description": "https",
-      "brand": "Dr Dre",
-      "image": "https://render.com",
-      "category": "Electronics",
-      "rating": 5,
-      "reviewsCount": 0,
-      "retailPrice": 100,
-      "estimatedDelivery": "3-5 business days",
-      "specs": {
-        "Retailer Sourced": "amazon"
-      },
-      "retailerId": "amazon",
-      "stockCount": 50,
-      "isFeatured": false,
-      "pricePoints": [
-        25,
         50
       ],
-      "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
-      ],
-      "currency": "GBP",
-      "marketplacePrice": 100,
-      "reviews": []
-    },
-    {
-      "id": "p-s1td0wqk4",
-      "name": "vvvvvv",
-      "description": "ggjghftgfygybgyhbgbb",
-      "brand": "ggggg",
-      "image": "https://recharge-prd.asset.akeneo.cloud/product_assets/media/recharge_com_apple_product_card.png",
-      "category": "Gaming",
-      "rating": 5,
-      "reviewsCount": 0,
-      "retailPrice": 25,
-      "estimatedDelivery": "3-5 business days",
-      "specs": {
-        "Retailer Sourced": "amazon"
-      },
-      "retailerId": "amazon",
-      "stockCount": 50,
-      "isFeatured": false,
-      "pricePoints": [
-        25,
-        50,
-        100
-      ],
-      "regions": [
-        "United States",
-        "United Kingdom",
-        "Singapore",
-        "Canada"
-      ],
       "currency": "USD",
-      "marketplacePrice": 25,
-      "reviews": []
+      "region": "United States",
+      "regions": [
+        "United States"
+      ]
     }
   ],
   "orders": [

@@ -544,6 +544,9 @@ export default function AdminDashboard() {
         });
       }
 
+      // Immediately update local state so table updates instantly
+      setProducts(RetailerService.getProducts());
+
       // Clear Form
       setNewProdName("");
       setNewProdBrand("");
@@ -2117,7 +2120,14 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {products.slice(0, 20).map(prod => (
+                        {products.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-brand-text-muted">
+                              No products in catalog. Click &ldquo;Add Product&rdquo; above to add your first gift card.
+                            </td>
+                          </tr>
+                        ) : (
+                          products.map(prod => (
                           <tr key={prod.id} className="hover:bg-[#080808]/25">
                             <td className="p-3.5 font-bold text-white">{prod.name}</td>
                             <td className="p-3.5 text-brand-text-muted">{prod.category}</td>
@@ -2155,7 +2165,7 @@ export default function AdminDashboard() {
                               )}
                             </td>
                           </tr>
-                        ))}
+                        )))}
                       </tbody>
                     </table>
                   </div>
