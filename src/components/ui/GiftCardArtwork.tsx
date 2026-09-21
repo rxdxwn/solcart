@@ -102,17 +102,17 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
   const isCustomImage = imageUrl && (imageUrl.startsWith("http") || !imageUrl.startsWith("/images/"));
   if (imageUrl && (isCustomImage || !isConfigured)) {
     return (
-      <div className={`relative w-full ${aspectClass} rounded-xl border border-white/10 overflow-hidden shadow-2xl group ${className}`}>
+      <div className={`relative w-full ${aspectClass} rounded-xl border border-white/10 overflow-hidden shadow-2xl bg-[#0c0c0e] flex items-center justify-center group ${className}`}>
         <img
           src={imageUrl}
           alt={`${brand} Gift Card`}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 select-none pointer-events-none"
+          className="w-full h-full object-contain p-1.5 sm:p-2.5 group-hover:scale-103 transition-transform duration-500 select-none pointer-events-none"
         />
         {/* Holographic light overlay */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none opacity-60"></div>
         {/* Value badge */}
         {!isThumbnail && (
-          <div className="absolute top-3 right-3 px-2 py-1 rounded bg-black/70 backdrop-blur-sm text-[8px] sm:text-[9px] font-black text-white border border-white/10 shadow-md leading-none">
+          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-sm text-[7.5px] sm:text-[9px] font-black text-white border border-white/10 shadow-md leading-none">
             {displayValue}
           </div>
         )}
@@ -148,7 +148,7 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
                 const fb = document.getElementById(`fallback-thumb-${brandKey}`);
                 if (fb) fb.style.display = "block";
               }}
-              className={`h-4.5 w-auto max-w-[80%] object-contain select-none pointer-events-none ${cardConfig.logoClass || ""}`}
+              className={`h-4 sm:h-4.5 w-auto max-w-[80%] object-contain select-none pointer-events-none ${cardConfig.logoClass || ""}`}
             />
           ) : null}
           <span 
@@ -164,7 +164,7 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
   }
 
   return (
-    <div className={`relative w-full ${aspectClass} rounded-xl ${cardConfig.bg} border border-white/10 overflow-hidden shadow-2xl p-4 flex flex-col justify-between select-none group ${className}`}>
+    <div className={`relative w-full ${aspectClass} rounded-xl ${cardConfig.bg} border border-white/10 overflow-hidden shadow-2xl p-2.5 sm:p-4 flex flex-col justify-between select-none group ${className}`}>
       
       {/* Holographic light overlay */}
       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none opacity-40 group-hover:scale-150 transition-transform duration-1000"></div>
@@ -178,20 +178,20 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
       {/* Top row */}
       <div className="flex justify-between items-start z-10">
         <div className="flex flex-col items-start">
-          <span className="text-[7px] sm:text-[8px] font-black tracking-widest text-white/50 uppercase leading-none">
+          <span className="text-[6.5px] sm:text-[8px] font-black tracking-widest text-white/50 uppercase leading-none">
             Digital Code
           </span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-white tracking-tight mt-1 leading-none">
+          <span className="text-[8px] sm:text-[10px] font-bold text-white tracking-tight mt-0.5 sm:mt-1 leading-none">
             {cardConfig.label}
           </span>
         </div>
-        <div className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[8px] sm:text-[9px] font-black text-white border border-white/10 shadow-sm leading-none shrink-0">
+        <div className="px-1.5 py-0.5 sm:px-2 rounded bg-black/60 backdrop-blur-sm text-[7.5px] sm:text-[9px] font-black text-white border border-white/10 shadow-sm leading-none shrink-0">
           {displayValue}
         </div>
       </div>
 
       {/* Center brand logo */}
-      <div className="flex items-center justify-center py-2 z-10 flex-1 min-h-0">
+      <div className="flex items-center justify-center py-1 sm:py-2 z-10 flex-1 min-h-0">
         {cardConfig.logoUrl ? (
           <img 
             src={cardConfig.logoUrl} 
@@ -201,12 +201,12 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
               const fb = document.getElementById(`fallback-${brandKey}`);
               if (fb) fb.style.display = "block";
             }}
-            className={`h-8 sm:h-9 w-auto max-w-[65%] object-contain select-none pointer-events-none ${cardConfig.logoClass || ""}`}
+            className={`h-5 sm:h-8 md:h-9 w-auto max-w-[70%] object-contain select-none pointer-events-none ${cardConfig.logoClass || ""}`}
           />
         ) : null}
         <span 
           id={`fallback-${brandKey}`} 
-          className="text-sm font-black text-white" 
+          className="text-xs sm:text-sm font-black text-white" 
           style={{ display: cardConfig.logoUrl ? "none" : "block" }}
         >
           {brand}
@@ -214,15 +214,15 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
       </div>
 
       {/* Bottom row */}
-      <div className="flex justify-between items-center z-10 pt-1.5 border-t border-white/5">
+      <div className="flex justify-between items-center z-10 pt-1 border-t border-white/5">
         <div className="flex items-center gap-1">
           <span className="h-1 w-1 rounded-full bg-brand-green animate-pulse"></span>
-          <span className="text-[7px] font-bold text-white/40 tracking-wider uppercase font-mono">
-            INSTANT DELIVERY
+          <span className="text-[6px] sm:text-[7px] font-bold text-white/40 tracking-wider uppercase font-mono">
+            INSTANT
           </span>
         </div>
-        <div className="flex items-center text-[7px] text-white/40 font-mono">
-          <span>•••• •••• •••• {brand.slice(0, 3).toUpperCase()}</span>
+        <div className="flex items-center text-[6px] sm:text-[7px] text-white/40 font-mono">
+          <span>•••• {brand.slice(0, 3).toUpperCase()}</span>
         </div>
       </div>
       
