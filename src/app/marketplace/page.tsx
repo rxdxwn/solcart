@@ -496,7 +496,7 @@ function MarketplaceContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => {
                 const prodRegion = product.region || product.regions?.[0] || "United States";
                 const currency = product.currency || "USD";
@@ -511,87 +511,90 @@ function MarketplaceContent() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
                     whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                    className="glass-card rounded-xl sm:rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 hover:shadow-lg hover:shadow-brand-purple/5 transition-all duration-300"
+                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 hover:shadow-lg hover:shadow-brand-purple/5 transition-all duration-300"
                   >
                     {/* Brand Colored Accent Strip */}
-                    <div className="h-0.5 sm:h-1 w-full bg-gradient-to-r from-brand-purple to-brand-green opacity-70 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="h-1 w-full bg-gradient-to-r from-brand-purple to-brand-green opacity-70 group-hover:opacity-100 transition-opacity"></div>
 
                     <Link href={`/product/${product.id}`} className="flex flex-col flex-1">
-                      {/* Image Area */}
-                      <div className="p-2.5 sm:p-4 aspect-[16/10] sm:aspect-[4/3] bg-brand-dark/30 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-brand-border/40">
+                      {/* Image Area - Clean bounded height so it never overwhelms mobile screen */}
+                      <div className="p-4 sm:p-5 h-44 sm:h-52 bg-brand-dark/40 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-brand-border/40">
                         {/* Background subtle glow */}
                         <div className="absolute inset-0 bg-radial-gradient from-brand-purple/5 to-transparent pointer-events-none"></div>
-                        <GiftCardArtwork brand={product.brand} value={product.retailPrice} imageUrl={product.image} className="shadow-lg transform group-hover:scale-[1.03] transition-all duration-300 max-h-full" />
+                        
+                        <div className="w-full max-w-[280px] sm:max-w-[320px] h-full flex items-center justify-center">
+                          <GiftCardArtwork brand={product.brand} value={product.retailPrice} imageUrl={product.image} className="shadow-xl transform group-hover:scale-[1.02] transition-all duration-300" />
+                        </div>
                         
                         {/* Retailer badge */}
-                        <span className="absolute top-1.5 sm:top-3 left-1.5 sm:left-3 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[7.5px] sm:text-[9px] font-extrabold rounded-md bg-brand-dark/85 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1 shadow-md z-10">
-                          <span className="h-1 w-1 sm:h-1.5 sm:w-1.5 rounded-full bg-brand-green animate-pulse"></span>
-                          <span className="truncate max-w-[50px] sm:max-w-none">{getRetailerName(product.retailerId)}</span>
+                        <span className="absolute top-3 left-3 px-2.5 py-1 text-[9px] font-extrabold rounded-md bg-brand-dark/85 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5 shadow-md z-10">
+                          <span className="h-1.5 w-1.5 rounded-full bg-brand-green animate-pulse"></span>
+                          <span>{getRetailerName(product.retailerId)}</span>
                         </span>
 
                         {/* Region badge */}
-                        <span className="absolute top-1.5 sm:top-3 right-1.5 sm:right-3 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[7.5px] sm:text-[9px] font-extrabold rounded-md bg-brand-card/90 backdrop-blur-sm border border-brand-border/80 text-white flex items-center gap-1 shadow-md z-10">
+                        <span className="absolute top-3 right-3 px-2.5 py-1 text-[9px] font-extrabold rounded-md bg-brand-card/90 backdrop-blur-sm border border-brand-border/80 text-white flex items-center gap-1.5 shadow-md z-10">
                           <span>{getCountryFlag(prodRegion)}</span>
-                          <span className="hidden xs:inline sm:inline truncate max-w-[50px] sm:max-w-none">{prodRegion}</span>
+                          <span>{prodRegion}</span>
                         </span>
                       </div>
 
                       {/* Description Details */}
-                      <div className="p-2.5 sm:p-4 flex flex-col flex-1 justify-between">
+                      <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between">
                         <div>
                           <div className="flex items-center justify-between gap-1">
-                            <span className="text-[7.5px] sm:text-[9px] font-black text-brand-purple uppercase tracking-widest truncate">
+                            <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest truncate">
                               {product.brand}
                             </span>
-                            <span className="text-[7.5px] sm:text-[9px] text-brand-text-muted font-bold shrink-0">
+                            <span className="text-[10px] text-brand-text-muted font-bold shrink-0">
                               {currency}
                             </span>
                           </div>
                           
-                          <h4 className="text-[11px] sm:text-xs font-bold text-white group-hover:text-brand-purple transition-colors line-clamp-2 mt-0.5 sm:mt-1 leading-tight">
+                          <h4 className="text-sm font-bold text-white group-hover:text-brand-purple transition-colors line-clamp-2 mt-1 leading-snug">
                             {product.name}
                           </h4>
 
                           {/* Ratings & Badges */}
-                          <div className="flex items-center justify-between gap-1 mt-1.5 sm:mt-2 flex-wrap">
+                          <div className="flex items-center justify-between gap-2 mt-2.5 flex-wrap">
                             {product.rating > 0 && (
-                              <div className="flex items-center gap-0.5">
-                                <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-                                <span className="text-[9px] sm:text-[11px] font-bold text-white">{product.rating}</span>
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                <span className="text-xs font-bold text-white">{product.rating}</span>
                               </div>
                             )}
-                            <span className="px-1.5 py-0.5 rounded text-[7px] sm:text-[8px] bg-brand-green/10 text-brand-green border border-brand-green/20 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
-                              <span className="h-1 w-1 rounded-full bg-brand-green animate-pulse"></span>
-                              Instant
+                            <span className="px-2 py-0.5 rounded text-[8px] bg-brand-green/10 text-brand-green border border-brand-green/20 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+                              <span className="h-1.5 w-1.5 rounded-full bg-brand-green animate-pulse"></span>
+                              Instant Delivery
                             </span>
                           </div>
 
                           {/* Stock status */}
-                          <div className="flex items-center gap-1.5 text-[8.5px] sm:text-[10px] text-brand-text-muted mt-1.5 sm:mt-2.5">
+                          <div className="flex items-center gap-1.5 text-xs text-brand-text-muted mt-2.5">
                             <span className={`h-1.5 w-1.5 rounded-full ${product.stockCount > 10 ? 'bg-brand-green' : 'bg-amber-500'} shrink-0`}></span>
-                            <span className="truncate">{product.stockCount} in stock</span>
+                            <span>{product.stockCount} in stock</span>
                           </div>
                         </div>
 
                         {/* Pricing block */}
-                        <div className="mt-2.5 sm:mt-3.5 pt-2 sm:pt-3 border-t border-brand-border/20 flex items-center justify-between gap-1">
-                          <div className="min-w-0">
-                            <span className="text-[7.5px] sm:text-[9px] text-brand-text-muted uppercase tracking-wider block font-semibold leading-none">Price</span>
-                            <span className="text-xs sm:text-sm font-extrabold text-white truncate block mt-0.5">
-                              {symbol}{product.retailPrice.toFixed(0)} <span className="text-[8.5px] sm:text-[10px] text-brand-text-muted font-normal">{currency}</span>
+                        <div className="mt-4 pt-3 border-t border-brand-border/20 flex items-center justify-between gap-2">
+                          <div>
+                            <span className="text-[9px] text-brand-text-muted uppercase tracking-wider block font-semibold leading-none">Price</span>
+                            <span className="text-base font-extrabold text-white block mt-0.5">
+                              {symbol}{product.retailPrice.toFixed(0)} <span className="text-xs text-brand-text-muted font-normal">{currency}</span>
                             </span>
                           </div>
 
-                          <div className="text-right shrink-0">
-                            <span className="text-[7.5px] sm:text-[9px] text-brand-purple uppercase tracking-wider block font-bold leading-none">SOL</span>
-                            <span className="text-[10px] sm:text-xs font-black text-brand-green block mt-0.5">{solPriceEquivalent.toFixed(4)}</span>
+                          <div className="text-right">
+                            <span className="text-[9px] text-brand-purple uppercase tracking-wider block font-bold leading-none">SOL</span>
+                            <span className="text-sm font-black text-brand-green block mt-0.5">{solPriceEquivalent.toFixed(4)}</span>
                           </div>
                         </div>
                       </div>
                     </Link>
 
                     {/* Actions block */}
-                    <div className="px-2.5 pb-2.5 sm:px-4 sm:pb-4 pt-0 flex gap-1.5 sm:gap-2 relative z-10">
+                    <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-0 flex gap-2 relative z-10">
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -602,15 +605,15 @@ function MarketplaceContent() {
                             currency: currency
                           });
                         }}
-                        className="p-1.5 sm:py-2 sm:px-3 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-[10px] sm:text-[11px] font-bold text-white flex items-center justify-center gap-1 transition-all hover:scale-[1.01] cursor-pointer"
+                        className="py-2.5 px-3.5 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border/80 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] cursor-pointer"
                         title="Add to Cart"
                       >
-                        <ShoppingCart className="h-3.5 w-3.5 text-brand-purple" />
-                        <span className="hidden sm:inline">Add</span>
+                        <ShoppingCart className="h-4 w-4 text-brand-purple" />
+                        <span>Add to Cart</span>
                       </button>
                       <Link
                         href={`/product/${product.id}`}
-                        className="flex-1 py-1.5 sm:py-2 px-2.5 rounded-lg bg-brand-purple hover:bg-brand-purple/95 text-[10px] sm:text-[11px] font-extrabold text-white flex items-center justify-center transition-all hover:scale-[1.01] text-center"
+                        className="flex-1 py-2.5 px-4 rounded-lg bg-brand-purple hover:bg-brand-purple/95 text-xs font-extrabold text-white flex items-center justify-center transition-all hover:scale-[1.01] text-center"
                       >
                         Buy Now
                       </Link>
