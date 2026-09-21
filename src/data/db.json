@@ -43,29 +43,587 @@
   ],
   "products": [
     {
-      "id": "p-amazon-50-us",
-      "name": "Amazon $50 Gift Card",
-      "description": "Shop millions of products on Amazon. Valid for United States Amazon accounts.",
+      "id": "p-amazon-200-cad",
+      "name": "Amazon $200 Gift Card (CAD)",
+      "description": "Send or redeem $200 on Amazon.ca with this Digital Amazon Gift Card. Delivered instantly to your email — no shipping, no waiting. Pay with Solana and receive your redeemable code the moment your transaction confirms.",
       "brand": "Amazon",
-      "image": "/images/amazon-card.jpg",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
       "category": "Retail",
-      "rating": 4.9,
-      "reviewsCount": 142,
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 200,
+      "marketplacePrice": 200,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Canada",
+        "Currency": "CAD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        200
+      ],
+      "currency": "CAD",
+      "region": "Canada",
+      "regions": [
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-amazon-150-cad",
+      "name": "Amazon $150 Gift Card (CAD)",
+      "description": "Send or redeem $150 on Amazon.ca with this Digital Amazon Gift Card. Delivered instantly to your email — no shipping, no waiting. Pay with Solana and receive your redeemable code the moment your transaction confirms.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 150,
+      "marketplacePrice": 150,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Canada",
+        "Currency": "CAD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        150
+      ],
+      "currency": "CAD",
+      "region": "Canada",
+      "regions": [
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-amazon-100-cad",
+      "name": "Amazon $100 Gift Card (CAD)",
+      "description": "Send or redeem $100 on Amazon.ca with this Digital Amazon Gift Card. Delivered instantly to your email — no shipping, no waiting. Pay with Solana and receive your redeemable code the moment your transaction confirms.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "marketplacePrice": 100,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Canada",
+        "Currency": "CAD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        100
+      ],
+      "currency": "CAD",
+      "region": "Canada",
+      "regions": [
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-amazon-75-cad",
+      "name": "Amazon $75 Gift Card (CAD)",
+      "description": "Send or redeem $75 on Amazon.ca with this Digital Amazon Gift Card. Delivered instantly to your email — no shipping, no waiting. Pay with Solana and receive your redeemable code the moment your transaction confirms.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 75,
+      "marketplacePrice": 75,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Canada",
+        "Currency": "CAD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        75
+      ],
+      "currency": "CAD",
+      "region": "Canada",
+      "regions": [
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-amazon-50-cad",
+      "name": "Amazon $50 Gift Card (CAD)",
+      "description": "Send or redeem $50 on Amazon.ca with this Digital Amazon Gift Card. Delivered instantly to your email — no shipping, no waiting. Pay with Solana and receive your redeemable code the moment your transaction confirms.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
       "retailPrice": 50,
       "marketplacePrice": 50,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
-        "Redemption": "Amazon.com",
-        "Region": "United States (US)",
-        "Expiration": "None"
+        "Region": "Canada",
+        "Currency": "CAD",
+        "Retailer Sourced": "amazon"
       },
       "retailerId": "amazon",
-      "stockCount": 500,
-      "isFeatured": true,
+      "stockCount": 50,
+      "isFeatured": false,
       "reviews": [],
       "pricePoints": [
         50
+      ],
+      "currency": "CAD",
+      "region": "Canada",
+      "regions": [
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-amazon-25-cad",
+      "name": "Amazon $25 Gift Card (CAD)",
+      "description": "Send or redeem $25 on Amazon.ca with this Digital Amazon Gift Card. Delivered instantly to your email — no shipping, no waiting. Pay with Solana and receive your redeemable code the moment your transaction confirms.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 25,
+      "marketplacePrice": 25,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Canada",
+        "Currency": "CAD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        25
+      ],
+      "currency": "CAD",
+      "region": "Canada",
+      "regions": [
+        "Canada"
+      ]
+    },
+    {
+      "id": "p-grab-100-sgd",
+      "name": "GrabGift S$100 Voucher",
+      "description": "Redeem S$100 for Grab Rides, GrabFood, GrabMart, and express deliveries in Singapore. Instant digital voucher code issued upon Solana settlement.",
+      "brand": "Grab",
+      "image": "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=500&auto=format&fit=crop",
+      "category": "Food & Drink",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "marketplacePrice": 100,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Singapore",
+        "Currency": "SGD",
+        "Retailer Sourced": "grab"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        100
+      ],
+      "currency": "SGD",
+      "region": "Singapore",
+      "regions": [
+        "Singapore"
+      ]
+    },
+    {
+      "id": "p-grab-80-sgd",
+      "name": "GrabGift S$80 Voucher",
+      "description": "Redeem S$80 for Grab Rides, GrabFood, GrabMart, and express deliveries in Singapore. Instant digital voucher code issued upon Solana settlement.",
+      "brand": "Grab",
+      "image": "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=500&auto=format&fit=crop",
+      "category": "Food & Drink",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 80,
+      "marketplacePrice": 80,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Singapore",
+        "Currency": "SGD",
+        "Retailer Sourced": "grab"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        80
+      ],
+      "currency": "SGD",
+      "region": "Singapore",
+      "regions": [
+        "Singapore"
+      ]
+    },
+    {
+      "id": "p-grab-50-sgd",
+      "name": "GrabGift S$50 Voucher",
+      "description": "Redeem S$50 for Grab Rides, GrabFood, GrabMart, and express deliveries in Singapore. Instant digital voucher code issued upon Solana settlement.",
+      "brand": "Grab",
+      "image": "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=500&auto=format&fit=crop",
+      "category": "Food & Drink",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 50,
+      "marketplacePrice": 50,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Singapore",
+        "Currency": "SGD",
+        "Retailer Sourced": "grab"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        50
+      ],
+      "currency": "SGD",
+      "region": "Singapore",
+      "regions": [
+        "Singapore"
+      ]
+    },
+    {
+      "id": "p-grab-30-sgd",
+      "name": "GrabGift S$30 Voucher",
+      "description": "Redeem S$30 for Grab Rides, GrabFood, GrabMart, and express deliveries in Singapore. Instant digital voucher code issued upon Solana settlement.",
+      "brand": "Grab",
+      "image": "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=500&auto=format&fit=crop",
+      "category": "Food & Drink",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 30,
+      "marketplacePrice": 30,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Singapore",
+        "Currency": "SGD",
+        "Retailer Sourced": "grab"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        30
+      ],
+      "currency": "SGD",
+      "region": "Singapore",
+      "regions": [
+        "Singapore"
+      ]
+    },
+    {
+      "id": "p-grab-20-sgd",
+      "name": "GrabGift S$20 Voucher",
+      "description": "Redeem S$20 for Grab Rides, GrabFood, GrabMart, and express deliveries in Singapore. Instant digital voucher code issued upon Solana settlement.",
+      "brand": "Grab",
+      "image": "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=500&auto=format&fit=crop",
+      "category": "Food & Drink",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 20,
+      "marketplacePrice": 20,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Singapore",
+        "Currency": "SGD",
+        "Retailer Sourced": "grab"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        20
+      ],
+      "currency": "SGD",
+      "region": "Singapore",
+      "regions": [
+        "Singapore"
+      ]
+    },
+    {
+      "id": "p-grab-10-sgd",
+      "name": "GrabGift S$10 Voucher",
+      "description": "Redeem S$10 for Grab Rides, GrabFood, GrabMart, and express deliveries in Singapore. Instant digital voucher code issued upon Solana settlement.",
+      "brand": "Grab",
+      "image": "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=500&auto=format&fit=crop",
+      "category": "Food & Drink",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 10,
+      "marketplacePrice": 10,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "Singapore",
+        "Currency": "SGD",
+        "Retailer Sourced": "grab"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        10
+      ],
+      "currency": "SGD",
+      "region": "Singapore",
+      "regions": [
+        "Singapore"
+      ]
+    },
+    {
+      "id": "p-amazon-150-gbp",
+      "name": "Amazon £150 Gift Card (GBP)",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK Amazon accounts. Instant code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 150,
+      "marketplacePrice": 150,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Kingdom",
+        "Currency": "GBP",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        150
+      ],
+      "currency": "GBP",
+      "region": "United Kingdom",
+      "regions": [
+        "United Kingdom"
+      ]
+    },
+    {
+      "id": "p-amazon-100-gbp",
+      "name": "Amazon £100 Gift Card (GBP)",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK Amazon accounts. Instant code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "marketplacePrice": 100,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Kingdom",
+        "Currency": "GBP",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        100
+      ],
+      "currency": "GBP",
+      "region": "United Kingdom",
+      "regions": [
+        "United Kingdom"
+      ]
+    },
+    {
+      "id": "p-amazon-75-gbp",
+      "name": "Amazon £75 Gift Card (GBP)",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK Amazon accounts. Instant code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 75,
+      "marketplacePrice": 75,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Kingdom",
+        "Currency": "GBP",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        75
+      ],
+      "currency": "GBP",
+      "region": "United Kingdom",
+      "regions": [
+        "United Kingdom"
+      ]
+    },
+    {
+      "id": "p-amazon-50-gbp",
+      "name": "Amazon £50 Gift Card (GBP)",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK Amazon accounts. Instant code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 50,
+      "marketplacePrice": 50,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Kingdom",
+        "Currency": "GBP",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        50
+      ],
+      "currency": "GBP",
+      "region": "United Kingdom",
+      "regions": [
+        "United Kingdom"
+      ]
+    },
+    {
+      "id": "p-amazon-30-gbp",
+      "name": "Amazon £30 Gift Card (GBP)",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK Amazon accounts. Instant code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 30,
+      "marketplacePrice": 30,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Kingdom",
+        "Currency": "GBP",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        30
+      ],
+      "currency": "GBP",
+      "region": "United Kingdom",
+      "regions": [
+        "United Kingdom"
+      ]
+    },
+    {
+      "id": "p-amazon-20-gbp",
+      "name": "Amazon £20 Gift Card (GBP)",
+      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK Amazon accounts. Instant code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 20,
+      "marketplacePrice": 20,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Kingdom",
+        "Currency": "GBP",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        20
+      ],
+      "currency": "GBP",
+      "region": "United Kingdom",
+      "regions": [
+        "United Kingdom"
+      ]
+    },
+    {
+      "id": "p-amazon-200-usd",
+      "name": "Amazon $200 Gift Card (USD)",
+      "description": "Shop millions of products on Amazon.com. Valid for United States Amazon accounts. Instant digital code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 200,
+      "marketplacePrice": 200,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United States",
+        "Currency": "USD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        200
       ],
       "currency": "USD",
       "region": "United States",
@@ -74,26 +632,57 @@
       ]
     },
     {
-      "id": "p-apple-100-us",
-      "name": "Apple $100 App Store & iTunes Card",
-      "description": "Redeem for apps, games, music, movies, and iCloud subscriptions on US Apple accounts.",
-      "brand": "Apple",
-      "image": "/images/apple-card.jpg",
-      "category": "Entertainment",
-      "rating": 4.8,
-      "reviewsCount": 98,
+      "id": "p-amazon-150-usd",
+      "name": "Amazon $150 Gift Card (USD)",
+      "description": "Shop millions of products on Amazon.com. Valid for United States Amazon accounts. Instant digital code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 150,
+      "marketplacePrice": 150,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United States",
+        "Currency": "USD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        150
+      ],
+      "currency": "USD",
+      "region": "United States",
+      "regions": [
+        "United States"
+      ]
+    },
+    {
+      "id": "p-amazon-100-usd",
+      "name": "Amazon $100 Gift Card (USD)",
+      "description": "Shop millions of products on Amazon.com. Valid for United States Amazon accounts. Instant digital code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
       "retailPrice": 100,
       "marketplacePrice": 100,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
-        "Redemption": "App Store / iTunes",
-        "Region": "United States (US)",
-        "Expiration": "None"
+        "Region": "United States",
+        "Currency": "USD",
+        "Retailer Sourced": "amazon"
       },
-      "retailerId": "apple",
-      "stockCount": 200,
-      "isFeatured": true,
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
       "reviews": [],
       "pricePoints": [
         100
@@ -105,26 +694,57 @@
       ]
     },
     {
-      "id": "p-steam-50-us",
-      "name": "Steam $50 Wallet Card",
-      "description": "Add $50 directly to your Steam Account. Instant access to games and DLCs.",
-      "brand": "Steam",
-      "image": "/images/steam-card.jpg",
-      "category": "Gaming",
-      "rating": 4.9,
-      "reviewsCount": 230,
+      "id": "p-amazon-75-usd",
+      "name": "Amazon $75 Gift Card (USD)",
+      "description": "Shop millions of products on Amazon.com. Valid for United States Amazon accounts. Instant digital code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 75,
+      "marketplacePrice": 75,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United States",
+        "Currency": "USD",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        75
+      ],
+      "currency": "USD",
+      "region": "United States",
+      "regions": [
+        "United States"
+      ]
+    },
+    {
+      "id": "p-amazon-50-usd",
+      "name": "Amazon $50 Gift Card (USD)",
+      "description": "Shop millions of products on Amazon.com. Valid for United States Amazon accounts. Instant digital code delivery.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
       "retailPrice": 50,
       "marketplacePrice": 50,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
-        "Redemption": "Steam Client",
-        "Region": "United States (US)",
-        "Expiration": "None"
+        "Region": "United States",
+        "Currency": "USD",
+        "Retailer Sourced": "amazon"
       },
-      "retailerId": "steam",
-      "stockCount": 800,
-      "isFeatured": true,
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
       "reviews": [],
       "pricePoints": [
         50
@@ -136,65 +756,220 @@
       ]
     },
     {
-      "id": "p-amazon-25-uk",
-      "name": "Amazon £25 Gift Card",
-      "description": "Shop millions of items on Amazon.co.uk. Redeemable on UK accounts.",
+      "id": "p-amazon-25-usd",
+      "name": "Amazon $25 Gift Card (USD)",
+      "description": "Shop millions of products on Amazon.com. Valid for United States Amazon accounts. Instant digital code delivery.",
       "brand": "Amazon",
-      "image": "/images/amazon-card.jpg",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
       "category": "Retail",
-      "rating": 4.9,
-      "reviewsCount": 85,
+      "rating": 5,
+      "reviewsCount": 0,
       "retailPrice": 25,
       "marketplacePrice": 25,
       "estimatedDelivery": "Instant Digital Delivery",
       "specs": {
         "Format": "Digital Code",
-        "Redemption": "Amazon.co.uk",
-        "Region": "United Kingdom (GB)",
-        "Expiration": "None"
+        "Region": "United States",
+        "Currency": "USD",
+        "Retailer Sourced": "amazon"
       },
       "retailerId": "amazon",
-      "stockCount": 300,
-      "isFeatured": true,
+      "stockCount": 50,
+      "isFeatured": false,
       "reviews": [],
       "pricePoints": [
         25
-      ],
-      "currency": "GBP",
-      "region": "United Kingdom",
-      "regions": [
-        "United Kingdom"
-      ]
-    },
-    {
-      "id": "p-nike-50-us",
-      "name": "Nike $50 Gift Card",
-      "description": "Shop the latest Nike footwear, apparel, and equipment online or in-store.",
-      "brand": "Nike",
-      "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60",
-      "category": "Apparel",
-      "rating": 4.7,
-      "reviewsCount": 64,
-      "retailPrice": 50,
-      "marketplacePrice": 50,
-      "estimatedDelivery": "Instant Digital Delivery",
-      "specs": {
-        "Format": "Digital Code",
-        "Redemption": "Nike US Stores & Online",
-        "Region": "United States (US)",
-        "Expiration": "None"
-      },
-      "retailerId": "nike",
-      "stockCount": 100,
-      "isFeatured": true,
-      "reviews": [],
-      "pricePoints": [
-        50
       ],
       "currency": "USD",
       "region": "United States",
       "regions": [
         "United States"
+      ]
+    },
+    {
+      "id": "p-amazon-200-aed",
+      "name": "Amazon AED200 Gift Card",
+      "description": "Shop millions of items on Amazon.ae in the United Arab Emirates. Instant digital gift card code.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 200,
+      "marketplacePrice": 200,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Arab Emirates",
+        "Currency": "AED",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        200
+      ],
+      "currency": "AED",
+      "region": "United Arab Emirates",
+      "regions": [
+        "United Arab Emirates"
+      ]
+    },
+    {
+      "id": "p-amazon-150-aed",
+      "name": "Amazon AED150 Gift Card",
+      "description": "Shop millions of items on Amazon.ae in the United Arab Emirates. Instant digital gift card code.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 150,
+      "marketplacePrice": 150,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Arab Emirates",
+        "Currency": "AED",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        150
+      ],
+      "currency": "AED",
+      "region": "United Arab Emirates",
+      "regions": [
+        "United Arab Emirates"
+      ]
+    },
+    {
+      "id": "p-amazon-100-aed",
+      "name": "Amazon AED100 Gift Card",
+      "description": "Shop millions of items on Amazon.ae in the United Arab Emirates. Instant digital gift card code.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 100,
+      "marketplacePrice": 100,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Arab Emirates",
+        "Currency": "AED",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        100
+      ],
+      "currency": "AED",
+      "region": "United Arab Emirates",
+      "regions": [
+        "United Arab Emirates"
+      ]
+    },
+    {
+      "id": "p-amazon-75-aed",
+      "name": "Amazon AED75 Gift Card",
+      "description": "Shop millions of items on Amazon.ae in the United Arab Emirates. Instant digital gift card code.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 75,
+      "marketplacePrice": 75,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Arab Emirates",
+        "Currency": "AED",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        75
+      ],
+      "currency": "AED",
+      "region": "United Arab Emirates",
+      "regions": [
+        "United Arab Emirates"
+      ]
+    },
+    {
+      "id": "p-amazon-50-aed",
+      "name": "Amazon AED50 Gift Card",
+      "description": "Shop millions of items on Amazon.ae in the United Arab Emirates. Instant digital gift card code.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 50,
+      "marketplacePrice": 50,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Arab Emirates",
+        "Currency": "AED",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        50
+      ],
+      "currency": "AED",
+      "region": "United Arab Emirates",
+      "regions": [
+        "United Arab Emirates"
+      ]
+    },
+    {
+      "id": "p-amazon-25-aed",
+      "name": "Amazon AED25 Gift Card",
+      "description": "Shop millions of items on Amazon.ae in the United Arab Emirates. Instant digital gift card code.",
+      "brand": "Amazon",
+      "image": "https://m.media-amazon.com/images/I/31I63XNcY._AC_.jpg",
+      "category": "Retail",
+      "rating": 5,
+      "reviewsCount": 0,
+      "retailPrice": 25,
+      "marketplacePrice": 25,
+      "estimatedDelivery": "Instant Digital Delivery",
+      "specs": {
+        "Format": "Digital Code",
+        "Region": "United Arab Emirates",
+        "Currency": "AED",
+        "Retailer Sourced": "amazon"
+      },
+      "retailerId": "amazon",
+      "stockCount": 50,
+      "isFeatured": false,
+      "reviews": [],
+      "pricePoints": [
+        25
+      ],
+      "currency": "AED",
+      "region": "United Arab Emirates",
+      "regions": [
+        "United Arab Emirates"
       ]
     }
   ],
