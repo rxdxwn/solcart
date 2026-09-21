@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
@@ -23,6 +23,12 @@ export const metadata: Metadata = {
   description: "Spend your SOL directly on digital gift cards from top global brands with instant email code delivery and secure on-chain payments.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,10 +37,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark overflow-x-hidden`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-black text-white">
+      <body className="min-h-full flex flex-col bg-black text-white w-full max-w-full overflow-x-hidden">
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -55,7 +61,7 @@ export default function RootLayout({
               <Suspense fallback={<div className="h-16 bg-[#06020D] border-b border-brand-border/40 w-full" />}>
                 <Navbar />
               </Suspense>
-              <main className="flex flex-col flex-1">
+              <main className="flex flex-col flex-1 w-full max-w-full overflow-x-hidden">
                 {children}
               </main>
               <Footer />

@@ -275,3 +275,12 @@ body {
 .glow-card-green {
   box-shadow: 0 0 25px rgba(20, 241, 149, 0.2);
 }
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+}
+

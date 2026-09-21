@@ -92,8 +92,9 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
 
   const isConfigured = brandKey in config;
 
-  // Determine aspect ratio class
-  const aspectClass = 
+  // Determine aspect ratio class — skip it when parent controls height via h-full
+  const fillMode = className.includes("h-full");
+  const aspectClass = fillMode ? "h-full w-full" :
     aspectRatio === "video" ? "aspect-[16/9]" : 
     aspectRatio === "square" ? "aspect-square" : 
     "aspect-[1.586/1]"; // Standard credit card/gift card ratio
@@ -102,23 +103,25 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
   const isCustomImage = imageUrl && (imageUrl.startsWith("http") || !imageUrl.startsWith("/images/"));
   if (imageUrl && (isCustomImage || !isConfigured)) {
     return (
-      <div className={`relative w-full max-w-full ${aspectClass} rounded-xl border border-white/10 overflow-hidden shadow-2xl bg-[#0c0c0e] flex items-center justify-center group ${className}`}>
+      <div className={`relative ${fillMode ? "w-full h-full" : `w-full ${aspectClass}`} rounded-xl border border-white/10 overflow-hidden shadow-2xl bg-[#0c0c0e] flex items-center justify-center group ${className}`}
+        style={{ maxWidth: "100%" }}>
         <img
           src={imageUrl}
           alt={`${brand} Gift Card`}
-          className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-103 transition-transform duration-500 select-none pointer-events-none max-h-full max-w-full"
+          className="absolute inset-0 w-full h-full object-contain p-3 group-hover:scale-[1.03] transition-transform duration-500 select-none pointer-events-none"
         />
         {/* Holographic light overlay */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none opacity-60"></div>
         {/* Value badge */}
         {!isThumbnail && (
-          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[8px] sm:text-[9px] font-black text-white border border-white/10 shadow-md leading-none">
+          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[8px] sm:text-[9px] font-black text-white border border-white/10 shadow-md leading-none z-10">
             {displayValue}
           </div>
         )}
       </div>
     );
   }
+
 
   const cardConfig = config[brandKey] || {
     bg: "bg-gradient-to-br from-brand-card via-indigo-950/40 to-brand-dark",
@@ -130,7 +133,7 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
   // Render simplified card if in thumbnail mode
   if (isThumbnail) {
     return (
-      <div className={`relative w-full max-w-full ${aspectClass} rounded-xl ${cardConfig.bg} border border-white/10 overflow-hidden shadow-2xl p-2 flex items-center justify-center select-none group ${className}`}>
+      <div className={`relative ${fillMode ? "w-full h-full" : `w-full max-w-full ${aspectClass}`} rounded-xl ${cardConfig.bg} border border-white/10 overflow-hidden shadow-2xl p-2 flex items-center justify-center select-none group ${className}`}>
         {/* Background radial highlight */}
         <div 
           className="absolute -top-1/4 -right-1/4 w-3/4 h-3/4 rounded-full blur-[40px] opacity-15 pointer-events-none"
@@ -164,7 +167,7 @@ export function GiftCardArtwork({ brand, value, imageUrl, className = "", aspect
   }
 
   return (
-    <div className={`relative w-full max-w-full ${aspectClass} rounded-xl ${cardConfig.bg} border border-white/10 overflow-hidden shadow-2xl p-3 sm:p-4 flex flex-col justify-between select-none group ${className}`}>
+    <div className={`relative ${fillMode ? "w-full h-full" : `w-full max-w-full ${aspectClass}`} rounded-xl ${cardConfig.bg} border border-white/10 overflow-hidden shadow-2xl p-3 sm:p-4 flex flex-col justify-between select-none group ${className}`}>
       
       {/* Holographic light overlay */}
       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none opacity-40 group-hover:scale-150 transition-transform duration-1000"></div>

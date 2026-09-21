@@ -239,10 +239,10 @@ function MarketplaceContent() {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-10">
+    <div className="mx-auto w-full max-w-[1400px] px-3 sm:px-6 lg:px-8 py-6 sm:py-10 overflow-hidden">
       
       {/* Header Banner Section */}
-      <div className="rounded-3xl border border-brand-border/40 bg-gradient-to-r from-brand-card/40 via-indigo-950/10 to-brand-dark p-8 sm:p-10 relative overflow-hidden mb-8 shadow-2xl">
+      <div className="rounded-2xl sm:rounded-3xl border border-brand-border/40 bg-gradient-to-r from-brand-card/40 via-indigo-950/10 to-brand-dark p-5 sm:p-10 relative overflow-hidden mb-6 sm:mb-8 shadow-2xl w-full">
         {/* Background glows */}
         <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-brand-purple/5 rounded-full blur-[100px] pointer-events-none"></div>
         
@@ -351,7 +351,7 @@ function MarketplaceContent() {
         <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-brand-text-muted" />
       </div>
 
-      <div className="flex gap-8 items-start">
+      <div className="flex gap-8 items-start w-full min-w-0">
         
         {/* 1. Sidebar Filters (Desktop) */}
         <aside className="hidden lg:block w-64 shrink-0 glass-panel rounded-2xl p-6 border border-brand-border/40 sticky top-24">
@@ -448,15 +448,15 @@ function MarketplaceContent() {
         </aside>
 
         {/* 2. Products List Area */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 w-full">
           
           {/* Sorting & Filter buttons */}
-          <div className="flex items-center justify-between mb-6 gap-4 bg-brand-card/20 border border-brand-border/40 rounded-xl px-4 py-3">
-            <span className="text-xs text-brand-text-muted">
+          <div className="flex items-center justify-between mb-6 gap-4 bg-brand-card/20 border border-brand-border/40 rounded-xl px-4 py-3 w-full">
+            <span className="text-xs text-brand-text-muted truncate">
               Showing <span className="text-white font-bold">{products.length}</span> {selectedRegion !== "all" ? `${selectedRegion} ` : ""}products
             </span>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <button 
                 onClick={() => setShowMobileFilters(true)}
                 className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-border bg-brand-card/60 text-xs text-white"
@@ -496,7 +496,7 @@ function MarketplaceContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
               {products.map((product) => {
                 const prodRegion = product.region || product.regions?.[0] || "United States";
                 const currency = product.currency || "USD";
@@ -511,31 +511,37 @@ function MarketplaceContent() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
                     whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 hover:shadow-lg hover:shadow-brand-purple/5 transition-all duration-300"
+                    className="glass-card rounded-2xl border border-brand-border/40 overflow-hidden flex flex-col h-full group relative hover:border-brand-purple/40 hover:shadow-lg hover:shadow-brand-purple/5 transition-all duration-300 w-full max-w-full"
                   >
                     {/* Brand Colored Accent Strip */}
                     <div className="h-1 w-full bg-gradient-to-r from-brand-purple to-brand-green opacity-70 group-hover:opacity-100 transition-opacity"></div>
 
-                    <Link href={`/product/${product.id}`} className="flex flex-col flex-1">
-                      {/* Image Area - Clean bounded height so it never overwhelms mobile screen */}
-                      <div className="p-4 sm:p-5 h-44 sm:h-52 bg-brand-dark/40 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-brand-border/40">
+                    <Link href={`/product/${product.id}`} className="flex flex-col flex-1 w-full">
+                      {/* Image Area — fixed pixel height, artwork fills it via absolute positioning */}
+                      <div className="relative h-44 sm:h-52 bg-brand-dark/40 overflow-hidden shrink-0 border-b border-brand-border/40 w-full">
                         {/* Background subtle glow */}
-                        <div className="absolute inset-0 bg-radial-gradient from-brand-purple/5 to-transparent pointer-events-none"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-transparent pointer-events-none z-0"></div>
                         
-                        <div className="w-full max-w-[280px] sm:max-w-[320px] h-full flex items-center justify-center">
-                          <GiftCardArtwork brand={product.brand} value={product.retailPrice} imageUrl={product.image} className="shadow-xl transform group-hover:scale-[1.02] transition-all duration-300" />
+                        {/* Artwork fills the box — no aspect ratio bleeding */}
+                        <div className="absolute inset-4 sm:inset-5 flex items-center justify-center overflow-hidden z-10">
+                          <GiftCardArtwork
+                            brand={product.brand}
+                            value={product.retailPrice}
+                            imageUrl={product.image}
+                            className="w-full h-full shadow-xl transform group-hover:scale-[1.02] transition-all duration-300"
+                          />
                         </div>
                         
                         {/* Retailer badge */}
-                        <span className="absolute top-3 left-3 px-2.5 py-1 text-[9px] font-extrabold rounded-md bg-brand-dark/85 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5 shadow-md z-10">
+                        <span className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[9px] font-extrabold rounded-md bg-brand-dark/85 backdrop-blur-sm border border-brand-border/60 text-white flex items-center gap-1.5 shadow-md z-20">
                           <span className="h-1.5 w-1.5 rounded-full bg-brand-green animate-pulse"></span>
                           <span>{getRetailerName(product.retailerId)}</span>
                         </span>
 
                         {/* Region badge */}
-                        <span className="absolute top-3 right-3 px-2.5 py-1 text-[9px] font-extrabold rounded-md bg-brand-card/90 backdrop-blur-sm border border-brand-border/80 text-white flex items-center gap-1.5 shadow-md z-10">
-                          <span>{getCountryFlag(prodRegion)}</span>
-                          <span>{prodRegion}</span>
+                        <span className="absolute top-2.5 right-2.5 px-2 py-0.5 text-[9px] font-extrabold rounded-md bg-brand-card/90 backdrop-blur-sm border border-brand-border/80 text-white flex items-center gap-1 shadow-md z-20 max-w-[120px]">
+                          <span className="shrink-0">{getCountryFlag(prodRegion)}</span>
+                          <span className="truncate">{prodRegion}</span>
                         </span>
                       </div>
 
