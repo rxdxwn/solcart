@@ -2,8 +2,28 @@ import { NextResponse } from "next/server";
 import { DbAdapter } from "@/lib/db";
 import { APP_VERSION } from "@/lib/version";
 
+let cachedData: any = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 15000; // 15 seconds server-side cache
+
 export async function GET() {
   try {
+    const now = Date.now();
+    if (cachedData && now - lastCacheTime < CACHE_TTL_MS) {
+      return NextResponse.json(
+        {
+          success: true,
+          version: APP_VERSION,
+          data: cachedData
+        },
+        {
+          headers: {
+            "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30"
+          }
+        }
+      );
+    }
+
     const settings = await DbAdapter.getSettings();
     const products = await DbAdapter.getProducts();
     const orders = await DbAdapter.getOrders();
@@ -79,11 +99,21 @@ export async function GET() {
       version: APP_VERSION
     };
 
-    return NextResponse.json({
-      success: true,
-      version: APP_VERSION,
-      data
-    });
+    cachedData = data;
+    lastCacheTime = now;
+
+    return NextResponse.json(
+      {
+        success: true,
+        version: APP_VERSION,
+        data
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30"
+        }
+      }
+    );
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }
@@ -91,6 +121,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    cachedData = null; // Invalidate cache immediately on mutation
+    lastCacheTime = 0;
     const body = await request.json();
     const { action, payload } = body;
 

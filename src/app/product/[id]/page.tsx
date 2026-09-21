@@ -139,6 +139,7 @@ export default function ProductDetailPage({ params }: PageProps) {
     };
     
     handleSync();
+    RetailerService.syncWithServer();
     window.addEventListener("solcart-db-synced", handleSync);
     return () => window.removeEventListener("solcart-db-synced", handleSync);
   }, [id]);

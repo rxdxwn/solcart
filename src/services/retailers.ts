@@ -257,12 +257,20 @@ export class RetailerService {
     }
   }
 
+  private static lastSyncTime = 0;
+  private static readonly SYNC_COOLDOWN_MS = 30000; // 30s minimum between background syncs
+
   /**
    * Syncs browser local storage with server DB API endpoint
    */
-  static async syncWithServer(): Promise<void> {
+  static async syncWithServer(force = false): Promise<void> {
     if (typeof window === "undefined" || this.isSyncing) return;
+    const now = Date.now();
+    if (!force && now - this.lastSyncTime < this.SYNC_COOLDOWN_MS) {
+      return;
+    }
     this.isSyncing = true;
+    this.lastSyncTime = now;
     try {
       const res = await fetch("/api/db");
       if (res.ok) {
@@ -298,7 +306,6 @@ export class RetailerService {
   }
 
   static getRetailers(): RetailerConfig[] {
-    this.syncWithServer();
     return this.getStoredRetailers();
   }
 
@@ -336,7 +343,6 @@ export class RetailerService {
   }
 
   static getProducts(): Product[] {
-    this.syncWithServer();
     return this.getStoredProducts();
   }
 

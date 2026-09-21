@@ -79,6 +79,7 @@ function MarketplaceContent() {
     };
 
     handleSync();
+    RetailerService.syncWithServer();
     window.addEventListener("solcart-db-synced", handleSync);
     return () => window.removeEventListener("solcart-db-synced", handleSync);
   }, []);

@@ -128,14 +128,19 @@ export class SupabaseService {
      ORDER OPERATIONS (Production: supabase.from('orders').*)
      ========================================================================= */
 
-  // Share an in-flight sync so callers that await this method all wait for the
-  // same server response instead of reading the empty local cache prematurely.
   private static syncPromise: Promise<void> | null = null;
+  private static lastSyncTime = 0;
+  private static readonly SYNC_COOLDOWN_MS = 30000; // 30s minimum between background syncs
 
-  static async syncWithServer(): Promise<void> {
+  static async syncWithServer(force = false): Promise<void> {
     if (typeof window === "undefined") return;
+    const now = Date.now();
+    if (!force && now - this.lastSyncTime < this.SYNC_COOLDOWN_MS) {
+      return;
+    }
     if (this.syncPromise) return this.syncPromise;
 
+    this.lastSyncTime = now;
     this.syncPromise = (async () => {
       try {
         const res = await fetch("/api/db");
@@ -183,7 +188,6 @@ export class SupabaseService {
 
   static getOrders(): Order[] {
     if (typeof window === "undefined") return [];
-    this.syncWithServer();
     const stored = localStorage.getItem(STORAGE_KEYS.ORDERS);
     if (!stored) {
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(MOCK_ORDERS));
